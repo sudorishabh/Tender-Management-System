@@ -128,17 +128,6 @@ const FAQPage = () => {
             </Link>
           </div>
         </section>
-
-        {/* Keywords for SEO (hidden but crawlable) */}
-        <footer className='mt-12 text-xs text-gray-400'>
-          <p>
-            Keywords: TERI tender, TERI tenders, The Energy and Resources
-            Institute tender, TERI eTender portal, TERI procurement, TERI bid
-            submission, TERI vendor registration, government tender India,
-            e-procurement India, sustainable tender, environment tender, energy
-            research tender, TERI Delhi tender, TERI India tender
-          </p>
-        </footer>
       </div>
     </div>
   );
