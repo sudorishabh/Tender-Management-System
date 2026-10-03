@@ -191,9 +191,8 @@ export const defaultMetadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  alternates: {
-    canonical: BASE_URL,
-  },
+  // No site-wide canonical: every page without its own would inherit the home
+  // page's and tell search engines it is a duplicate of it
   category: "Business",
   classification: "Tender Management, E-Procurement, Government Tenders",
 };

@@ -3,6 +3,12 @@ import HomeSidebar from "@/app/_components/HomeRightSection";
 import HomeBanner from "@/app/_components/HomeBanner";
 import HomeTendersActionBar from "@/app/_components/HomeTenderActionBar/HomeTendersActionBar";
 import HomeTenders from "./_components/HomeTenders";
+import type { Metadata } from "next";
+import { BASE_URL } from "@/lib/seo.config";
+
+export const metadata: Metadata = {
+  alternates: { canonical: BASE_URL },
+};
 
 const Home = () => {
   return (
