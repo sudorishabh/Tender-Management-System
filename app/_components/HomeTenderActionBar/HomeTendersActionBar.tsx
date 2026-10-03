@@ -42,7 +42,7 @@ const HomeTendersActionBar = () => {
       case "high":
         return "> ₹50L";
       default:
-        return "Budget Range";
+        return "Any";
     }
   };
 
@@ -134,7 +134,7 @@ const HomeTendersActionBar = () => {
                   <Badge
                     variant='secondary'
                     className='text-xs flex items-center gap-1'>
-                    {getBudgetRangeLabel(budgetRange)}
+                    Fee + EMD: {getBudgetRangeLabel(budgetRange)}
                     <X
                       className='h-3 w-3 cursor-pointer hover:text-red-500'
                       onClick={() => setHomeTenderBudgetRange("")}

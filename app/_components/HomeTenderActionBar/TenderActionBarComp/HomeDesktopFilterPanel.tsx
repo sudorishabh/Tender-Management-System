@@ -83,7 +83,7 @@ const HomeDesktopFilterPanel = ({
         </div>
       </div>
 
-      {/* Budget Range Filter */}
+      {/* Fee + EMD range filter */}
       <div className='relative'>
         <Select
           onValueChange={(value) => setHomeTenderBudgetRange(value)}
@@ -95,7 +95,7 @@ const HomeDesktopFilterPanel = ({
             )}>
             <div className='flex text-[0.8rem] items-center gap-2'>
               <IndianRupee className='size-3.5 text-primary' />
-              <SelectValue placeholder='Budget' />
+              <SelectValue placeholder='Fee + EMD' />
             </div>
           </SelectTrigger>
           <SelectContent className='z-[700]'>

@@ -24,9 +24,9 @@ const getSortByLabel = (value: string) => {
     case "deadline-soon":
       return "Deadline Soon";
     case "budget-high":
-      return "Budget (High to Low)";
+      return "Fee + EMD (High to Low)";
     case "budget-low":
-      return "Budget (Low to High)";
+      return "Fee + EMD (Low to High)";
     case "oldest":
       return "Oldest First";
     case "latest":
@@ -119,9 +119,9 @@ const HomeSortSection = ({ sortBy }: { sortBy: string }) => {
               )}
             />
             <div>
-              <div className='font-medium'>Budget (High to Low)</div>
+              <div className='font-medium'>Fee + EMD (High to Low)</div>
               <div className='text-xs text-gray-500'>
-                Highest total budget first
+                Highest document fee + EMD first
               </div>
             </div>
           </DropdownMenuItem>
@@ -139,9 +139,9 @@ const HomeSortSection = ({ sortBy }: { sortBy: string }) => {
               )}
             />
             <div>
-              <div className='font-medium'>Budget (Low to High)</div>
+              <div className='font-medium'>Fee + EMD (Low to High)</div>
               <div className='text-xs text-gray-500'>
-                Lowest total budget first
+                Lowest document fee + EMD first
               </div>
             </div>
           </DropdownMenuItem>
