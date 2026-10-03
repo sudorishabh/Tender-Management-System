@@ -16,6 +16,7 @@ import {
   summariseMissing,
   type VendorProfileDetails,
 } from "./profileCompleteness";
+import CompletenessMeter from "./CompletenessMeter";
 
 interface Props {
   profile?: VendorProfileDetails;
@@ -38,21 +39,14 @@ const ProfileCompleteness = ({
         </span>
         <span className='font-semibold text-slate-900'>{percent}%</span>
       </div>
-      <div
-        role='progressbar'
-        aria-labelledby='profile-completeness-label'
-        aria-valuenow={percent}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        className='mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100'>
-        <div
-          className='h-full rounded-full bg-primary transition-[width]'
-          style={{ width: `${percent}%` }}
-        />
-      </div>
+      <CompletenessMeter
+        percent={percent}
+        labelledBy='profile-completeness-label'
+        className='mt-2'
+      />
       <p className='mt-2 text-xs text-slate-500'>
         {missing.length > 0
-          ? `Add ${summariseMissing(missing)} to complete your profile.`
+          ? `Add ${summariseMissing(missing.map((check) => check.label))} to complete your profile.`
           : "All business details are filled in."}
       </p>
     </div>
