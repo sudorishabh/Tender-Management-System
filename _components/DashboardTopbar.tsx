@@ -9,6 +9,7 @@ import {
   type UiRole,
 } from "@/lib/auth/types";
 import { dashboardRoleLabels, findActiveNavItem } from "@/lib/dashboard-nav";
+import NotificationBell from "./NotificationBell";
 
 interface Props {
   role: UiRole;
@@ -50,6 +51,9 @@ const DashboardTopbar = ({ role }: Props) => {
           )}
         </ol>
       </nav>
+      <div className='ml-auto flex items-center'>
+        <NotificationBell />
+      </div>
     </header>
   );
 };
