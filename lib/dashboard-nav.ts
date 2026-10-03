@@ -38,15 +38,26 @@ export const dashboardRoleLabels: Record<UiRole, string> = {
 export const dashboardNav: Record<UiRole, DashboardNavGroup[]> = {
   admin: [
     {
+      items: [{ title: "Dashboard", href: "/admin", icon: LayoutDashboard }],
+    },
+    {
+      label: "Tenders",
       items: [
-        { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
         { title: "Create Tender", href: "/admin/create", icon: BadgePlus },
         { title: "Live Tenders & Bids", href: "/admin/live", icon: Blocks },
+        { title: "Saved & Reviewed", href: "/admin/saved", icon: Save },
+      ],
+    },
+    {
+      label: "Bids",
+      items: [
         { title: "Approved Bids", href: "/admin/approved", icon: CircleCheckBig },
-        { title: "Saved & Reviewed Tenders", href: "/admin/saved", icon: Save },
-        { title: "Manage Vendors", href: "/admin/vendors", icon: Users },
         { title: "All Bids", href: "/admin/bids", icon: ArrowDownUp },
       ],
+    },
+    {
+      label: "Vendors",
+      items: [{ title: "Manage Vendors", href: "/admin/vendors", icon: Users }],
     },
   ],
   vendor: [
@@ -54,6 +65,7 @@ export const dashboardNav: Record<UiRole, DashboardNavGroup[]> = {
       items: [{ title: "Dashboard", href: "/vendor", icon: LayoutDashboard }],
     },
     {
+      label: "Tenders",
       items: [
         {
           title: "Purchased Tenders",
@@ -63,14 +75,21 @@ export const dashboardNav: Record<UiRole, DashboardNavGroup[]> = {
       ],
     },
     {
+      label: "Account",
       items: [{ title: "Profile", href: "/vendor/profile", icon: UserCircle }],
     },
   ],
   super: [
     {
+      label: "Administration",
       items: [
         { title: "Invite Admin", href: "/super/invite", icon: Share2 },
         { title: "Manage Admins", href: "/super/admins", icon: Users },
+      ],
+    },
+    {
+      label: "Tenders",
+      items: [
         { title: "Review Tender", href: "/super/tenders", icon: ClipboardList },
       ],
     },

@@ -24,6 +24,7 @@ export default {
           primary: "hsl(var(--sidebar-primary) / <alpha-value>)",
           "primary-foreground":
             "hsl(var(--sidebar-primary-foreground) / <alpha-value>)",
+          accent: "hsl(var(--sidebar-accent) / <alpha-value>)",
           border: "hsl(var(--sidebar-border) / <alpha-value>)",
           ring: "hsl(var(--sidebar-ring) / <alpha-value>)",
         },
