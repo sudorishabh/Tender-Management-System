@@ -683,6 +683,28 @@ export const homeLatestTenders = async (data: HomeLatestTendersType) => {
  * released) plus a deadline still in the future, so the number cannot exceed
  * what a visitor is able to browse.
  */
+// Distinct locations of published tenders, offered as filter suggestions
+export const homeTenderLocations = async () => {
+  const nowFormatted = getCurrentTimeFormatted(new Date());
+
+  const rows = await db
+    .selectDistinct({ location: tenderTable.tender_location })
+    .from(tenderTable)
+    .where(
+      and(
+        eq(tenderTable.tender_is_active, true),
+        sql`${tenderTable.tender_release_date} IS NOT NULL AND ${tenderTable.tender_release_date} <= ${nowFormatted}`,
+        sql`TRIM(${tenderTable.tender_location}) <> ''`,
+      ),
+    )
+    .orderBy(asc(tenderTable.tender_location))
+    .limit(50);
+
+  // Trimmed values still match, since the filter is a substring search
+  const locations = rows.flatMap((row) => row.location?.trim() || []);
+  return { locations: [...new Set(locations)] };
+};
+
 export const homeTenderStats = async () => {
   const now = new Date();
   const nowFormatted = getCurrentTimeFormatted(now);

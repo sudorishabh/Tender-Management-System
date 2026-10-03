@@ -16,6 +16,7 @@ import {
 import {
   homeLatestTenders,
   homeTenderStats,
+  homeTenderLocations,
   adminLiveTenders,
   tenderDetails,
   savedTender,
@@ -46,6 +47,16 @@ export const tenderQueryRoute = router({
       return { success: true, ...data };
     } catch (error) {
       throw handleProcedureError(error, "Failed to fetch tender stats");
+    }
+  }),
+
+  // Get locations to suggest in the home location filter (public)
+  getHomeLocations: publicProcedure.query(async () => {
+    try {
+      const data = await homeTenderLocations();
+      return { success: true, ...data };
+    } catch (error) {
+      throw handleProcedureError(error, "Failed to fetch tender locations");
     }
   }),
 
