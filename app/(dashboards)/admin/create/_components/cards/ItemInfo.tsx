@@ -5,6 +5,7 @@ import { CoinsIcon, HelpCircle, IndianRupee } from "lucide-react";
 import InfoCard from "@/components/Shared/InfoCard";
 import DocumentUploadField from "@/components/Shared/DocumentUploadField";
 import CustomInput from "@/components/Shared/CustomInput";
+import { TENDER_TITLE_MAX_LENGTH } from "@/lib/constants";
 import { ArrowRight, Save } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { ITenderFormSteps } from "@/_types/tender/createTender.type";
@@ -240,6 +241,7 @@ const ItemInfo: FC<Props> = ({
             Label='Title'
             placeholder='Enter a clear, descriptive title for this tender'
             disabled={liveEditRestricted}
+            maxLength={TENDER_TITLE_MAX_LENGTH}
             rules={{ required: "Title is required" }}
           />
 
