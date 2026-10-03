@@ -69,7 +69,7 @@ const BidsTable: FC<Props> = ({ data }) => {
                   </TableCell>
                   <TableCell className='text-center'>
                     <Link
-                      href={`/admin/tenders/bids/details/${bid.tender_id}/${bid.bid_id}`}>
+                      href={`/admin/live/${bid.tender_id}/bid/${bid.bid_id}`}>
                       <Button
                         variant='ghost'
                         size='sm'
