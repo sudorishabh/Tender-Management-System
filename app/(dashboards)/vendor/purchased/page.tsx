@@ -1,6 +1,7 @@
 "use client";
 import Heading from "@/components/Shared/Heading";
 import React from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { useSession } from "next-auth/react";
@@ -54,8 +55,10 @@ const PurchasedTendersPage = () => {
             <p className='text-gray-500 mb-4'>
               You haven&apos;t submitted any bids yet.
             </p>
-            <Button className='bg-primary hover:bg-primary'>
-              Browse Available Tenders
+            <Button
+              asChild
+              className='bg-primary hover:bg-primary'>
+              <Link href='/'>Browse Available Tenders</Link>
             </Button>
           </div>
         )}

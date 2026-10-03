@@ -185,7 +185,7 @@ const VendorDashboard = () => {
                         </span>
                       </div>
                     </div>
-                    <Link href={`/vendor/purchased/${bid.bid_id}`}>
+                    <Link href={`/tender/${bid.tender_id}`}>
                       <Button size='sm' variant="outline" className="w-full sm:w-auto text-xs h-7 px-3">View Details</Button>
                     </Link>
                   </div>
@@ -200,7 +200,7 @@ const VendorDashboard = () => {
                 <p className='text-xs text-muted-foreground max-w-sm mb-3'>
                   You haven&apos;t participated in any tenders yet. Explore active tenders to get started.
                 </p>
-                <Link href='/live-tenders'>
+                <Link href='/'>
                   <Button size="sm" className="text-xs h-8">Browse Active Tenders</Button>
                 </Link>
               </div>
