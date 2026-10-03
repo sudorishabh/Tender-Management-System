@@ -29,6 +29,13 @@
       "when": 1791013244188,
       "tag": "0003_add_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1791013543730,
+      "tag": "0004_add_tender_clarifications",
+      "breakpoints": true
     }
   ]
 }

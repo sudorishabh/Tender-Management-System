@@ -186,6 +186,27 @@ export const bidVendorDocsTable = mysqlTable("bid_vendor_docs", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 });
 
+// Clarification questions vendors ask about a tender before the query
+// deadline. Answered questions are shown to everyone without the asker.
+export const tenderClarificationsTable = mysqlTable("tender_clarifications", {
+  clar_id: int("clar_id").autoincrement().primaryKey(),
+  tender_id: int("tender_id")
+    .references(() => tenderTable.tender_id, { onDelete: "cascade" })
+    .notNull(),
+  vendor_id: int("vendor_id")
+    .references(() => vendorProfileTable.vendor_id, { onDelete: "cascade" })
+    .notNull(),
+  clar_question: text("clar_question").notNull(),
+  clar_answer: text("clar_answer"),
+  clar_answered_by: int("clar_answered_by").references(
+    () => usersTable.user_id,
+    { onDelete: "set null" }
+  ),
+  clar_answered_at: timestamp("clar_answered_at"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
 // In-app notifications shown in the dashboard top bar
 export const notificationsTable = mysqlTable("notifications", {
   notif_id: int("notif_id").autoincrement().primaryKey(),
