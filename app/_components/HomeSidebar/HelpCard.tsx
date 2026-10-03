@@ -1,11 +1,13 @@
 "use client";
 import React, { useId, useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
   MessageSquare,
   Phone,
   Mail,
   ChevronDown,
+  ChevronRight,
   type LucideIcon,
 } from "lucide-react";
 
@@ -121,7 +123,7 @@ const HelpCard = () => {
       <h3 className='border-t border-slate-100 px-5 pb-1 pt-4 text-xs font-semibold uppercase tracking-wide text-slate-500'>
         Frequently asked questions
       </h3>
-      <div className='divide-y divide-slate-100 pb-1'>
+      <div className='divide-y divide-slate-100'>
         {faqs.map((faq, index) => {
           const isOpen = openFaq === index;
           return (
@@ -163,6 +165,17 @@ const HelpCard = () => {
           );
         })}
       </div>
+
+      {/* The FAQ page answers more than fits here */}
+      <Link
+        href='/faq'
+        className='flex items-center justify-between border-t border-slate-100 px-5 py-3 text-xs font-medium text-primary transition-colors hover:bg-slate-50'>
+        See all FAQs
+        <ChevronRight
+          className='size-3.5'
+          aria-hidden='true'
+        />
+      </Link>
     </section>
   );
 };
