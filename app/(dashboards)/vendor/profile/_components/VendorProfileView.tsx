@@ -1,29 +1,25 @@
 "use client";
 import React from "react";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/_components/ui/card";
-import { Button } from "@/_components/ui/button";
-import { Badge } from "@/_components/ui/badge";
-import {
-  Mail,
-  Phone,
-  User,
-  Building,
-  FileText,
-  Calendar,
-  MapPin,
-  Globe,
-  CreditCard,
-  Users,
-  TrendingUp,
+  Building2,
+  CalendarDays,
   ExternalLink,
+  FileCheck2,
+  FileText,
+  FileX2,
+  Hash,
+  MapPin,
+  Pencil,
+  UserRound,
+  type LucideIcon,
 } from "lucide-react";
-import { formatDisplayDate } from "@/utils/dateUtils";
+import { cn } from "@/lib/utils";
+import { surfaceStyle } from "@/app/styles";
+import { Button } from "@/_components/ui/button";
+import StatusBadge from "@/_components/Shared/StatusBadge";
 import PdfViewerModal from "@/_components/Shared/PdfViewerModal";
+import { formatDisplayDate } from "@/utils/dateUtils";
+import ProfileSection from "./ProfileSection";
 import type { VendorProfileDetails } from "../../_components/profileCompleteness";
 
 interface VendorProfileViewProps {
@@ -31,296 +27,330 @@ interface VendorProfileViewProps {
   onEdit: () => void;
 }
 
+type Business = VendorProfileDetails["business"];
+
+const NotProvided = () => (
+  <span className='font-normal text-slate-400'>Not provided</span>
+);
+
+const DetailItem = ({
+  label,
+  value,
+  className,
+  children,
+}: {
+  label: string;
+  value?: string | number | null;
+  className?: string;
+  children?: React.ReactNode;
+}) => {
+  const hasValue = value !== null && value !== undefined && value !== "";
+
+  return (
+    <div className={cn("min-w-0", className)}>
+      <dt className='text-xs text-slate-500'>{label}</dt>
+      <dd className='mt-1 break-words text-sm font-medium text-slate-900'>
+        {children ?? (hasValue ? value : <NotProvided />)}
+      </dd>
+    </div>
+  );
+};
+
+const DetailList = ({ children }: { children: React.ReactNode }) => (
+  <dl className='grid gap-x-6 gap-y-4 sm:grid-cols-2'>{children}</dl>
+);
+
+const MetaItem = ({
+  icon: Icon,
+  children,
+}: {
+  icon: LucideIcon;
+  children: React.ReactNode;
+}) => (
+  <span className='inline-flex items-center gap-1.5'>
+    <Icon
+      aria-hidden
+      className='size-3.5 text-slate-400'
+    />
+    {children}
+  </span>
+);
+
+// "Asha Rao" -> "AR", falling back to the email's first letter
+const getInitials = (name: string | null, email: string | null) => {
+  const words = (name ?? "").trim().split(/\s+/).filter(Boolean);
+  if (words.length > 0) {
+    return words
+      .slice(0, 2)
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase();
+  }
+  return (email?.[0] ?? "V").toUpperCase();
+};
+
+// One address part per line: street, area, region, country
+const getAddressLines = (business: Business) => {
+  if (!business) return [];
+
+  return [
+    [business.biz_addr_line1, business.biz_addr_line2],
+    [business.biz_locality, business.biz_city],
+    [business.biz_state, business.biz_pin_code],
+    [business.biz_country],
+  ]
+    .map((parts) => parts.filter(Boolean).join(", "))
+    .filter(Boolean);
+};
+
+const WebsiteLink = ({ url }: { url: string }) => (
+  <a
+    href={url.startsWith("http") ? url : `https://${url}`}
+    target='_blank'
+    rel='noopener noreferrer'
+    className='inline-flex items-center gap-1 text-primary hover:underline'>
+    {url}
+    <ExternalLink
+      aria-hidden
+      className='size-3'
+    />
+  </a>
+);
+
+const DocumentRow = ({
+  label,
+  docKey,
+}: {
+  label: string;
+  docKey: string | null | undefined;
+}) => (
+  <li className='flex items-center justify-between gap-3 py-2.5'>
+    <span className='flex min-w-0 items-center gap-2.5 text-sm text-slate-700'>
+      {docKey ? (
+        <FileCheck2
+          aria-hidden
+          className='size-4 shrink-0 text-emerald-600'
+        />
+      ) : (
+        <FileX2
+          aria-hidden
+          className='size-4 shrink-0 text-slate-300'
+        />
+      )}
+      <span className='truncate'>{label}</span>
+    </span>
+    {docKey ? (
+      <PdfViewerModal
+        isS3File={true}
+        value={docKey}
+        triggerButton={
+          <Button
+            variant='ghost'
+            size='sm'
+            className='h-7 shrink-0 px-2 text-xs text-primary hover:text-primary'>
+            View
+          </Button>
+        }
+      />
+    ) : (
+      <span className='shrink-0 text-xs text-slate-400'>Not uploaded</span>
+    )}
+  </li>
+);
+
 const VendorProfileView: React.FC<VendorProfileViewProps> = ({
   data,
   onEdit,
 }) => {
   const { user, business } = data;
+  const organisation = business?.biz_trade_name || business?.biz_legal_name;
+  const addressLines = getAddressLines(business);
 
-  const getStatusColor = (status: string | null) => {
-    switch (status) {
-      case "approved":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "rejected":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "pending":
-      default:
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    }
-  };
-
-  const formatAddress = () => {
-    if (!business) return "Not provided";
-    const parts = [
-      business.biz_addr_line1,
-      business.biz_addr_line2,
-      business.biz_locality,
-      business.biz_city,
-      business.biz_state,
-      business.biz_pin_code,
-      business.biz_country,
-    ].filter(Boolean);
-    return parts.join(", ") || "Not provided";
-  };
-
-  const InfoRow = ({
-    icon: Icon,
-    label,
-    value,
-    isLink = false,
-  }: {
-    icon: React.ElementType;
-    label: string;
-    value: string | null | undefined;
-    isLink?: boolean;
-  }) => (
-    <div className='flex items-start gap-3 py-3 border-b border-gray-100 last:border-0'>
-      <div className='p-2 bg-primary/5 rounded-lg flex-shrink-0'>
-        <Icon className='h-4 w-4 text-primary' />
-      </div>
-      <div className='flex-1 min-w-0'>
-        <p className='text-xs text-gray-500'>{label}</p>
-        {isLink && value ? (
-          <a
-            href={value.startsWith("http") ? value : `https://${value}`}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='font-medium text-primary hover:underline flex items-center gap-1'>
-            {value}
-            <ExternalLink className='h-3 w-3' />
-          </a>
-        ) : (
-          <p className='font-medium text-gray-900'>{value || "Not provided"}</p>
-        )}
-      </div>
-    </div>
-  );
-
-  const DocumentButton = ({
-    label,
-    docKey,
-  }: {
-    label: string;
-    docKey: string | null;
-  }) => (
-    <div className='flex items-center justify-between py-2'>
-      <span className='text-sm text-gray-600'>{label}</span>
-      {docKey ? (
-        <PdfViewerModal isS3File={true} value={docKey} triggerButton={<Button
-          variant='outline'
-          size='sm'
-          className='text-primary border-primary/20 hover:bg-primary/10'>
-          <FileText className='h-4 w-4 mr-1' />
-          View
-        </Button>} />
-
-      ) : (
-        <span className='text-sm text-gray-400'>Not uploaded</span>
-      )}
-    </div>
-  );
+  const documents = [
+    { label: "PAN card", docKey: user.vendor_pan_doc_key },
+    { label: "Aadhaar card", docKey: user.vendor_adhar_doc_key },
+    { label: "Business registration", docKey: business?.biz_reg_doc_key },
+    { label: "GST certificate", docKey: business?.biz_gst_doc_key },
+    { label: "MSME certificate", docKey: business?.biz_msme_cert_doc_key },
+    { label: "Bank document", docKey: business?.biz_bank_doc_key },
+  ];
+  const uploadedCount = documents.filter((doc) => doc.docKey).length;
 
   return (
     <div className='space-y-6'>
-      {/* Header with Edit Button */}
-      <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
-        <div>
-          <h1 className='text-2xl font-bold text-gray-900'>My Profile</h1>
-          <p className='text-gray-500 mt-1'>
-            View and manage your vendor profile information
+      {/* Identity header */}
+      <section
+        className={cn(
+          surfaceStyle,
+          "flex flex-col gap-4 p-5 sm:flex-row sm:items-center",
+        )}>
+        <span
+          aria-hidden
+          className='flex size-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary'>
+          {getInitials(user.full_name, user.email)}
+        </span>
+        <div className='min-w-0 flex-1'>
+          <div className='flex flex-wrap items-center gap-2'>
+            <h2 className='truncate text-lg font-semibold text-slate-900'>
+              {user.full_name || "Unnamed vendor"}
+            </h2>
+            <StatusBadge status={user.vendor_status} />
+          </div>
+          <p className='mt-0.5 truncate text-sm text-slate-600'>
+            {organisation || "Organisation not added"}
           </p>
+          <div className='mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500'>
+            {user.vendor_code && (
+              <MetaItem icon={Hash}>Vendor code {user.vendor_code}</MetaItem>
+            )}
+            {user.created_at && (
+              <MetaItem icon={CalendarDays}>
+                Member since {formatDisplayDate(user.created_at)}
+              </MetaItem>
+            )}
+          </div>
         </div>
-        <div className='flex items-center gap-3'>
-          <Badge className={`${getStatusColor(user.vendor_status)} px-3 py-1`}>
-            {user.vendor_status
-              ? user.vendor_status.charAt(0).toUpperCase() +
-              user.vendor_status.slice(1)
-              : "Pending"}
-          </Badge>
-          <Button
-            onClick={onEdit}
-            className='bg-primary hover:bg-primary text-white'>
-            Edit Profile
-          </Button>
+        <Button
+          onClick={onEdit}
+          className='shrink-0 self-start sm:self-center'>
+          <Pencil
+            aria-hidden
+            className='size-4'
+          />
+          Edit profile
+        </Button>
+      </section>
+
+      <div className='grid gap-6 lg:grid-cols-3'>
+        <div className='space-y-6 lg:col-span-2'>
+          <ProfileSection
+            title='Contact person'
+            icon={UserRound}>
+            <DetailList>
+              <DetailItem
+                label='Full name'
+                value={user.full_name}
+              />
+              <DetailItem
+                label='Login email'
+                value={user.email}
+              />
+              <DetailItem
+                label='Contact number'
+                value={user.vendor_contact}
+              />
+              <DetailItem
+                label='Alternate contact'
+                value={user.vendor_alt_contact}
+              />
+              <DetailItem
+                label='PAN number'
+                value={user.vendor_pan_number}
+              />
+            </DetailList>
+          </ProfileSection>
+
+          <ProfileSection
+            title='Business'
+            icon={Building2}>
+            <DetailList>
+              <DetailItem
+                label='Legal name'
+                value={business?.biz_legal_name}
+              />
+              <DetailItem
+                label='Trade name'
+                value={business?.biz_trade_name}
+              />
+              <DetailItem
+                label='Classification'
+                value={business?.biz_classification}
+              />
+              <DetailItem
+                label='Registration number'
+                value={business?.biz_reg_number}
+              />
+              <DetailItem
+                label='Year established'
+                value={business?.biz_established_year}
+              />
+              <DetailItem
+                label='GST number'
+                value={business?.biz_gst_number}
+              />
+              <DetailItem
+                label='Employees'
+                value={business?.biz_employee_count}
+              />
+              <DetailItem
+                label='3-year turnover'
+                value={business?.biz_3_year_turnover}
+              />
+            </DetailList>
+          </ProfileSection>
+
+          <ProfileSection
+            title='Business contact & address'
+            icon={MapPin}>
+            <DetailList>
+              <DetailItem
+                label='Business email'
+                value={business?.biz_email}
+              />
+              <DetailItem
+                label='Business phone'
+                value={business?.biz_phone}
+              />
+              <DetailItem label='Website'>
+                {business?.biz_website ? (
+                  <WebsiteLink url={business.biz_website} />
+                ) : (
+                  <NotProvided />
+                )}
+              </DetailItem>
+              <DetailItem
+                label='Address'
+                className='sm:col-span-2'>
+                {addressLines.length > 0 ? (
+                  addressLines.map((line, index) => (
+                    <span
+                      key={index}
+                      className='block'>
+                      {line}
+                    </span>
+                  ))
+                ) : (
+                  <NotProvided />
+                )}
+              </DetailItem>
+            </DetailList>
+          </ProfileSection>
         </div>
-      </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-        {/* Personal Information Card */}
-        <Card className='bg-white shadow-sm border border-gray-200'>
-          <CardHeader className='pb-3'>
-            <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-              <div className='p-2 bg-primary/15 rounded-lg'>
-                <User className='h-5 w-5 text-primary' />
-              </div>
-              Personal Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className='pt-0'>
-            <InfoRow
-              icon={User}
-              label='Full Name'
-              value={user.full_name}
-            />
-            <InfoRow
-              icon={Mail}
-              label='Email'
-              value={user.email}
-            />
-            <InfoRow
-              icon={Phone}
-              label='Contact'
-              value={user.vendor_contact}
-            />
-            <InfoRow
-              icon={Phone}
-              label='Alternate Contact'
-              value={user.vendor_alt_contact}
-            />
-            <InfoRow
-              icon={CreditCard}
-              label='PAN Number'
-              value={user.vendor_pan_number}
-            />
-            <InfoRow
-              icon={Calendar}
-              label='Vendor Code'
-              value={user.vendor_code}
-            />
-            <InfoRow
-              icon={Calendar}
-              label='Member Since'
-              value={formatDisplayDate(user.created_at)}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Business Information Card */}
-        <Card className='bg-white shadow-sm border border-gray-200'>
-          <CardHeader className='pb-3'>
-            <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-              <div className='p-2 bg-primary/15 rounded-lg'>
-                <Building className='h-5 w-5 text-primary' />
-              </div>
-              Business Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className='pt-0'>
-            <InfoRow
-              icon={Building}
-              label='Legal Name'
-              value={business?.biz_legal_name}
-            />
-            <InfoRow
-              icon={Building}
-              label='Trade Name'
-              value={business?.biz_trade_name}
-            />
-            <InfoRow
-              icon={FileText}
-              label='Classification'
-              value={business?.biz_classification}
-            />
-            <InfoRow
-              icon={FileText}
-              label='Registration Number'
-              value={business?.biz_reg_number}
-            />
-            <InfoRow
-              icon={Calendar}
-              label='Established Year'
-              value={business?.biz_established_year}
-            />
-            <InfoRow
-              icon={CreditCard}
-              label='GST Number'
-              value={business?.biz_gst_number}
-            />
-            <InfoRow
-              icon={Users}
-              label='Employee Count'
-              value={business?.biz_employee_count?.toString()}
-            />
-            <InfoRow
-              icon={TrendingUp}
-              label='3 Year Turnover'
-              value={business?.biz_3_year_turnover}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Contact & Address Card */}
-        <Card className='bg-white shadow-sm border border-gray-200'>
-          <CardHeader className='pb-3'>
-            <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-              <div className='p-2 bg-primary/15 rounded-lg'>
-                <MapPin className='h-5 w-5 text-primary' />
-              </div>
-              Contact & Address
-            </CardTitle>
-          </CardHeader>
-          <CardContent className='pt-0'>
-            <InfoRow
-              icon={Mail}
-              label='Business Email'
-              value={business?.biz_email}
-            />
-            <InfoRow
-              icon={Phone}
-              label='Business Phone'
-              value={business?.biz_phone}
-            />
-            <InfoRow
-              icon={Globe}
-              label='Website'
-              value={business?.biz_website}
-              isLink
-            />
-            <InfoRow
-              icon={MapPin}
-              label='Address'
-              value={formatAddress()}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Documents Card */}
-        <Card className='bg-white shadow-sm border border-gray-200'>
-          <CardHeader className='pb-3'>
-            <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-              <div className='p-2 bg-primary/15 rounded-lg'>
-                <FileText className='h-5 w-5 text-primary' />
-              </div>
-              Documents
-            </CardTitle>
-          </CardHeader>
-          <CardContent className='pt-0 space-y-1'>
-            <DocumentButton
-              label='PAN Card Document'
-              docKey={user.vendor_pan_doc_key}
-            />
-            <DocumentButton
-              label='Aadhaar Document'
-              docKey={user.vendor_adhar_doc_key}
-            />
-            <DocumentButton
-              label='Business Registration'
-              docKey={business?.biz_reg_doc_key ?? null}
-            />
-            <DocumentButton
-              label='GST Certificate'
-              docKey={business?.biz_gst_doc_key ?? null}
-            />
-            <DocumentButton
-              label='MSME Certificate'
-              docKey={business?.biz_msme_cert_doc_key ?? null}
-            />
-            <DocumentButton
-              label='Bank Document'
-              docKey={business?.biz_bank_doc_key ?? null}
-            />
-          </CardContent>
-        </Card>
+        <aside className='space-y-6'>
+          <ProfileSection
+            title='Documents'
+            icon={FileText}
+            action={
+              <span className='text-xs text-slate-500'>
+                {uploadedCount} of {documents.length} uploaded
+              </span>
+            }>
+            <ul className='-my-2.5 divide-y divide-slate-100'>
+              {documents.map((doc) => (
+                <DocumentRow
+                  key={doc.label}
+                  label={doc.label}
+                  docKey={doc.docKey}
+                />
+              ))}
+            </ul>
+            <p className='mt-4 text-xs text-slate-500'>
+              Documents uploaded during registration can&apos;t be changed
+              here. Contact the tender team to replace one.
+            </p>
+          </ProfileSection>
+        </aside>
       </div>
     </div>
   );
