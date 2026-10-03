@@ -1,7 +1,6 @@
 "use client";
-import { useMemo } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { ScrollArea } from "@/_components/ui/scroll-area";
 import {
   Sidebar,
@@ -14,72 +13,23 @@ import {
   SidebarContent,
   useSidebar,
 } from "@/_components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/_components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/_components/ui/avatar";
 import { Separator } from "@/_components/ui/separator";
-import {
-  LayoutDashboard,
-  BadgePlus,
-  Blocks,
-  CircleCheckBig,
-  Save,
-  Users,
-  ArrowDownUp,
-  LogOut,
-  ShoppingBag,
-  BadgeCheck,
-  UserCircle,
-  Share2,
-  ClipboardList,
-} from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { LogOut, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import useLogout from "@/hooks/useLogout";
+import type { UiRole } from "@/lib/auth/types";
+import {
+  dashboardNav,
+  findActiveNavItem,
+  type DashboardNavItem,
+} from "@/lib/dashboard-nav";
 
-// Roles supported
-export type DashboardRole = "admin" | "vendor" | "super";
+export type DashboardRole = UiRole;
 
 interface RoleSidebarProps {
   role: DashboardRole;
 }
-
-interface LinkItem {
-  title: string;
-  link: string;
-  icon: any; // lucide icon component
-  group?: string; // for vendor grouping
-}
-
-const adminLinks: LinkItem[] = [
-  { title: "Dashboard", link: "/admin", icon: LayoutDashboard },
-  { title: "Create Tender", link: "/admin/create", icon: BadgePlus },
-  { title: "Live Tenders & Bids", link: "/admin/live", icon: Blocks },
-  { title: "Approved Bids", link: "/admin/approved", icon: CircleCheckBig },
-  { title: "Saved & Reviewed Tenders", link: "/admin/saved", icon: Save },
-  { title: "Manage Vendors", link: "/admin/vendors", icon: Users },
-  { title: "All Bids", link: "/admin/bids", icon: ArrowDownUp },
-];
-
-const vendorLinks: LinkItem[] = [
-  { title: "Dashboard", link: "/vendor", icon: LayoutDashboard, group: "main" },
-  {
-    title: "Purchased Tenders",
-    link: "/vendor/purchased",
-    icon: ShoppingBag,
-    group: "tenders",
-  },
-  {
-    title: "Profile",
-    link: "/vendor/profile",
-    icon: UserCircle,
-    group: "account",
-  },
-];
-
-const superLinks: LinkItem[] = [
-  { title: "Invite Admin", link: "/super/invite", icon: Share2 },
-  { title: "Manage Admins", link: "/super/admins", icon: Users },
-  { title: "Review Tender", link: "/super/tenders", icon: ClipboardList },
-];
 
 // Avatar/header config per role
 const roleHeaderConfig: Record<
@@ -111,32 +61,12 @@ export const RoleSidebar = ({ role }: RoleSidebarProps) => {
   const { state } = useSidebar();
   const { logout, isLoggingOut } = useLogout();
 
-  // Pick links for role
-  const links: LinkItem[] = useMemo(() => {
-    if (role === "admin") return adminLinks;
-    if (role === "vendor") return vendorLinks;
-    return superLinks;
-  }, [role]);
-
-  // Vendor grouping
-  const vendorGroupsOrder = ["main", "tenders", "account"];
-  const groupedVendorLinks: Record<string, LinkItem[]> = useMemo(() => {
-    if (role !== "vendor") return {};
-    return vendorGroupsOrder.reduce(
-      (acc, grp) => {
-        acc[grp] = links.filter((l) => l.group === grp);
-        return acc;
-      },
-      {} as Record<string, LinkItem[]>,
-    );
-  }, [links, role]);
+  const navGroups = dashboardNav[role];
+  const activeHref = findActiveNavItem(role, pathname)?.href;
 
   // Render helper for a single link item
-  const renderLink = (item: LinkItem) => {
-    const isActive =
-      item.link === (role === "admin" ? `/${role}` : `/${role}`)
-        ? pathname === item.link
-        : pathname.startsWith(item.link);
+  const renderLink = (item: DashboardNavItem) => {
+    const isActive = item.href === activeHref;
     return (
       <SidebarMenuItem key={item.title}>
         <SidebarMenuButton
@@ -149,7 +79,7 @@ export const RoleSidebar = ({ role }: RoleSidebarProps) => {
               : "hover:bg-gray-100 text-gray-600"
           }`}>
           <Link
-            href={item.link}
+            href={item.href}
             className='w-full flex'>
             <item.icon
               className={cn(isActive ? "text-primary" : "text-gray-700")}
@@ -173,7 +103,7 @@ export const RoleSidebar = ({ role }: RoleSidebarProps) => {
     nameLine1: "User",
     nameLine2: "Dashboard",
   };
-  const { image, fallback, nameLine1, nameLine2 } = headerConfig;
+  const { fallback, nameLine1, nameLine2 } = headerConfig;
 
   return (
     <Sidebar
@@ -216,24 +146,16 @@ export const RoleSidebar = ({ role }: RoleSidebarProps) => {
                 state !== "collapsed" ? "pr-3 ml-3" : "pr-0 ml-0"
               }`}>
               <SidebarMenu>
-                {role === "vendor" ? (
-                  // Vendor grouped sections
-                  Object.entries(groupedVendorLinks).map(
-                    ([groupKey, groupLinks], idx) => (
-                      <div
-                        key={groupKey}
-                        className='w-full'>
-                        {groupLinks.map(renderLink)}
-                        {idx < vendorGroupsOrder.length - 1 && (
-                          <Separator className='my-3' />
-                        )}
-                      </div>
-                    ),
-                  )
-                ) : (
-                  // Admin & Super (flat)
-                  <>{links.map(renderLink)}</>
-                )}
+                {navGroups.map((group, idx) => (
+                  <div
+                    key={group.label ?? idx}
+                    className='w-full'>
+                    {group.items.map(renderLink)}
+                    {idx < navGroups.length - 1 && (
+                      <Separator className='my-3' />
+                    )}
+                  </div>
+                ))}
 
                 <Separator className='my-2' />
                 <SidebarMenuItem>
