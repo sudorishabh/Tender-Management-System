@@ -12,7 +12,11 @@ interface TenderAdminFilter {
   department: string;
 }
 
+/** Which tenders the home list shows, by whether bidding is still open */
+export type TenderAvailability = "open" | "closed" | "all";
+
 interface TenderHomeFilter {
+  availability: TenderAvailability;
   search: string;
   department: string;
   location: string;
@@ -37,6 +41,7 @@ interface TenderContextType {
   homePagination: HomePagination;
   setManageTenderSearchQuery: (query: string) => void;
   setTenderDepartmentAdmin: (department: string) => void;
+  setHomeTenderAvailability: (availability: TenderAvailability) => void;
   setHomeTenderSearch: (search: string) => void;
   setHomeTenderDepartment: (department: string) => void;
   setHomeTenderLocation: (location: string) => void;
@@ -71,6 +76,7 @@ export const TenderProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const [tenderHomeFilter, setTenderHomeFilter] = useState<TenderHomeFilter>({
+    availability: "open",
     search: "",
     department: "",
     location: "",
@@ -95,6 +101,13 @@ export const TenderProvider = ({ children }: { children: ReactNode }) => {
   const setTenderDepartmentAdmin = useCallback((department: string) => {
     setTenderAdminFilter((prev) => ({ ...prev, department }));
   }, []);
+
+  const setHomeTenderAvailability = useCallback(
+    (availability: TenderAvailability) => {
+      setTenderHomeFilter((prev) => ({ ...prev, availability }));
+    },
+    []
+  );
 
   const setHomeTenderSearch = useCallback((search: string) => {
     setTenderHomeFilter((prev) => ({ ...prev, search }));
@@ -131,8 +144,10 @@ export const TenderProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
+  // Keeps the open/closed tab - it is a view of the list, not a filter
   const resetHomeTenderFilterOptions = useCallback(() => {
-    setTenderHomeFilter({
+    setTenderHomeFilter((prev) => ({
+      availability: prev.availability,
       search: "",
       department: "",
       location: "",
@@ -140,7 +155,7 @@ export const TenderProvider = ({ children }: { children: ReactNode }) => {
       publishDate: "",
       status: "",
       sortBy: "",
-    });
+    }));
   }, []);
 
   const setCurrentPage = useCallback((page: number) => {
@@ -166,6 +181,7 @@ export const TenderProvider = ({ children }: { children: ReactNode }) => {
     homePagination,
     setManageTenderSearchQuery,
     setTenderDepartmentAdmin,
+    setHomeTenderAvailability,
     setHomeTenderSearch,
     setHomeTenderDepartment,
     setHomeTenderLocation,
