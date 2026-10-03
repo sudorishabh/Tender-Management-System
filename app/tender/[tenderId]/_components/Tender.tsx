@@ -67,7 +67,10 @@ const Tender: FC<Props> = ({ tenderData }) => {
 
       <div className='max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8'>
 
-        <TenderHeader tender={tender} />
+        <TenderHeader
+          tender={tender}
+          isLive={isLive}
+        />
 
 
         <div className='mt-6 space-y-5'>

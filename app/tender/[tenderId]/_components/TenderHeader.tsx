@@ -1,42 +1,67 @@
 import React from "react";
-import { Building2, MapPin, Tag } from "lucide-react";
+import {
+  Building2,
+  CalendarClock,
+  MapPin,
+  Tag,
+  type LucideIcon,
+} from "lucide-react";
 import { ITender } from "@/_types/tender";
+import StatusBadge from "@/_components/Shared/StatusBadge";
+import { cn } from "@/lib/utils";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
+import { formatDisplayDateTime, getDaysUntil } from "@/utils/dateUtils";
+import { getDeadlineLabel, getDeadlineTone } from "@/utils/deadline";
 
 interface TenderHeaderProps {
   tender: ITender;
+  isLive: boolean;
 }
 
-const TenderHeader: React.FC<TenderHeaderProps> = ({ tender }) => {
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "active":
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
-      case "pending":
-        return "bg-amber-50 text-amber-700 border-amber-200";
-      case "closed":
-        return "bg-neutral-100 text-neutral-600 border-neutral-200";
-      case "draft":
-        return "bg-slate-50 text-slate-600 border-slate-200";
-      default:
-        return "bg-slate-50 text-slate-700 border-slate-200";
-    }
-  };
+const MetaItem = ({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+}) => (
+  <div className='min-w-0'>
+    <dt className='flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-neutral-500'>
+      <Icon
+        className='size-3.5 text-neutral-400'
+        aria-hidden='true'
+      />
+      {label}
+    </dt>
+    <dd className='mt-1.5 text-sm font-medium text-slate-900'>{value}</dd>
+  </div>
+);
+
+const TenderHeader: React.FC<TenderHeaderProps> = ({ tender, isLive }) => {
+  const deadline = tender.tender_bid_submission_deadline;
+  const daysLeft = getDaysUntil(deadline);
+
+  // Same pill as the home tender cards: a countdown while bids are open
+  const countdown =
+    isLive && daysLeft !== null && daysLeft >= 0 ? daysLeft : null;
+  const isClosed = !isLive && daysLeft !== null && daysLeft <= 0;
 
   return (
     <div className='bg-white rounded-lg border border-neutral-200 shadow-sm overflow-hidden'>
       <div className='p-6'>
-        {/* Status and ID */}
-        <div className='flex items-center gap-3 mb-4'>
-          <span
-            className={`inline-flex px-2.5 py-1 rounded-md text-xs font-medium border ${getStatusColor(
-              tender.tender_status ?? "draft"
-            )}`}>
-            {capitalizeFirstLetter(tender.tender_status ?? "draft")}
-          </span>
+        {/* Status, number and type */}
+        <div className='flex flex-wrap items-center gap-x-3 gap-y-2 mb-4'>
+          <StatusBadge status={tender.tender_status ?? "draft"} />
           <span className='text-xs text-neutral-500 font-mono'>
             {tender.tender_number ?? "N/A"}
           </span>
+          {tender.tender_type && (
+            <span className='rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600'>
+              {capitalizeFirstLetter(tender.tender_type)} tender
+            </span>
+          )}
         </div>
 
         {/* Title */}
@@ -52,49 +77,54 @@ const TenderHeader: React.FC<TenderHeaderProps> = ({ tender }) => {
         )}
 
         {/* Info Grid */}
-        <div className='grid grid-cols-1 sm:grid-cols-3 gap-5 pt-5 border-t border-neutral-100'>
-          {/* Department */}
-          <div>
-            <div className='flex items-center gap-1.5 mb-1.5'>
-              <Building2 className='w-3.5 h-3.5 text-neutral-400' />
-              <p className='text-xs font-medium text-neutral-500 uppercase tracking-wide'>
-                Department
-              </p>
-            </div>
-            <p className='text-sm font-medium text-slate-900'>
-              {capitalizeFirstLetter(tender.tender_department ?? "N/A")}
-            </p>
-          </div>
-
-
-
-          {/* Location */}
-          <div className='sm:text-center'>
-            <div className='flex items-center gap-1.5 mb-1.5 sm:justify-center'>
-              <MapPin className='w-3.5 h-3.5 text-neutral-400' />
-              <p className='text-xs font-medium text-neutral-500 uppercase tracking-wide'>
-                Location
-              </p>
-            </div>
-            <p className='text-sm font-medium text-slate-900'>
-              {capitalizeFirstLetter(tender.tender_location ?? "N/A")}
-            </p>
-          </div>
-
-          {/* Scope */}
-          <div className='sm:text-right'>
-            <div className='flex items-center gap-1.5 mb-1.5 sm:justify-end'>
-              <Tag className='w-3.5 h-3.5 text-neutral-400' />
-              <p className='text-xs font-medium text-neutral-500 uppercase tracking-wide'>
-                Scope
-              </p>
-            </div>
-            <p className='text-sm font-medium text-slate-900'>
-              {capitalizeFirstLetter(tender.tender_scope) || "N/A"}
-            </p>
-          </div>
-        </div>
+        <dl className='grid grid-cols-1 sm:grid-cols-3 gap-5 pt-5 border-t border-neutral-100'>
+          <MetaItem
+            icon={Building2}
+            label='Department'
+            value={capitalizeFirstLetter(tender.tender_department ?? "N/A")}
+          />
+          <MetaItem
+            icon={MapPin}
+            label='Location'
+            value={capitalizeFirstLetter(tender.tender_location ?? "N/A")}
+          />
+          <MetaItem
+            icon={Tag}
+            label='Scope'
+            value={capitalizeFirstLetter(tender.tender_scope) || "N/A"}
+          />
+        </dl>
       </div>
+
+      {/* The deadline decides whether a bid is still possible */}
+      {deadline && (
+        <div className='flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-neutral-100 bg-slate-50 px-6 py-3'>
+          <CalendarClock
+            className='size-4 shrink-0 text-primary'
+            aria-hidden='true'
+          />
+          <span className='text-sm text-slate-600'>
+            Bid submission deadline
+          </span>
+          <span className='text-sm font-semibold text-slate-900'>
+            {formatDisplayDateTime(deadline)}
+          </span>
+          {countdown !== null && (
+            <span
+              className={cn(
+                "rounded-full border px-2 py-0.5 text-xs font-medium",
+                getDeadlineTone(countdown)
+              )}>
+              {getDeadlineLabel(countdown)}
+            </span>
+          )}
+          {isClosed && (
+            <span className='rounded-full border border-neutral-300 bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600'>
+              Closed
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 };
