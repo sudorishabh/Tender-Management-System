@@ -7,9 +7,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/_components/ui/dropdown-menu";
-import { Button } from "@/_components/ui/button";
 import {
   ArrowUpDown,
+  ChevronDown,
   Clock,
   TrendingUp,
   TrendingDown,
@@ -37,29 +37,38 @@ const getSortByLabel = (value: string) => {
 
 const HomeSortSection = ({ sortBy }: { sortBy: string }) => {
   const { setHomeTenderSortBy } = useTenderContext();
+  const isCustomSort = Boolean(sortBy) && sortBy !== "latest";
+
   return (
     <DropdownMenu>
-      {/* Same height, border and icon colour as the filter controls */}
+      {/* Plain text on the tabs row, sized like a tab so the labels line up.
+          A sort other than the default is picked out in the brand colour */}
       <DropdownMenuTrigger asChild>
-        <Button
-          variant='outline'
-          size='sm'
-          className={cn(
-            "!h-8 gap-2 border-gray-300 bg-white px-2.5 text-[0.8rem] font-normal text-gray-700 transition-colors hover:border-primary/50 hover:bg-white",
-            sortBy &&
-              sortBy !== "latest" &&
-              "border-primary bg-primary/5 hover:bg-primary/5"
-          )}>
+        <button
+          type='button'
+          className='-mb-px flex shrink-0 items-center gap-1.5 border-b-2 border-transparent pb-2 text-sm text-slate-600 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50'>
           <ArrowUpDown
             className='size-3.5 text-primary'
             aria-hidden='true'
           />
           <span className='hidden sm:inline'>
-            <span className='text-gray-500'>Sort:</span>{" "}
-            <span className='font-medium'>{getSortByLabel(sortBy)}</span>
+            Sort:{" "}
+            <span
+              className={cn(
+                "font-medium",
+                isCustomSort ? "text-primary" : "text-slate-900"
+              )}>
+              {getSortByLabel(sortBy)}
+            </span>
           </span>
-          <span className='sm:hidden'>Sort</span>
-        </Button>
+          <span className={cn("sm:hidden", isCustomSort && "text-primary")}>
+            Sort
+          </span>
+          <ChevronDown
+            className='size-3.5 text-slate-400'
+            aria-hidden='true'
+          />
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align='end'

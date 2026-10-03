@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { X, Menu } from "lucide-react";
+import { X, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/_components/ui/button";
 import { Badge } from "@/_components/ui/badge";
 import { useTenderContext } from "@/context/TenderContext";
@@ -53,35 +53,32 @@ const HomeTendersActionBar = () => {
       <div className='pt-2'>
         {/* Main Filter Bar */}
         <div className='flex flex-col gap-3'>
-          <HomeSearchInput />
-
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center gap-2 lg:hidden'>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
-                className='flex items-center gap-2 bg-white border-gray-300 hover:border-primary'>
-                <Menu className='h-4 w-4' />
-                <span className='text-sm'>Filters</span>
-                {activeFiltersCount > 0 && (
-                  <Badge
-                    variant='secondary'
-                    className='text-xs'>
-                    {activeFiltersCount}
-                  </Badge>
-                )}
-              </Button>
-            </div>
-
-            <HomeDesktopFilterPanel
-              department={department}
-              location={location}
-              budgetRange={budgetRange}
-            />
-
-            <HomeSortSection sortBy={sortBy} />
+          {/* Below lg the filters fold behind a button beside the search */}
+          <div className='flex items-center gap-2'>
+            <HomeSearchInput />
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
+              aria-expanded={isMobileFiltersOpen}
+              className='flex shrink-0 items-center gap-2 bg-white border-gray-300 hover:border-primary lg:hidden'>
+              <SlidersHorizontal className='h-4 w-4' />
+              <span className='text-sm'>Filters</span>
+              {activeFiltersCount > 0 && (
+                <Badge
+                  variant='secondary'
+                  className='text-xs'>
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </Button>
           </div>
+
+          <HomeDesktopFilterPanel
+            department={department}
+            location={location}
+            budgetRange={budgetRange}
+          />
 
           {isMobileFiltersOpen && (
             <HomeMobileFilterPanel
@@ -154,7 +151,11 @@ const HomeTendersActionBar = () => {
             </div>
           )}
 
-          <HomeAvailabilityTabs />
+          {/* Sort orders the list the tabs pick, so the two share a row */}
+          <div className='flex items-end justify-between gap-4'>
+            <HomeAvailabilityTabs />
+            <HomeSortSection sortBy={sortBy} />
+          </div>
         </div>
       </div>
     </div>
