@@ -15,6 +15,8 @@ export default {
         primary: "#00619a",
         secondary: "",
         card: "#f6f6f6",
+        // Page background behind dashboard content
+        canvas: "#f4f6f9",
         // Backed by the --sidebar-* variables in app/globals.css
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background) / <alpha-value>)",

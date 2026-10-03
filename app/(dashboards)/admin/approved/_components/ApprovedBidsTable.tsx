@@ -34,7 +34,7 @@ const ApprovedBidsTable: FC<Props> = ({
 }) => {
   return (
     <div className='bg-gray-50 shadow-sm p-6 rounded-md'>
-      <ScrollArea className='h-[calc(100vh-21rem)] flex pr-1'>
+      <ScrollArea className='h-[calc(100vh-24.5rem)] flex pr-1'>
         <Table>
           <TableHeader>
             <TableRow>

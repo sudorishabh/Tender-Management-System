@@ -36,7 +36,7 @@ const LiveTendersFilterBar: FC = () => {
   }
 
   return (
-    <div className='sticky bg-white top-0 z-[1] justify-center flex items-center py-3'>
+    <div className='sticky bg-canvas top-14 z-[1] justify-center flex items-center py-3'>
       <div className='flex gap-4 items-center w-full'>
         <div className='flex items-center w-[30rem]'>
           <label

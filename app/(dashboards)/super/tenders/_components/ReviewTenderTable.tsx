@@ -31,7 +31,7 @@ const ReviewTenderTable: FC<Props> = ({
 
   return (
     <div className='bg-gray-50 shadow p-5 rounded-lg'>
-      <ScrollArea className='h-[calc(100vh-16rem)] flex pr-1'>
+      <ScrollArea className='h-[calc(100vh-19.5rem)] flex pr-1'>
         <Table>
           <TableHeader>
             <TableRow>

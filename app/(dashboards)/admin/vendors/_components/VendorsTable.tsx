@@ -32,7 +32,7 @@ const VendorsTable: FC<Props> = ({
 }) => {
   return (
     <div className='bg-gray-50 p-5 rounded-lg'>
-      <ScrollArea className='h-[calc(100vh-17rem)] pr-1'>
+      <ScrollArea className='h-[calc(100vh-20.5rem)] pr-1'>
         <Table>
           <TableHeader>
             <TableRow>

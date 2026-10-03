@@ -25,6 +25,12 @@ export interface DashboardNavGroup {
   items: DashboardNavItem[];
 }
 
+export const dashboardRoleLabels: Record<UiRole, string> = {
+  admin: "Admin Console",
+  vendor: "Vendor Portal",
+  super: "Super Admin",
+};
+
 /**
  * Sidebar navigation per dashboard role. Shared by the sidebar and the
  * dashboard top bar so both agree on the current section.
