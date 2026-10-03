@@ -80,6 +80,8 @@ export const homeLatestTendersSchema = z.object({
     .transform((val) => (val === "" ? null : val))
     .nullable()
     .optional(),
+  // Open = still taking bids, closed = deadline passed. Omitted = both.
+  availability: z.enum(["open", "closed", "all"]).optional(),
 });
 
 export type HomeLatestTendersType = z.infer<typeof homeLatestTendersSchema>;

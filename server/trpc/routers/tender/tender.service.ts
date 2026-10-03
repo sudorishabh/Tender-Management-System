@@ -521,6 +521,7 @@ export const homeLatestTenders = async (data: HomeLatestTendersType) => {
     publishDate: _publishDate,
     status,
     sortBy,
+    availability = "all",
   } = data;
   /* eslint-enable @typescript-eslint/no-unused-vars */
   const offset = (Number(page) - 1) * Number(limit);
@@ -528,6 +529,10 @@ export const homeLatestTenders = async (data: HomeLatestTendersType) => {
   // Format current time for SQL comparison using centralized helper
   const now = new Date();
   const nowFormatted = getCurrentTimeFormatted(now);
+
+  // Mirrors isTenderLive: a tender is closed once its bid deadline has passed
+  const deadline = tenderTable.tender_bid_submission_deadline;
+  const isClosedExpr = sql`(${deadline} IS NOT NULL AND ${deadline} <= ${nowFormatted})`;
 
   let conditions: SQL<unknown> | undefined;
 
@@ -539,6 +544,13 @@ export const homeLatestTenders = async (data: HomeLatestTendersType) => {
     conditions,
     sql`${tenderTable.tender_release_date} IS NOT NULL AND ${tenderTable.tender_release_date} <= ${nowFormatted}`,
   );
+
+  // Open / closed filter
+  if (availability === "open") {
+    conditions = and(conditions, sql`NOT ${isClosedExpr}`);
+  } else if (availability === "closed") {
+    conditions = and(conditions, isClosedExpr);
+  }
 
   // Department filter
   if (department) {
@@ -608,10 +620,13 @@ export const homeLatestTenders = async (data: HomeLatestTendersType) => {
       case "oldest":
         return [asc(tenderTable.created_at)];
       case "deadline-soon":
-        // Tenders without a deadline sort last rather than leading the list
+        // Open tenders by nearest deadline, then ones without a deadline,
+        // then closed tenders with the most recently closed first
         return [
-          sql`${tenderTable.tender_bid_submission_deadline} IS NULL`,
-          asc(tenderTable.tender_bid_submission_deadline),
+          isClosedExpr,
+          sql`${deadline} IS NULL`,
+          sql`CASE WHEN ${isClosedExpr} THEN NULL ELSE ${deadline} END`,
+          desc(deadline),
         ];
       case "budget-high":
         return [desc(tenderCostExpr)];
