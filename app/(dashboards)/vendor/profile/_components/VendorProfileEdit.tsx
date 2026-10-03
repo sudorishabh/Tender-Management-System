@@ -4,12 +4,6 @@ import { useForm, type Control, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/_components/ui/card";
 import { Button } from "@/_components/ui/button";
 import { Input } from "@/_components/ui/input";
 import {
@@ -27,10 +21,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/_components/ui/form";
-import { Save, X, User, Building, MapPin, Loader2 } from "lucide-react";
+import {
+  Building2,
+  Loader2,
+  Mail,
+  MapPin,
+  Save,
+  UserRound,
+  X,
+} from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { isApiError } from "@/utils/isApiError";
 import { businessClassification } from "@/lib/constants";
+import ProfileSection from "./ProfileSection";
 import type {
   ProfileFormField,
   VendorProfileDetails,
@@ -217,17 +220,10 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
           onSubmit={form.handleSubmit(onSubmit)}
           className='space-y-6'>
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-            {/* Personal Information Card */}
-            <Card className='bg-white shadow-sm border border-gray-200'>
-              <CardHeader className='pb-3'>
-                <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-                  <div className='p-2 bg-primary/15 rounded-lg'>
-                    <User className='h-5 w-5 text-primary' />
-                  </div>
-                  Personal Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className='space-y-4'>
+            <ProfileSection
+              title='Contact person'
+              icon={UserRound}>
+              <div className='space-y-4'>
                 <ProfileTextField
                   control={form.control}
                   name='user.full_name'
@@ -251,28 +247,24 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   placeholder='Enter alternate contact'
                 />
 
-                <div className='pt-2 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg'>
+                <div className='rounded-lg bg-slate-50 px-3 py-2.5 text-xs text-slate-600'>
                   <p>
-                    <strong>Email:</strong> {data.user.email}
+                    <span className='font-medium text-slate-900'>
+                      Login email:
+                    </span>{" "}
+                    {data.user.email}
                   </p>
-                  <p className='text-xs mt-1'>
+                  <p className='mt-1'>
                     Contact support to change your email address.
                   </p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </ProfileSection>
 
-            {/* Business Information Card */}
-            <Card className='bg-white shadow-sm border border-gray-200'>
-              <CardHeader className='pb-3'>
-                <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-                  <div className='p-2 bg-primary/15 rounded-lg'>
-                    <Building className='h-5 w-5 text-primary' />
-                  </div>
-                  Business Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className='space-y-4'>
+            <ProfileSection
+              title='Business'
+              icon={Building2}>
+              <div className='space-y-4'>
                 <ProfileTextField
                   control={form.control}
                   name='business.biz_legal_name'
@@ -368,20 +360,13 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   label='3 Year Turnover'
                   placeholder='e.g., 10,00,000'
                 />
-              </CardContent>
-            </Card>
+              </div>
+            </ProfileSection>
 
-            {/* Business Contact Card */}
-            <Card className='bg-white shadow-sm border border-gray-200'>
-              <CardHeader className='pb-3'>
-                <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-                  <div className='p-2 bg-primary/15 rounded-lg'>
-                    <Building className='h-5 w-5 text-primary' />
-                  </div>
-                  Business Contact
-                </CardTitle>
-              </CardHeader>
-              <CardContent className='space-y-4'>
+            <ProfileSection
+              title='Business contact'
+              icon={Mail}>
+              <div className='space-y-4'>
                 <ProfileTextField
                   control={form.control}
                   name='business.biz_email'
@@ -403,20 +388,13 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   label='Website'
                   placeholder='https://www.example.com'
                 />
-              </CardContent>
-            </Card>
+              </div>
+            </ProfileSection>
 
-            {/* Business Address Card */}
-            <Card className='bg-white shadow-sm border border-gray-200'>
-              <CardHeader className='pb-3'>
-                <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-                  <div className='p-2 bg-primary/15 rounded-lg'>
-                    <MapPin className='h-5 w-5 text-primary' />
-                  </div>
-                  Business Address
-                </CardTitle>
-              </CardHeader>
-              <CardContent className='space-y-4'>
+            <ProfileSection
+              title='Business address'
+              icon={MapPin}>
+              <div className='space-y-4'>
                 <ProfileTextField
                   control={form.control}
                   name='business.biz_addr_line1'
@@ -469,8 +447,8 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   label='Country'
                   placeholder='Enter country'
                 />
-              </CardContent>
-            </Card>
+              </div>
+            </ProfileSection>
           </div>
 
           {/* Action Buttons (Mobile) */}
