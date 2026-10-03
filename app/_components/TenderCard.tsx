@@ -95,11 +95,15 @@ const MetaChip: FC<{
   icon: React.ElementType;
   label: string;
   value?: string | null;
-}> = ({ icon: Icon, label, value }) => {
+  className?: string;
+}> = ({ icon: Icon, label, value, className }) => {
   if (!value) return null;
   return (
     <span
-      className='inline-flex min-w-0 items-center gap-1 text-xs text-neutral-600'
+      className={cn(
+        "inline-flex min-w-0 items-center gap-1 text-xs text-neutral-600",
+        className
+      )}
       title={`${label}: ${value}`}>
       <Icon
         className='size-3 shrink-0 text-neutral-400'
@@ -235,10 +239,13 @@ const TenderCard: FC<{
             label='Department'
             value={tender.tender_department}
           />
+          {/* Full street addresses would take a line of their own; the
+              tooltip and the detail page carry the whole address */}
           <MetaChip
             icon={MapPin}
             label='Location'
             value={tender.tender_location}
+            className='max-w-[18rem]'
           />
           <MetaChip
             icon={Tag}
