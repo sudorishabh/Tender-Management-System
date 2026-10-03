@@ -223,6 +223,8 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   name='user.full_name'
                   label='Full Name'
                   required
+                  maxLength={50}
+                  autoComplete='name'
                   placeholder='Enter your full name'
                 />
 
@@ -231,6 +233,9 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   name='user.vendor_contact'
                   label='Contact Number'
                   required
+                  type='tel'
+                  maxLength={15}
+                  autoComplete='tel'
                   placeholder='Enter contact number'
                 />
 
@@ -238,6 +243,8 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   control={form.control}
                   name='user.vendor_alt_contact'
                   label='Alternate Contact'
+                  type='tel'
+                  maxLength={15}
                   placeholder='Enter alternate contact'
                 />
 
@@ -263,6 +270,8 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   control={form.control}
                   name='business.biz_legal_name'
                   label='Legal Name'
+                  maxLength={100}
+                  autoComplete='organization'
                   placeholder='Enter business legal name'
                 />
 
@@ -271,6 +280,7 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   name='business.biz_trade_name'
                   label='Trade Name'
                   required
+                  maxLength={100}
                   placeholder='Enter business trade name'
                 />
 
@@ -310,6 +320,8 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                     control={form.control}
                     name='business.biz_established_year'
                     label='Established Year'
+                    inputMode='numeric'
+                    maxLength={4}
                     placeholder='e.g., 2010'
                   />
 
@@ -345,6 +357,7 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   control={form.control}
                   name='business.biz_gst_number'
                   label='GST Number'
+                  maxLength={20}
                   placeholder='Enter GST number'
                 />
 
@@ -352,6 +365,7 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   control={form.control}
                   name='business.biz_3_year_turnover'
                   label='3 Year Turnover'
+                  maxLength={25}
                   placeholder='e.g., 10,00,000'
                 />
               </div>
@@ -366,6 +380,8 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   name='business.biz_email'
                   label='Business Email'
                   type='email'
+                  maxLength={100}
+                  autoComplete='email'
                   placeholder='Enter business email'
                 />
 
@@ -373,6 +389,8 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   control={form.control}
                   name='business.biz_phone'
                   label='Business Phone'
+                  type='tel'
+                  maxLength={15}
                   placeholder='Enter business phone'
                 />
 
@@ -380,6 +398,9 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   control={form.control}
                   name='business.biz_website'
                   label='Website'
+                  inputMode='url'
+                  maxLength={100}
+                  autoComplete='url'
                   placeholder='https://www.example.com'
                 />
               </div>
@@ -393,6 +414,8 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   control={form.control}
                   name='business.biz_addr_line1'
                   label='Address Line 1'
+                  maxLength={100}
+                  autoComplete='address-line1'
                   placeholder='Enter address line 1'
                 />
 
@@ -400,6 +423,8 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   control={form.control}
                   name='business.biz_addr_line2'
                   label='Address Line 2'
+                  maxLength={100}
+                  autoComplete='address-line2'
                   placeholder='Enter address line 2'
                 />
 
@@ -408,6 +433,8 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                     control={form.control}
                     name='business.biz_locality'
                     label='Locality'
+                    maxLength={50}
+                    autoComplete='address-level3'
                     placeholder='Enter locality'
                   />
 
@@ -415,6 +442,8 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                     control={form.control}
                     name='business.biz_city'
                     label='City'
+                    maxLength={50}
+                    autoComplete='address-level2'
                     placeholder='Enter city'
                   />
                 </div>
@@ -424,6 +453,8 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                     control={form.control}
                     name='business.biz_state'
                     label='State'
+                    maxLength={50}
+                    autoComplete='address-level1'
                     placeholder='Enter state'
                   />
 
@@ -431,6 +462,9 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                     control={form.control}
                     name='business.biz_pin_code'
                     label='PIN Code'
+                    inputMode='numeric'
+                    maxLength={6}
+                    autoComplete='postal-code'
                     placeholder='Enter PIN code'
                   />
                 </div>
@@ -439,6 +473,8 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   control={form.control}
                   name='business.biz_country'
                   label='Country'
+                  maxLength={50}
+                  autoComplete='country-name'
                   placeholder='Enter country'
                 />
               </div>
