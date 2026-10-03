@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { FC, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import PageLoading from "./Shared/PageLoading";
+import { getPostSignInPath } from "@/lib/auth/callback-url";
 
 interface Props {
   children: React.ReactNode;
@@ -16,7 +17,9 @@ const PublicProtected: FC<Props> = ({ children }) => {
   useEffect(() => {
     if (status !== "loading") {
       if (status === "authenticated") {
-        router.replace("/");
+        // Signing in flips the session to authenticated, so this must head
+        // for the same page the sign-in form does or it would override it
+        router.replace(getPostSignInPath());
         return;
       }
 
