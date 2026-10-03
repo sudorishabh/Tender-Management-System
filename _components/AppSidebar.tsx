@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { LogOut, Loader2 } from "lucide-react";
+import { House, LogOut, Loader2 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -40,6 +40,13 @@ interface RoleSidebarProps {
 }
 
 const isTeriBrand = process.env.NEXT_PUBLIC_APP_NAME === "TERI";
+
+// Leaves the dashboard for the public site, so it is never the active item
+const homePageLink: DashboardNavItem = {
+  title: "Home page",
+  href: "/",
+  icon: House,
+};
 
 // "Rishabh Negi" -> "RN", "jane.doe@teri.res.in" -> "JD"
 const getInitials = (value: string) =>
@@ -127,6 +134,12 @@ export const RoleSidebar = ({ role }: RoleSidebarProps) => {
             </span>
           )}
         </Link>
+        <SidebarMenu>
+          <NavLink
+            item={homePageLink}
+            isActive={false}
+          />
+        </SidebarMenu>
       </SidebarHeader>
 
       <SidebarSeparator />
