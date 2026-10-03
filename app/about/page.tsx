@@ -1,7 +1,11 @@
 import React from "react";
 import { Metadata } from "next";
 import Link from "next/link";
-import { generatePageMetadata, BASE_URL } from "@/lib/seo.config";
+import {
+  generatePageMetadata,
+  BASE_URL,
+  sharedOpenGraph,
+} from "@/lib/seo.config";
 
 export const metadata: Metadata = {
   ...generatePageMetadata(
@@ -17,19 +21,12 @@ export const metadata: Metadata = {
     ],
   ),
   openGraph: {
+    ...sharedOpenGraph,
     title: "About TERI Tenders - India's Trusted eTender Platform",
     description:
       "Learn about TERI's commitment to transparent and efficient procurement through our eTender Management System.",
     url: `${BASE_URL}/about`,
     type: "website",
-    images: [
-      {
-        url: `${BASE_URL}/TERI_LOGO.png`,
-        width: 512,
-        height: 512,
-        alt: "TERI Logo",
-      },
-    ],
   },
 };
 

@@ -9,7 +9,7 @@ import { Toaster } from "@/_components/ui/sonner";
 // import { TRPCProvider } from "@/lib/trpc";
 import { defaultMetadata, defaultViewport } from "@/lib/seo.config";
 import { JsonLdScript } from "@/_components/SEO/JsonLd";
-import { homePageSchemas } from "@/lib/structured-data";
+import { siteSchemas } from "@/lib/structured-data";
 
 const robotoMono = DM_Sans({
   subsets: ["latin"],
@@ -34,7 +34,7 @@ export default function RootLayout({
       dir='ltr'>
       <head>
         {/* Structured Data for SEO */}
-        <JsonLdScript data={homePageSchemas} />
+        <JsonLdScript data={siteSchemas} />
         {/* Preconnect to important origins */}
         <link
           rel='preconnect'

@@ -44,7 +44,9 @@ export const JsonLdScript = ({ data }: JsonLdProps) => {
           key={`json-ld-${index}`}
           type='application/ld+json'
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(schema, null, 0),
+            // Escape "<" so text such as a tender description containing
+            // "</script>" cannot close the tag early
+            __html: JSON.stringify(schema, null, 0).replace(/</g, "\\u003c"),
           }}
         />
       ))}

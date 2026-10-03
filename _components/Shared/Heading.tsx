@@ -19,7 +19,7 @@ const Heading: FC<HeadProps> = ({
   description,
   keywords,
   canonicalPath,
-  ogImage = `${BASE_URL}/og-image.png`,
+  ogImage = `${BASE_URL}/opengraph-image`,
   noIndex = false,
 }) => {
   const canonicalUrl = canonicalPath
@@ -102,7 +102,7 @@ const Heading: FC<HeadProps> = ({
       />
       <meta
         name='twitter:site'
-        content='@teraboratory'
+        content='@teriin'
       />
       <meta
         name='twitter:title'

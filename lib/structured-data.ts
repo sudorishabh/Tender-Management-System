@@ -57,7 +57,8 @@ export const websiteSchema = {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: `${BASE_URL}/?search={search_term_string}`,
+      // The home page reads its search box from ?q=
+      urlTemplate: `${BASE_URL}/?q={search_term_string}`,
     },
     "query-input": "required name=search_term_string",
   },
@@ -180,45 +181,47 @@ export const generateWebPageSchema = (
   return schema;
 };
 
-// Tender/Product Schema Generator
+/**
+ * Tender DATETIME columns hold Indian wall-clock time, which the driver reads
+ * as if it were UTC (see utils/dateUtils.ts). Re-attach the real +05:30 offset
+ * so search engines get the correct instant.
+ */
+const toIstIsoString = (value?: Date | string | null) => {
+  if (!value) return undefined;
+  const wallClock =
+    typeof value === "string"
+      ? value.replace(" ", "T").slice(0, 19)
+      : value.toISOString().slice(0, 19);
+  return `${wallClock}+05:30`;
+};
+
+// Tender Schema Generator - a tender is TERI seeking goods or services, which
+// schema.org models as a Demand (a Product would claim something is on sale)
 export const generateTenderSchema = (tender: {
   id: number;
   title: string;
   description?: string;
   department?: string;
-  bidStartDate?: Date;
-  bidEndDate?: Date;
-  estimatedValue?: number;
-  status?: string;
+  location?: string;
   referenceNumber?: string;
-}) => ({
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "@id": `${BASE_URL}/tender/${tender.id}/#tender`,
-  name: tender.title,
-  description: tender.description || `Tender opportunity: ${tender.title}`,
-  url: `${BASE_URL}/tender/${tender.id}`,
-  category: tender.department || "General",
-  sku: tender.referenceNumber || `TERI-${tender.id}`,
-  brand: {
-    "@type": "Brand",
-    name: "TERI Tenders",
-  },
-  offers: {
-    "@type": "Offer",
-    availability:
-      tender.status === "open"
-        ? "https://schema.org/InStock"
-        : "https://schema.org/OutOfStock",
-    validFrom: tender.bidStartDate?.toISOString(),
-    validThrough: tender.bidEndDate?.toISOString(),
-    price: tender.estimatedValue || 0,
-    priceCurrency: "INR",
-    seller: {
-      "@id": `${BASE_URL}/#organization`,
-    },
-  },
-});
+  releaseDate?: Date | string | null;
+  bidDeadline?: Date | string | null;
+}) => {
+  const url = `${BASE_URL}/tender/${tender.id}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Demand",
+    "@id": `${url}#tender`,
+    name: tender.title,
+    description: tender.description || `Tender opportunity: ${tender.title}`,
+    url,
+    identifier: tender.referenceNumber,
+    category: tender.department,
+    areaServed: tender.location,
+    availabilityStarts: toIstIsoString(tender.releaseDate),
+    availabilityEnds: toIstIsoString(tender.bidDeadline),
+  };
+};
 
 // Event Schema for Active Tenders
 export const generateTenderEventSchema = (tender: {
@@ -251,46 +254,6 @@ export const generateTenderEventSchema = (tender: {
   },
 });
 
-// FAQ Schema for common tender questions
-export const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: [
-    {
-      "@type": "Question",
-      name: "How do I register as a vendor on TERI Tenders?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "To register as a vendor, click on the 'Register' button on the homepage, fill in your company details, business classification, and required documents. Once verified, you can start bidding on available tenders.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "What types of tenders are available on TERI Tenders?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "TERI Tenders hosts various procurement opportunities including IT services, construction, consulting, research projects, equipment supply, and more across multiple departments.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "How do I submit a bid?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "After registering and logging in, browse available tenders, select the one you're interested in, review requirements, prepare your proposal documents, and submit before the deadline using our secure online submission system.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Is TERI Tenders free to use?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Vendor registration and browsing tenders is free. Specific tenders may require a tender document fee which will be mentioned in the tender details.",
-      },
-    },
-  ],
-};
-
 // Breadcrumb Schema Generator
 export const generateBreadcrumbSchema = (
   items: Array<{ name: string; url: string }>
@@ -305,10 +268,6 @@ export const generateBreadcrumbSchema = (
   })),
 });
 
-// Combined schemas for the home page
-export const homePageSchemas = [
-  organizationSchema,
-  websiteSchema,
-  serviceSchema,
-  faqSchema,
-];
+// Site-wide schemas, rendered on every page by the root layout. The FAQPage
+// markup lives on /faq only - it has to match questions visible on the page.
+export const siteSchemas = [organizationSchema, websiteSchema, serviceSchema];

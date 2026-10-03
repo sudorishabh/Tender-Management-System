@@ -463,7 +463,11 @@ export const getTenderWithRelatedData = async ({
     tender_status: tenderTable.tender_status,
     ...(isFromGetSavedTender
       ? {}
-      : { tender_created_by_id: tenderTable.tender_created_by_id }),
+      : {
+          tender_created_by_id: tenderTable.tender_created_by_id,
+          // The tender page only server-renders approved tenders
+          tender_is_active: tenderTable.tender_is_active,
+        }),
     created_at: tenderTable.created_at,
     updated_at: tenderTable.updated_at,
   };
@@ -506,6 +510,26 @@ const BUDGET_BANDS: Record<string, { min?: number; max?: number }> = {
   low: { max: 1_000_000 }, // under 10 lakhs
   mid: { min: 1_000_000, max: 5_000_000 }, // 10 - 50 lakhs
   high: { min: 5_000_000 }, // above 50 lakhs
+};
+
+// Tender pages for the sitemap - the same rule as the home listing: approved
+// and past the release date, whether still open or closed
+export const sitemapTenders = async () => {
+  const nowFormatted = getCurrentTimeFormatted(new Date());
+
+  return db
+    .select({
+      tender_id: tenderTable.tender_id,
+      updated_at: tenderTable.updated_at,
+    })
+    .from(tenderTable)
+    .where(
+      and(
+        eq(tenderTable.tender_is_active, true),
+        sql`${tenderTable.tender_release_date} IS NOT NULL AND ${tenderTable.tender_release_date} <= ${nowFormatted}`,
+      ),
+    )
+    .orderBy(desc(tenderTable.tender_release_date));
 };
 
 // Home latest tenders
