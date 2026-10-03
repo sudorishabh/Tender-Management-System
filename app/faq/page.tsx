@@ -4,7 +4,16 @@ import { generatePageMetadata, BASE_URL } from "@/lib/seo.config";
 import { generateBreadcrumbSchema } from "@/lib/structured-data";
 import { JsonLdScript } from "@/_components/SEO/JsonLd";
 import Link from "next/link";
-import { allFaqs } from "@/lib/faqs";
+import {
+  ChevronDown,
+  ChevronRight,
+  Mail,
+  MessageSquare,
+  Phone,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { surfaceStyle } from "@/app/styles";
+import { allFaqs, faqGroups } from "@/lib/faqs";
 
 export const metadata: Metadata = {
   ...generatePageMetadata(
@@ -31,6 +40,9 @@ export const metadata: Metadata = {
   },
 };
 
+const contactLinkStyle =
+  "inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 transition-colors hover:border-primary hover:text-primary";
+
 const FAQPage = () => {
   // Enhanced FAQ schema with all questions
   const enhancedFaqSchema = {
@@ -52,82 +64,165 @@ const FAQPage = () => {
   ]);
 
   return (
-    <div className='pt-16 min-h-screen bg-gray-50'>
-      {/* Structured Data */}
+    // Same tinted canvas as the home page and dashboards; flow-root keeps the
+    // inner margins inside the tinted area
+    <div className='flow-root min-h-svh bg-canvas'>
       <JsonLdScript data={[enhancedFaqSchema, breadcrumbSchema]} />
 
-      <div className='max-w-4xl mx-auto px-4 py-12'>
-        {/* Breadcrumb */}
+      {/* pt clears the fixed header, which is h-12 on mobile / h-14 from md */}
+      <div className='mx-auto max-w-5xl px-4 pb-16 pt-20 md:pt-24'>
         <nav
-          className='text-sm mb-6'
-          aria-label='Breadcrumb'>
-          <ol className='flex items-center space-x-2'>
+          aria-label='Breadcrumb'
+          className='mb-4 text-xs'>
+          <ol className='flex items-center gap-1.5 text-slate-500'>
             <li>
               <Link
                 href='/'
-                className='text-primary hover:underline'>
+                className='hover:text-primary hover:underline'>
                 Home
               </Link>
             </li>
-            <li className='text-gray-400'>/</li>
-            <li className='text-gray-600'>FAQ</li>
+            <li aria-hidden='true'>
+              <ChevronRight className='size-3.5' />
+            </li>
+            <li
+              aria-current='page'
+              className='text-slate-700'>
+              FAQ
+            </li>
           </ol>
         </nav>
 
-        {/* Page Header */}
-        <header className='mb-10'>
-          <h1 className='text-3xl font-bold text-gray-900 mb-4'>
-            TERI Tender - Frequently Asked Questions
+        <header className='mb-8'>
+          <h1 className='text-2xl font-bold text-slate-900 md:text-3xl'>
+            Frequently asked questions
           </h1>
-          <p className='text-lg text-gray-600'>
-            Find answers to common questions about TERI tenders, vendor
-            registration, bid submission, and the e-procurement process.
+          <p className='mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 md:text-base'>
+            How registration, payments and bidding work on the TERI eTender
+            portal.
           </p>
         </header>
 
-        {/* FAQ List */}
-        <section
-          aria-label='Frequently Asked Questions'
-          className='space-y-6'>
-          {allFaqs.map((faq) => (
-            <details
-              key={faq.id}
-              className='bg-white rounded-lg border border-gray-200 group'>
-              <summary className='px-6 py-4 cursor-pointer font-semibold text-gray-800 hover:text-primary list-none flex justify-between items-center'>
-                <span>{faq.question}</span>
-                <span className='text-gray-400 group-open:rotate-180 transition-transform'>
-                  ▼
-                </span>
-              </summary>
-              <div className='px-6 pb-4 text-gray-600 border-t border-gray-100 pt-4'>
-                {faq.answer}
-              </div>
-            </details>
-          ))}
-        </section>
+        <div className='grid gap-8 lg:grid-cols-[12rem_minmax(0,1fr)]'>
+          {/* Section links on desktop; phones just scroll the short list */}
+          <nav
+            aria-label='FAQ sections'
+            className='hidden lg:block'>
+            <div className='sticky top-20'>
+              <p className='mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-slate-500'>
+                On this page
+              </p>
+              <ul className='space-y-0.5'>
+                {faqGroups.map((group) => (
+                  <li key={group.id}>
+                    <a
+                      href={`#${group.id}`}
+                      className='block rounded-md px-3 py-1.5 text-sm text-slate-600 transition-colors hover:bg-white hover:text-primary'>
+                      {group.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </nav>
 
-        {/* Additional Help Section */}
-        <section className='mt-12 bg-primary rounded-lg p-6 border border-primary'>
-          <h2 className='text-xl font-semibold text-gray-800 mb-3'>
-            Still have questions about TERI Tenders?
-          </h2>
-          <p className='text-gray-600 mb-4'>
-            Can&apos;t find what you&apos;re looking for? Our support team is here to help
-            you with any queries about the TERI tender process.
-          </p>
-          <div className='flex flex-wrap gap-4'>
-            <Link
-              href='/about'
-              className='inline-flex items-center px-4 py-2 bg-white border border-primary text-primary rounded-md hover:bg-primary transition-colors'>
-              Learn About TERI Tenders
-            </Link>
-            <Link
-              href='/register'
-              className='inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary transition-colors'>
-              Register as Vendor
-            </Link>
+          <div className='space-y-8'>
+            {faqGroups.map((group) => (
+              <section
+                key={group.id}
+                id={group.id}
+                aria-labelledby={`${group.id}-heading`}
+                className='scroll-mt-20'>
+                <h2
+                  id={`${group.id}-heading`}
+                  className='mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500'>
+                  {group.title}
+                </h2>
+                <div
+                  className={cn(
+                    surfaceStyle,
+                    "divide-y divide-slate-100 overflow-hidden"
+                  )}>
+                  {group.faqs.map((faq) => (
+                    <details
+                      key={faq.id}
+                      id={faq.id}
+                      className='group scroll-mt-20'>
+                      <summary className='flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50 group-open:text-primary [&::-webkit-details-marker]:hidden'>
+                        {faq.question}
+                        <ChevronDown
+                          aria-hidden='true'
+                          className='size-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180 group-open:text-primary'
+                        />
+                      </summary>
+                      <p className='px-5 pb-4 text-sm leading-relaxed text-slate-600'>
+                        {faq.answer}
+                      </p>
+                    </details>
+                  ))}
+                </div>
+              </section>
+            ))}
+
+            <section
+              aria-labelledby='faq-help-heading'
+              className={cn(surfaceStyle, "p-5 md:p-6")}>
+              <div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
+                <div>
+                  <h2
+                    id='faq-help-heading'
+                    className='flex items-center gap-2 text-base font-semibold text-slate-900'>
+                    <MessageSquare
+                      aria-hidden='true'
+                      className='size-4 text-primary'
+                    />
+                    Still have a question?
+                  </h2>
+                  <p className='mt-1 text-sm text-slate-600'>
+                    The tender team can help with registration, payments and
+                    bids.
+                  </p>
+                  <p className='mt-2 text-xs text-slate-500'>
+                    New here?{" "}
+                    <Link
+                      href='/register'
+                      className='font-medium text-primary hover:underline'>
+                      Register as a vendor
+                    </Link>{" "}
+                    or read{" "}
+                    <Link
+                      href='/about'
+                      className='font-medium text-primary hover:underline'>
+                      about the portal
+                    </Link>
+                    .
+                  </p>
+                </div>
+                {/* Stacked at an equal width beside the text on desktop */}
+                <div className='flex flex-col gap-2 sm:flex-row md:shrink-0 md:flex-col'>
+                  <a
+                    href='tel:+918560064756'
+                    className={contactLinkStyle}>
+                    <Phone
+                      aria-hidden='true'
+                      className='size-4 text-primary'
+                    />
+                    +91 8560064756
+                  </a>
+                  <a
+                    href='mailto:etender@teri.res.in'
+                    className={contactLinkStyle}>
+                    <Mail
+                      aria-hidden='true'
+                      className='size-4 text-primary'
+                    />
+                    etender@teri.res.in
+                  </a>
+                </div>
+              </div>
+            </section>
           </div>
-        </section>
+        </div>
       </div>
     </div>
   );
