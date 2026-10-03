@@ -1,63 +1,56 @@
 import { MetadataRoute } from "next";
+import { BASE_URL } from "@/lib/seo.config";
+import { sitemapTenders } from "@/server/trpc/routers/tender/tender.service";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL || "https://etender.teri.res.in";
+// Rebuilt hourly so newly released tenders show up without a deploy
+export const revalidate = 3600;
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const currentDate = new Date();
-
-  // Static pages with SEO priority
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Static pages with SEO priority. Only the home page changes often enough
+  // for a lastModified - stamping "now" on every page teaches search engines
+  // to ignore the field.
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: BASE_URL,
-      lastModified: currentDate,
+      lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1.0,
     },
     {
       url: `${BASE_URL}/about`,
-      lastModified: currentDate,
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: `${BASE_URL}/faq`,
-      lastModified: currentDate,
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
-      url: `${BASE_URL}/terms-conditions`,
-      lastModified: currentDate,
-      changeFrequency: "yearly",
-      priority: 0.3,
-    },
-    {
-      url: `${BASE_URL}/sign-in`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
       url: `${BASE_URL}/register`,
-      lastModified: currentDate,
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    {
+      url: `${BASE_URL}/sign-in`,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
   ];
 
-  // Note: For dynamic tender pages, you would typically fetch from database
-  // Example of how to add dynamic routes:
-  // const tenders = await fetchAllTenders();
-  // const tenderPages = tenders.map((tender) => ({
-  //   url: `${BASE_URL}/tender/${tender.id}`,
-  //   lastModified: tender.updatedAt,
-  //   changeFrequency: "daily" as const,
-  //   priority: 0.9,
-  // }));
-
-  return [...staticPages];
+  try {
+    const tenders = await sitemapTenders();
+    const tenderPages: MetadataRoute.Sitemap = tenders.map((tender) => ({
+      url: `${BASE_URL}/tender/${tender.tender_id}`,
+      lastModified: tender.updated_at,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    }));
+    return [...staticPages, ...tenderPages];
+  } catch (error) {
+    // A database outage (or a build without one) should not take the
+    // sitemap down - serve the static pages until the next rebuild
+    console.error("Failed to load tenders for the sitemap", error);
+    return staticPages;
+  }
 }
-
-// For generating dynamic sitemap with tender data, create this API route:
-// app/api/sitemap/route.ts

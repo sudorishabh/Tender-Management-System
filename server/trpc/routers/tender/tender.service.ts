@@ -512,6 +512,26 @@ const BUDGET_BANDS: Record<string, { min?: number; max?: number }> = {
   high: { min: 5_000_000 }, // above 50 lakhs
 };
 
+// Tender pages for the sitemap - the same rule as the home listing: approved
+// and past the release date, whether still open or closed
+export const sitemapTenders = async () => {
+  const nowFormatted = getCurrentTimeFormatted(new Date());
+
+  return db
+    .select({
+      tender_id: tenderTable.tender_id,
+      updated_at: tenderTable.updated_at,
+    })
+    .from(tenderTable)
+    .where(
+      and(
+        eq(tenderTable.tender_is_active, true),
+        sql`${tenderTable.tender_release_date} IS NOT NULL AND ${tenderTable.tender_release_date} <= ${nowFormatted}`,
+      ),
+    )
+    .orderBy(desc(tenderTable.tender_release_date));
+};
+
 // Home latest tenders
 export const homeLatestTenders = async (data: HomeLatestTendersType) => {
   /* eslint-disable @typescript-eslint/no-unused-vars */
