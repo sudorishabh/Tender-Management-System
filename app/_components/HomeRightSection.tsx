@@ -1,5 +1,6 @@
 "use client";
 import React, { useId, useState } from "react";
+import { useSession } from "next-auth/react";
 import {
   MessageSquare,
   Phone,
@@ -10,12 +11,27 @@ import {
 
 import { cn } from "@/lib/utils";
 
-const faqs = [
+const registerFaq = {
+  question: "How do I register as a vendor?",
+  answer:
+    "Click on 'Register Now' and fill in your company details. You'll receive a verification email to complete the registration process.",
+};
+
+// Signed-in vendors are past registration, so they get account questions
+const vendorAccountFaqs = [
   {
-    question: "How do I register as a vendor?",
+    question: "Why can't I submit a bid yet?",
     answer:
-      "Click on 'Register Now' and fill in your company details. You'll receive a verification email to complete the registration process.",
+      "Only approved accounts can submit bids. While your registration is pending, you can still browse tenders. Your account status is shown on your profile page.",
   },
+  {
+    question: "How do I update my business details?",
+    answer:
+      "Open your profile from the dashboard and choose Edit profile. Documents uploaded during registration can't be changed there, so contact the tender team to replace one.",
+  },
+];
+
+const commonFaqs = [
   {
     question: "What documents do I need to bid?",
     answer:
@@ -36,6 +52,12 @@ const faqs = [
 const HomeRightSection = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const faqId = useId();
+  const { data: session } = useSession();
+
+  const faqs =
+    session?.user?.role === "vendor"
+      ? [...vendorAccountFaqs, ...commonFaqs]
+      : [registerFaq, ...commonFaqs];
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);

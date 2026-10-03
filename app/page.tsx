@@ -23,10 +23,11 @@ const Home = () => {
           </section>
         </main>
         {/* Sidebar - stacks below the listings on small screens so mobile
-            visitors still get the support contacts and FAQ */}
+            visitors still get the support contacts and FAQ. On desktop it
+            stays in view while the list scrolls. */}
         <aside
           aria-label='Help and support'
-          className='mt-10 shrink-0 lg:mt-0'>
+          className='mt-10 shrink-0 lg:sticky lg:top-20 lg:mt-0 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto'>
           <HomeSidebar />
         </aside>
       </div>
