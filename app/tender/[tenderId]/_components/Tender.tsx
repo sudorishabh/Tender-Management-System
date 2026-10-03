@@ -5,6 +5,7 @@ import TenderDetails from "./TenderDetails";
 import TenderTimeline from "./TenderTimeline";
 import TenderJsonLd from "./TenderJsonLd";
 import TenderClarifications from "./TenderClarifications";
+import TenderDocumentCard from "./TenderDocumentCard";
 import { ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "@/_components/ui/button";
 import Link from "next/link";
@@ -69,6 +70,10 @@ const Tender: FC<Props> = ({ tenderData }) => {
 
 
         <div className='mt-6 space-y-5'>
+          {/* The PDF is what bidders need most, so it leads the details */}
+          {tender.tender_contract_document && (
+            <TenderDocumentCard fileKey={tender.tender_contract_document} />
+          )}
 
           <TenderDetails tender={tender} />
 

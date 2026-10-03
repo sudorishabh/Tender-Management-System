@@ -14,3 +14,9 @@ export const getImageFileQuery = (fileName: string) => {
     fileType: "image/jpeg",
   };
 };
+
+// Upload keys are "<timestamp>-<random>-<original name>"; keep the name
+export const getFileDisplayName = (fileKey: string) => {
+  const parts = fileKey.split("-");
+  return parts.length > 2 ? parts.slice(2).join("-") : fileKey;
+};

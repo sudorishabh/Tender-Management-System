@@ -1,17 +1,14 @@
 import React from "react";
 import { ITender } from "@/_types/tender";
-import PdfViewerModal from "@/_components/Shared/PdfViewerModal";
 import {
   FileText,
   AlertCircle,
-  FileDown,
   CreditCard,
   IndianRupee,
   Building2,
   Phone,
   Mail,
 } from "lucide-react";
-import CustomButton from "@/_components/Shared/CustomButton";
 
 interface TenderDetailsProps {
   tender: ITender;
@@ -184,52 +181,6 @@ const TenderDetails: React.FC<TenderDetailsProps> = ({ tender }) => {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Contract Document */}
-      {tender.tender_contract_document && (
-        <div className='bg-white rounded-lg border border-neutral-200 shadow-sm overflow-hidden'>
-          <div className='px-5 py-4 border-b border-neutral-100'>
-            <h2 className='text-sm font-semibold text-slate-900'>
-              Contract Document
-            </h2>
-            <p className='text-xs text-slate-600 mt-1'>
-              Review the complete terms, conditions, and contractual obligations
-            </p>
-          </div>
-          <div className='p-5'>
-            <div className='p-4 bg-neutral-50 rounded-lg border border-neutral-200'>
-              <div className='flex items-start gap-3 mb-3'>
-                <div className='w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0'>
-                  <FileDown className='w-4 h-4 text-primary' />
-                </div>
-                <div className='flex-1'>
-                  <p className='text-sm font-semibold text-slate-900 mb-1'>
-                    Contract Agreement Document
-                  </p>
-                  <p className='text-xs text-slate-600 leading-relaxed'>
-                    This document contains the complete terms and conditions,
-                    scope of work, payment terms, deliverables, penalties, and
-                    all contractual obligations that will govern the tender
-                    execution.
-                  </p>
-                </div>
-              </div>
-              <PdfViewerModal
-                value={tender.tender_contract_document}
-                isS3File={true}
-                triggerButton={
-                  <CustomButton
-                    btnName='View Contract Document'
-                    LeftIcon={FileText}
-                    variant='tertiary'
-                    fullWidth={true}
-                  />
-                }
-              />
-            </div>
           </div>
         </div>
       )}
