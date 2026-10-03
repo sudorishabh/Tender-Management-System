@@ -5,145 +5,145 @@ import {
   AlertCircle,
   CreditCard,
   IndianRupee,
-  Building2,
   Phone,
   Mail,
+  type LucideIcon,
 } from "lucide-react";
 
 interface TenderDetailsProps {
   tender: ITender;
 }
 
+const PAYEE = "The Energy and Resources Institute";
+
+/** One fee with what it is for and how to pay it, side by side. */
+const FeeBlock = ({
+  icon: Icon,
+  label,
+  amount,
+  description,
+  payment,
+}: {
+  icon: LucideIcon;
+  label: string;
+  amount: string | null;
+  description: string;
+  payment: React.ReactNode;
+}) => (
+  <div className='flex flex-col rounded-lg border border-slate-200'>
+    <div className='flex items-start gap-3 p-4'>
+      <div className='flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 flex-shrink-0'>
+        <Icon
+          className='w-4 h-4 text-primary'
+          aria-hidden='true'
+        />
+      </div>
+      <div className='min-w-0 flex-1'>
+        <h3 className='text-xs font-medium text-neutral-500 uppercase tracking-wide mb-1'>
+          {label}
+        </h3>
+        <div className='flex items-baseline gap-0.5'>
+          <IndianRupee
+            className='w-5 h-5 text-slate-700'
+            aria-hidden='true'
+          />
+          <p className='text-2xl font-semibold text-slate-700 tabular-nums'>
+            {Number(amount).toLocaleString("en-IN")}
+          </p>
+        </div>
+        <p className='mt-2 text-xs text-slate-600 leading-relaxed'>
+          {description}
+        </p>
+      </div>
+    </div>
+    <div className='mt-auto border-t border-slate-200 bg-slate-50 px-4 py-3'>
+      <p className='text-xs font-medium text-neutral-500 uppercase tracking-wide mb-1'>
+        How to pay
+      </p>
+      <p className='text-sm text-slate-900 font-medium'>{payment}</p>
+    </div>
+  </div>
+);
+
+const ContactLink = ({
+  href,
+  icon: Icon,
+  label,
+  value,
+}: {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  value: string;
+}) => (
+  <a
+    href={href}
+    className='flex items-center gap-3 rounded-lg border border-slate-200 p-3 transition-colors hover:border-primary/40 hover:bg-primary/5'>
+    <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10'>
+      <Icon
+        className='size-4 text-primary'
+        aria-hidden='true'
+      />
+    </div>
+    <div className='min-w-0'>
+      <p className='text-xs font-medium text-slate-500 uppercase tracking-wide'>
+        {label}
+      </p>
+      <p className='truncate text-sm font-semibold text-slate-900'>{value}</p>
+    </div>
+  </a>
+);
+
 const TenderDetails: React.FC<TenderDetailsProps> = ({ tender }) => {
   return (
     <div className='space-y-4'>
-      {/* Fees Section */}
+      {/* Fees and how to pay each of them */}
       <div className='bg-white rounded-lg border border-neutral-200 shadow-sm overflow-hidden'>
         <div className='px-5 py-4 border-b border-neutral-100'>
           <h2 className='text-sm font-semibold text-slate-900'>
-            Fee Structure
-          </h2>
-        </div>
-        <div className='p-5'>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            {/* Document Fee */}
-            <div className='p-4 rounded-lg bg-slate-50 border border-slate-200'>
-              <div className='flex items-start gap-3 mb-3'>
-                <div className='flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 flex-shrink-0'>
-                  <FileText className='w-4 h-4 text-primary' />
-                </div>
-                <div className='flex-1'>
-                  <h3 className='text-xs font-medium text-neutral-500 uppercase tracking-wide mb-1'>
-                    Document Fee
-                  </h3>
-                  <div className='flex items-baseline gap-0.5'>
-                    <IndianRupee className='w-5 h-5 text-slate-700' />
-                    <p className='text-2xl font-semibold text-slate-700'>
-                      {Number(tender.tender_doc_fee).toLocaleString("en-IN")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <p className='text-xs text-slate-600 leading-relaxed'>
-                Non-refundable fee required to access and download the complete
-                tender documentation, including technical specifications and
-                terms.
-              </p>
-            </div>
-
-            {/* EMD Amount */}
-            <div className='p-4 rounded-lg bg-slate-50 border border-slate-200'>
-              <div className='flex items-start gap-3 mb-3'>
-                <div className='flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 flex-shrink-0'>
-                  <CreditCard className='w-4 h-4 text-primary' />
-                </div>
-                <div className='flex-1'>
-                  <h3 className='text-xs font-medium text-neutral-500 uppercase tracking-wide mb-1'>
-                    EMD Amount
-                  </h3>
-                  <div className='flex items-baseline gap-0.5'>
-                    <IndianRupee className='w-5 h-5 text-slate-700' />
-                    <p className='text-2xl font-semibold text-slate-700'>
-                      {Number(tender.tender_emd).toLocaleString("en-IN")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <p className='text-xs text-slate-600 leading-relaxed'>
-                Earnest Money Deposit (EMD) is a refundable security deposit
-                required at the time of bid submission to demonstrate serious
-                intent.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Payment Instructions */}
-      <div className='bg-white rounded-lg border border-neutral-200 shadow-sm overflow-hidden'>
-        <div className='px-5 py-4 border-b border-neutral-100'>
-          <h2 className='text-sm font-semibold text-slate-900'>
-            Payment Instructions
+            Fees and payment
           </h2>
           <p className='text-xs text-slate-600 mt-1'>
-            Bank account details for document fee and EMD payments
+            Payment instructions from the Tender Management Department for the
+            document fee and EMD
           </p>
         </div>
         <div className='p-5'>
-          <div className='p-4 rounded-lg bg-slate-50 border border-slate-200'>
-            <div className='flex items-start gap-3 mb-4'>
-              <div className='flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 flex-shrink-0'>
-                <Building2 className='w-4 h-4 text-primary' />
-              </div>
-              <div className='flex-1'>
-                <h3 className='text-sm font-semibold text-slate-900 mb-1'>
-                  Tender Management Department
-                </h3>
-                <p className='text-xs text-slate-600'>
-                  Please follow the instructions below for payments
-                </p>
-              </div>
-            </div>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <FeeBlock
+              icon={FileText}
+              label='Document Fee'
+              amount={tender.tender_doc_fee}
+              description='Non-refundable fee required to access and download the complete tender documentation, including technical specifications and terms.'
+              payment={
+                <>
+                  Bank Cheque in favour of{" "}
+                  <span className='font-bold text-primary'>{PAYEE}</span>
+                </>
+              }
+            />
+            <FeeBlock
+              icon={CreditCard}
+              label='EMD Amount'
+              amount={tender.tender_emd}
+              description='Earnest Money Deposit (EMD) is a refundable security deposit required at the time of bid submission to demonstrate serious intent.'
+              payment={
+                <>
+                  Demand Draft in favour of{" "}
+                  <span className='font-bold text-primary'>{PAYEE}</span>{" "}
+                  payable at{" "}
+                  <span className='font-bold text-primary'>New Delhi</span>
+                </>
+              }
+            />
+          </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <div>
-                <p className='text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2'>
-                  Document Fee Payment
-                </p>
-                <div className='p-3 bg-slate-50 border border-slate-200 rounded-lg'>
-                  <p className='text-sm text-slate-900 font-medium'>
-                    Bank Cheque in favour of{" "}
-                    <span className='font-bold text-primary'>
-                      The Energy and Resources Institute
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <p className='text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2'>
-                  EMD Payment
-                </p>
-                <div className='p-3 bg-slate-50 border border-slate-200 rounded-lg'>
-                  <p className='text-sm text-slate-900 font-medium'>
-                    Demand Draft in favour of{" "}
-                    <span className='font-bold text-primary'>
-                      The Energy and Resources Institute
-                    </span>{" "}
-                    payable at{" "}
-                    <span className='font-bold text-primary'>New Delhi</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className='mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg'>
-              <p className='text-xs text-amber-800 leading-relaxed'>
-                <strong>Note:</strong> Please mention the tender number (
-                {tender.tender_number}) as reference when making the payment.
-                Keep the payment receipt for verification during bid submission.
-              </p>
-            </div>
+          <div className='mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg'>
+            <p className='text-xs text-amber-800 leading-relaxed'>
+              <strong>Note:</strong> Please mention the tender number (
+              {tender.tender_number}) as reference when making the payment.
+              Keep the payment receipt for verification during bid submission.
+            </p>
           </div>
         </div>
       </div>
@@ -185,10 +185,10 @@ const TenderDetails: React.FC<TenderDetailsProps> = ({ tender }) => {
         </div>
       )}
 
-      {/* Help & Support */}
-      <div className='bg-gray-100/90 rounded-lg border border-emerald-50/10 shadow-sm overflow-hidden'>
-        <div className='px-5 py-4 border-b border-emerald-50/10'>
-          <h2 className='text-sm font-semibold text-emerald-600'>
+      {/* Help & Support - tap to call or email */}
+      <div className='bg-white rounded-lg border border-neutral-200 shadow-sm overflow-hidden'>
+        <div className='px-5 py-4 border-b border-neutral-100'>
+          <h2 className='text-sm font-semibold text-slate-900'>
             Help & Support
           </h2>
           <p className='text-xs text-slate-600 mt-1'>
@@ -196,31 +196,18 @@ const TenderDetails: React.FC<TenderDetailsProps> = ({ tender }) => {
           </p>
         </div>
         <div className='p-5 grid grid-cols-1 sm:grid-cols-2 gap-4'>
-          <div className='flex items-center gap-3 p-3 bg-white rounded-lg border border-emerald-50 shadow-sm'>
-            <div className='w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0'>
-              <Phone className='w-4 h-4 text-emerald-600' />
-            </div>
-            <div>
-              <p className='text-xs font-medium text-slate-500 uppercase tracking-wide'>
-                Helpline Number
-              </p>
-              <p className='text-sm font-bold text-slate-900'>+91 8560064756</p>
-            </div>
-          </div>
-
-          <div className='flex items-center gap-3 p-3 bg-white rounded-lg border border-emerald-50 shadow-sm'>
-            <div className='w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0'>
-              <Mail className='w-4 h-4 text-emerald-600' />
-            </div>
-            <div>
-              <p className='text-xs font-medium text-slate-500 uppercase tracking-wide'>
-                Email Support
-              </p>
-              <p className='text-sm font-bold text-slate-900'>
-                etender@teri.res.in
-              </p>
-            </div>
-          </div>
+          <ContactLink
+            href='tel:+918560064756'
+            icon={Phone}
+            label='Helpline Number'
+            value='+91 8560064756'
+          />
+          <ContactLink
+            href='mailto:etender@teri.res.in'
+            icon={Mail}
+            label='Email Support'
+            value='etender@teri.res.in'
+          />
         </div>
       </div>
     </div>
