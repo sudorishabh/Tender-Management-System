@@ -31,6 +31,7 @@ import { Save, X, User, Building, MapPin, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { isApiError } from "@/utils/isApiError";
 import { businessClassification } from "@/lib/constants";
+import type { VendorProfileDetails } from "../../_components/profileCompleteness";
 
 const formSchema = z.object({
   user: z.object({
@@ -62,49 +63,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 interface VendorProfileEditProps {
-  data: {
-    user: {
-      user_id: number | null;
-      email: string | null;
-      role: string | null;
-      created_at: Date | null;
-      full_name: string | null;
-      vendor_id: number;
-      vendor_code: string | null;
-      vendor_status: "pending" | "rejected" | "approved" | null;
-      vendor_contact: string | null;
-      vendor_alt_contact: string | null;
-      vendor_pan_number: string | null;
-      vendor_pan_doc_key: string | null;
-      vendor_image_key: string | null;
-      vendor_adhar_doc_key: string | null;
-    };
-    business: {
-      business_id: number | null;
-      biz_legal_name: string | null;
-      biz_trade_name: string | null;
-      biz_classification: string | null;
-      biz_reg_number: string | null;
-      biz_reg_doc_key: string | null;
-      biz_established_year: string | null;
-      biz_addr_line1: string | null;
-      biz_addr_line2: string | null;
-      biz_locality: string | null;
-      biz_city: string | null;
-      biz_pin_code: string | null;
-      biz_country: string | null;
-      biz_state: string | null;
-      biz_msme_cert_doc_key: string | null;
-      biz_gst_number: string | null;
-      biz_gst_doc_key: string | null;
-      biz_bank_doc_key: string | null;
-      biz_website: string | null;
-      biz_email: string | null;
-      biz_phone: string | null;
-      biz_3_year_turnover: string | null;
-      biz_employee_count: number | null;
-    } | null;
-  };
+  data: VendorProfileDetails;
   onCancel: () => void;
   onSuccess: () => void;
 }
