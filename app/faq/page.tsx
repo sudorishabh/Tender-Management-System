@@ -1,6 +1,10 @@
 import React from "react";
 import { Metadata } from "next";
-import { generatePageMetadata, BASE_URL } from "@/lib/seo.config";
+import {
+  generatePageMetadata,
+  BASE_URL,
+  sharedOpenGraph,
+} from "@/lib/seo.config";
 import { generateBreadcrumbSchema } from "@/lib/structured-data";
 import { JsonLdScript } from "@/_components/SEO/JsonLd";
 import Link from "next/link";
@@ -32,6 +36,7 @@ export const metadata: Metadata = {
     ]
   ),
   openGraph: {
+    ...sharedOpenGraph,
     title: "TERI Tender FAQ - Frequently Asked Questions",
     description:
       "Get answers to common questions about TERI tenders, registration, and bidding process.",

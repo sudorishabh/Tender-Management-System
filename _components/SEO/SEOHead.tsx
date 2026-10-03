@@ -17,7 +17,7 @@ export const SEOHead = ({
   title = "TERI Tenders - eTender Management System",
   description = "Discover, bid, and manage tenders efficiently with TERI's comprehensive eTender management platform.",
   canonicalUrl,
-  ogImage = `${BASE_URL}/og-image.png`,
+  ogImage = `${BASE_URL}/opengraph-image`,
   noIndex = false,
   keywords = [],
 }: SEOHeadProps) => {

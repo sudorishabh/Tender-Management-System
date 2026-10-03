@@ -154,20 +154,7 @@ export const defaultMetadata: Metadata = {
       "TERI Tenders | Official eTender Portal - The Energy and Resources Institute",
     description:
       "Official TERI eTender Portal - Discover and bid on tenders from The Energy and Resources Institute. Government & private sector procurement for sustainable development, energy research, and environmental projects in India.",
-    images: [
-      {
-        url: `${BASE_URL}/og-image.png`,
-        width: 1200,
-        height: 630,
-        alt: "TERI Tenders - Official eTender Portal of The Energy and Resources Institute",
-      },
-      {
-        url: `${BASE_URL}/TERI_LOGO.png`,
-        width: 512,
-        height: 512,
-        alt: "TERI - The Energy and Resources Institute Logo",
-      },
-    ],
+    // The share image comes from app/opengraph-image.tsx
   },
   twitter: {
     card: "summary_large_image",
@@ -176,7 +163,6 @@ export const defaultMetadata: Metadata = {
     title: "TERI Tenders | Official eTender Portal",
     description:
       "Official TERI eTender Portal - Bid on tenders from The Energy and Resources Institute. Sustainable procurement for energy, environment & research projects.",
-    images: [`${BASE_URL}/og-image.png`],
   },
   robots: {
     index: true,
@@ -197,6 +183,24 @@ export const defaultMetadata: Metadata = {
   classification: "Tender Management, E-Procurement, Government Tenders",
 };
 
+/**
+ * A page that sets its own openGraph replaces the root one wholesale - it
+ * would lose the site name, locale and share image - so spread these in.
+ * The image is rendered by app/opengraph-image.tsx; twitter:image copies it.
+ */
+export const sharedOpenGraph = {
+  siteName: "TERI Tenders - Official eTender Portal",
+  locale: "en_IN",
+  images: [
+    {
+      url: "/opengraph-image",
+      width: 1200,
+      height: 630,
+      alt: "TERI eTender Portal - tenders from The Energy and Resources Institute",
+    },
+  ],
+};
+
 // Page-specific metadata generators
 export const generatePageMetadata = (
   title: string,
@@ -210,6 +214,7 @@ export const generatePageMetadata = (
     canonical: `${BASE_URL}${path}`,
   },
   openGraph: {
+    ...sharedOpenGraph,
     title: `${title} | TERI Tenders`,
     description,
     url: `${BASE_URL}${path}`,
@@ -264,12 +269,9 @@ export const generateTenderMetadata = (tender: {
     alternates: {
       canonical: url,
     },
-    // These objects replace the root ones wholesale, so the shared fields are
-    // repeated here
     openGraph: {
+      ...sharedOpenGraph,
       type: "article",
-      siteName: "TERI Tenders - Official eTender Portal",
-      locale: "en_IN",
       title: `${title} | TERI Tenders`,
       description,
       url,

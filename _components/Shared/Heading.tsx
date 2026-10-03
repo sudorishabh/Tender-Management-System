@@ -19,7 +19,7 @@ const Heading: FC<HeadProps> = ({
   description,
   keywords,
   canonicalPath,
-  ogImage = `${BASE_URL}/og-image.png`,
+  ogImage = `${BASE_URL}/opengraph-image`,
   noIndex = false,
 }) => {
   const canonicalUrl = canonicalPath
