@@ -154,6 +154,7 @@ export const adminDashboard = async () => {
       db
         .select({
           bid_id: bidsTable.bid_id,
+          tender_id: bidsTable.tender_id,
           biz_name: businessTable.biz_legal_name,
           tender_title: tenderTable.tender_title,
           created_at: bidsTable.created_at,
