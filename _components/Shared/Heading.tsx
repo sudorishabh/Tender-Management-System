@@ -102,7 +102,7 @@ const Heading: FC<HeadProps> = ({
       />
       <meta
         name='twitter:site'
-        content='@teraboratory'
+        content='@teriin'
       />
       <meta
         name='twitter:title'

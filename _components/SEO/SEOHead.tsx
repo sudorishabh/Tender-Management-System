@@ -91,7 +91,7 @@ export const SEOHead = ({
       />
       <meta
         name='twitter:site'
-        content='@teraboratory'
+        content='@teriin'
       />
 
       {/* Robots */}

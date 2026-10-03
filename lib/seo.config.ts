@@ -25,10 +25,14 @@ export const ORGANIZATION = {
     contactType: "customer service",
     email: "mailbox@teri.res.in",
   },
+  // TERI's official profiles, as linked from the teriin.org footer
   sameAs: [
-    "https://www.linkedin.com/company/the-energy-and-resources-institute",
-    "https://twitter.com/teraboratory",
-    "https://www.facebook.com/TERIDelhi",
+    "https://www.teriin.org/",
+    "https://www.linkedin.com/company/teriin/",
+    "https://x.com/teriin",
+    "https://www.facebook.com/TERIIN/",
+    "https://www.youtube.com/user/teri",
+    "https://www.instagram.com/teriindia/",
   ],
 };
 
@@ -158,8 +162,8 @@ export const defaultMetadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "@teraboratory",
-    creator: "@teraboratory",
+    site: "@teriin",
+    creator: "@teriin",
     title: "TERI Tenders | Official eTender Portal",
     description:
       "Official TERI eTender Portal - Bid on tenders from The Energy and Resources Institute. Sustainable procurement for energy, environment & research projects.",
@@ -201,6 +205,13 @@ export const sharedOpenGraph = {
   ],
 };
 
+// Same story for twitter: without these a page's card loses the large image
+// layout and TERI's handle
+export const sharedTwitter = {
+  card: "summary_large_image" as const,
+  site: "@teriin",
+};
+
 // Page-specific metadata generators
 export const generatePageMetadata = (
   title: string,
@@ -221,6 +232,7 @@ export const generatePageMetadata = (
     type: "website",
   },
   twitter: {
+    ...sharedTwitter,
     title: `${title} | TERI Tenders`,
     description,
   },
@@ -277,7 +289,7 @@ export const generateTenderMetadata = (tender: {
       url,
     },
     twitter: {
-      card: "summary_large_image",
+      ...sharedTwitter,
       title: `${title} | TERI Tenders`,
       description,
     },
