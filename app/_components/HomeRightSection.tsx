@@ -6,7 +6,7 @@ import {
   Phone,
   Mail,
   ChevronDown,
-  HelpCircle,
+  type LucideIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -50,6 +50,33 @@ const commonFaqs = [
   },
 ];
 
+const ContactLink = ({
+  href,
+  icon: Icon,
+  label,
+  value,
+}: {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  value: string;
+}) => (
+  <a
+    href={href}
+    className='flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-slate-50'>
+    <Icon
+      className='size-4 shrink-0 text-primary'
+      aria-hidden='true'
+    />
+    <span className='min-w-0'>
+      <span className='block text-xs text-slate-500'>{label}</span>
+      <span className='block truncate text-sm font-medium text-slate-800'>
+        {value}
+      </span>
+    </span>
+  </a>
+);
+
 const HomeRightSection = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const faqId = useId();
@@ -64,73 +91,37 @@ const HomeRightSection = () => {
     setOpenFaq(openFaq === index ? null : index);
   };
 
+  // One panel: contacts lead as the more actionable part, FAQs follow
   return (
-    <div className='w-full space-y-6 lg:w-64 xl:w-80'>
-      {/* Support/Help Card - contact details lead, they are the more
-          actionable of the two panels */}
-      <div className={cn(surfaceStyle, "overflow-hidden")}>
-        <div className='flex items-center border-b border-slate-200 bg-primary/5 px-5 py-4'>
-          <div className='mr-2.5 rounded-md bg-primary/10 p-1.5'>
-            <MessageSquare
-              className='h-4 w-4 text-primary'
-              aria-hidden='true'
-            />
-          </div>
-          <h3 className='text-sm font-semibold text-gray-800'>Need Help?</h3>
+    <div className='w-full lg:w-64 xl:w-80'>
+      <section className={cn(surfaceStyle, "overflow-hidden")}>
+        <div className='flex items-center gap-2 border-b border-slate-100 px-5 py-3.5'>
+          <MessageSquare
+            className='size-4 text-primary'
+            aria-hidden='true'
+          />
+          <h2 className='text-sm font-semibold text-slate-900'>Need help?</h2>
         </div>
 
-        <div className='divide-y divide-slate-100'>
-          <p className='px-5 py-3 text-sm text-gray-600'>
-            Our support team is available to assist you with any questions.
-          </p>
-
-          <a
+        <div className='py-1.5'>
+          <ContactLink
             href='tel:+918560064756'
-            className='flex items-center gap-3 px-5 py-3 transition-colors hover:bg-gray-50'>
-            <Phone
-              className='h-4 w-4 shrink-0 text-primary'
-              aria-hidden='true'
-            />
-            <span className='min-w-0'>
-              <span className='block text-xs text-gray-500'>Call Support</span>
-              <span className='block text-sm font-medium text-gray-700'>
-                +91 8560064756
-              </span>
-            </span>
-          </a>
-
-          <a
+            icon={Phone}
+            label='Call support'
+            value='+91 8560064756'
+          />
+          <ContactLink
             href='mailto:etender@teri.res.in'
-            className='flex items-center gap-3 px-5 py-3 transition-colors hover:bg-gray-50'>
-            <Mail
-              className='h-4 w-4 shrink-0 text-primary'
-              aria-hidden='true'
-            />
-            <span className='min-w-0'>
-              <span className='block text-xs text-gray-500'>Email Support</span>
-              <span className='block truncate text-sm font-medium text-gray-700'>
-                etender@teri.res.in
-              </span>
-            </span>
-          </a>
-        </div>
-      </div>
-
-      {/* FAQ Card */}
-      <div className={cn(surfaceStyle, "overflow-hidden")}>
-        <div className='flex items-center border-b border-slate-200 bg-primary/5 px-5 py-4'>
-          <div className='mr-2.5 rounded-md bg-primary/10 p-1.5'>
-            <HelpCircle
-              className='h-4 w-4 text-primary'
-              aria-hidden='true'
-            />
-          </div>
-          <h3 className='text-sm font-semibold text-gray-800'>
-            Frequently Asked Questions
-          </h3>
+            icon={Mail}
+            label='Email support'
+            value='etender@teri.res.in'
+          />
         </div>
 
-        <div className='divide-y divide-slate-100'>
+        <h3 className='border-t border-slate-100 px-5 pb-1 pt-4 text-xs font-semibold uppercase tracking-wide text-slate-500'>
+          Frequently asked questions
+        </h3>
+        <div className='divide-y divide-slate-100 pb-1'>
           {faqs.map((faq, index) => {
             const isOpen = openFaq === index;
             return (
@@ -142,17 +133,17 @@ const HomeRightSection = () => {
                     aria-expanded={isOpen}
                     aria-controls={`${faqId}-panel-${index}`}
                     id={`${faqId}-trigger-${index}`}
-                    className='flex w-full items-center justify-between gap-2 px-5 py-3 text-left transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50'>
+                    className='flex w-full items-center justify-between gap-2 px-5 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50'>
                     <span
                       className={cn(
                         "text-sm font-medium",
-                        isOpen ? "text-primary" : "text-gray-700"
+                        isOpen ? "text-primary" : "text-slate-700"
                       )}>
                       {faq.question}
                     </span>
                     <ChevronDown
                       className={cn(
-                        "h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200",
+                        "h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200",
                         isOpen && "rotate-180 text-primary"
                       )}
                       aria-hidden='true'
@@ -164,7 +155,7 @@ const HomeRightSection = () => {
                   role='region'
                   aria-labelledby={`${faqId}-trigger-${index}`}
                   hidden={!isOpen}>
-                  <p className='px-5 pb-3 text-sm leading-relaxed text-gray-600'>
+                  <p className='px-5 pb-3 text-sm leading-relaxed text-slate-600'>
                     {faq.answer}
                   </p>
                 </div>
@@ -172,7 +163,7 @@ const HomeRightSection = () => {
             );
           })}
         </div>
-      </div>
+      </section>
     </div>
   );
 };
