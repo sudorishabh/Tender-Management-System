@@ -57,7 +57,8 @@ export const websiteSchema = {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: `${BASE_URL}/?search={search_term_string}`,
+      // The home page reads its search box from ?q=
+      urlTemplate: `${BASE_URL}/?q={search_term_string}`,
     },
     "query-input": "required name=search_term_string",
   },
@@ -253,46 +254,6 @@ export const generateTenderEventSchema = (tender: {
   },
 });
 
-// FAQ Schema for common tender questions
-export const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: [
-    {
-      "@type": "Question",
-      name: "How do I register as a vendor on TERI Tenders?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "To register as a vendor, click on the 'Register' button on the homepage, fill in your company details, business classification, and required documents. Once verified, you can start bidding on available tenders.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "What types of tenders are available on TERI Tenders?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "TERI Tenders hosts various procurement opportunities including IT services, construction, consulting, research projects, equipment supply, and more across multiple departments.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "How do I submit a bid?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "After registering and logging in, browse available tenders, select the one you're interested in, review requirements, prepare your proposal documents, and submit before the deadline using our secure online submission system.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Is TERI Tenders free to use?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Vendor registration and browsing tenders is free. Specific tenders may require a tender document fee which will be mentioned in the tender details.",
-      },
-    },
-  ],
-};
-
 // Breadcrumb Schema Generator
 export const generateBreadcrumbSchema = (
   items: Array<{ name: string; url: string }>
@@ -307,10 +268,6 @@ export const generateBreadcrumbSchema = (
   })),
 });
 
-// Combined schemas for the home page
-export const homePageSchemas = [
-  organizationSchema,
-  websiteSchema,
-  serviceSchema,
-  faqSchema,
-];
+// Site-wide schemas, rendered on every page by the root layout. The FAQPage
+// markup lives on /faq only - it has to match questions visible on the page.
+export const siteSchemas = [organizationSchema, websiteSchema, serviceSchema];
