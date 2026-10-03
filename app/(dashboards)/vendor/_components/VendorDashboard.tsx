@@ -7,6 +7,7 @@ import {
   FileSearch,
   FileText,
   Hourglass,
+  MailOpen,
   Send,
   Trophy,
 } from "lucide-react";
@@ -54,6 +55,7 @@ const VendorDashboard = () => {
     bidCounts,
     openTenderCount,
     closingSoon,
+    invitedTenders,
     recentBids,
     upcomingOpenings,
   } = dashboard.data;
@@ -72,6 +74,32 @@ const VendorDashboard = () => {
           status={account.status}
           rejectionReason={account.rejectionReason}
         />
+
+        {/* Only shown when there is an invitation still waiting for a bid */}
+        {invitedTenders.length > 0 && (
+          <RecentActivityPanel
+            title='Invitations to bid'
+            icon={MailOpen}
+            emptyMessage='No pending invitations'
+            isEmpty={false}>
+            {invitedTenders.map((tender) => (
+              <RecentActivityRow
+                key={tender.tender_id}
+                href={`/tender/${tender.tender_id}`}
+                title={
+                  capitalizeFirstLetter(tender.tender_title) ||
+                  "Untitled tender"
+                }
+                meta={joinMeta(
+                  tender.tender_number,
+                  tender.tender_department,
+                  `Closes ${formatDisplayDateTime(tender.tender_bid_submission_deadline)}`,
+                )}>
+                <DateCountdown date={tender.tender_bid_submission_deadline} />
+              </RecentActivityRow>
+            ))}
+          </RecentActivityPanel>
+        )}
 
         <section aria-labelledby='overview-heading'>
           <h2

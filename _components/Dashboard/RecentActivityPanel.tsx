@@ -7,7 +7,8 @@ import { surfaceStyle } from "@/app/styles";
 interface PanelProps {
   title: string;
   icon: LucideIcon;
-  viewAllHref: string;
+  /** Omit when there is no full list to link to */
+  viewAllHref?: string;
   emptyMessage: string;
   isEmpty: boolean;
   children: React.ReactNode;
@@ -30,11 +31,13 @@ export const RecentActivityPanel = ({
         />
         {title}
       </h2>
-      <Link
-        href={viewAllHref}
-        className='text-xs font-medium text-primary hover:underline'>
-        View all
-      </Link>
+      {viewAllHref && (
+        <Link
+          href={viewAllHref}
+          className='text-xs font-medium text-primary hover:underline'>
+          View all
+        </Link>
+      )}
     </header>
     {isEmpty ? (
       <p className='px-5 py-10 text-center text-sm text-slate-500'>

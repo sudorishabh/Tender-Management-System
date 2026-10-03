@@ -4,6 +4,7 @@ import {
   count,
   desc,
   eq,
+  inArray,
   like,
   notInArray,
   or,
@@ -14,6 +15,7 @@ import { db } from "@/server/db";
 import {
   bidsTable,
   businessTable,
+  tenderEmailInvitesTable,
   tenderTable,
   usersTable,
   vendorProfileTable,
@@ -588,7 +590,8 @@ const toLocalTime = (value: Date | string | null) =>
 
 /**
  * Get dashboard summary for the signed-in vendor: account status, bid counts,
- * recent bids, open tenders closing soon and upcoming bid opening dates
+ * recent bids, email invitations, open tenders closing soon and upcoming bid
+ * opening dates
  */
 export const vendorDashboard = async (userId: number) => {
   try {
@@ -597,8 +600,10 @@ export const vendorDashboard = async (userId: number) => {
         vendor_id: vendorProfileTable.vendor_id,
         vendor_status: vendorProfileTable.vendor_status,
         vendor_rejection_reason: vendorProfileTable.vendor_rejection_reason,
+        email: usersTable.email,
       })
       .from(vendorProfileTable)
+      .innerJoin(usersTable, eq(usersTable.user_id, vendorProfileTable.user_id))
       .where(eq(vendorProfileTable.user_id, userId))
       .limit(1);
 
@@ -628,11 +633,20 @@ export const vendorDashboard = async (userId: number) => {
       )
     );
 
+    const openTenderFields = {
+      tender_id: tenderTable.tender_id,
+      tender_title: tenderTable.tender_title,
+      tender_number: tenderTable.tender_number,
+      tender_department: tenderTable.tender_department,
+      tender_bid_submission_deadline: tenderTable.tender_bid_submission_deadline,
+    };
+
     const [
       bidStatusCounts,
       recentBids,
       openTenderCount,
       closingSoon,
+      invitedTenders,
       tendersWithOpenings,
     ] = await Promise.all([
       db
@@ -657,16 +671,27 @@ export const vendorDashboard = async (userId: number) => {
         .limit(DASHBOARD_LIST_SIZE),
       db.$count(tenderTable, openTenderCondition),
       db
-        .select({
-          tender_id: tenderTable.tender_id,
-          tender_title: tenderTable.tender_title,
-          tender_number: tenderTable.tender_number,
-          tender_department: tenderTable.tender_department,
-          tender_bid_submission_deadline:
-            tenderTable.tender_bid_submission_deadline,
-        })
+        .select(openTenderFields)
         .from(tenderTable)
         .where(openTenderCondition)
+        .orderBy(asc(tenderTable.tender_bid_submission_deadline))
+        .limit(DASHBOARD_LIST_SIZE),
+      // Open tenders this vendor's email was invited to and not yet bid on
+      db
+        .select(openTenderFields)
+        .from(tenderTable)
+        .where(
+          and(
+            openTenderCondition,
+            inArray(
+              tenderTable.tender_id,
+              db
+                .select({ tender_id: tenderEmailInvitesTable.tender_id })
+                .from(tenderEmailInvitesTable)
+                .where(eq(tenderEmailInvitesTable.email, vendor.email))
+            )
+          )
+        )
         .orderBy(asc(tenderTable.tender_bid_submission_deadline))
         .limit(DASHBOARD_LIST_SIZE),
       db
@@ -734,6 +759,7 @@ export const vendorDashboard = async (userId: number) => {
       },
       openTenderCount,
       closingSoon,
+      invitedTenders,
       recentBids,
       upcomingOpenings,
     };
