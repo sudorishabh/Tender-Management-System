@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/_components/ui/input";
 import { useTenderContext } from "@/context/TenderContext";
@@ -21,13 +21,21 @@ const HomeSearchInput = () => {
   const [value, setValue] = useState(search);
   const debounced = useDebouncedValue(value, 350);
 
+  // The search both fields agree on, so neither side echoes the other back
+  const syncedSearch = useRef(search);
+
   useEffect(() => {
+    if (debounced === syncedSearch.current) return;
+    syncedSearch.current = debounced;
     setHomeTenderSearch(debounced);
   }, [debounced, setHomeTenderSearch]);
 
-  // Reflect external resets (e.g. "Clear all filters") back into the field
+  // Reflect outside changes (a search restored from the URL, or
+  // "Clear all filters") back into the field
   useEffect(() => {
-    if (search === "") setValue("");
+    if (search === syncedSearch.current) return;
+    syncedSearch.current = search;
+    setValue(search);
   }, [search]);
 
   return (
