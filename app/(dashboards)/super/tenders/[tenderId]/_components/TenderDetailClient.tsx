@@ -596,7 +596,7 @@ export default function TenderDetailClient({ tenderId }: Props) {
               <Button
                 onClick={handleSubmit}
                 disabled={updateTender.isPending}
-                className='w-full bg-primary text-white font-semibold py-3 rounded-xl shadow-sm transition-all'>
+                className='w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 rounded-xl shadow-sm transition-all'>
                 {updateTender.isPending
                   ? "Updating..."
                   : selectedStatus === TENDER_STATUS.PUBLISHED &&

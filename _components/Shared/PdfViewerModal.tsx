@@ -152,7 +152,7 @@ const PdfViewerModal: FC<Props> = ({ value, isS3File, triggerButton }) => {
             <button
               onClick={handleDownload}
               type='button'
-              className='flex items-center gap-2 rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-white shadow-md transition-colors hover:bg-primary focus:outline-none focus:ring-2 focus:ring-primary0 focus:ring-offset-2'>
+              className='flex items-center gap-2 rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-white shadow-md transition-colors hover:bg-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2'>
               <Download size={16} />
               Download PDF
             </button>

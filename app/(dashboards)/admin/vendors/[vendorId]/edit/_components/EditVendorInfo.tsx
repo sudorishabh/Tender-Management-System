@@ -616,7 +616,7 @@ const EditVendorInfo: FC<Props> = ({ user, business, vendorId }) => {
               <Button
                 type='submit'
                 disabled={isSubmitting}
-                className='w-full sm:w-auto h-11 px-8 bg-primary hover:bg-primary/90 text-white rounded-lg shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'>
+                className='w-full sm:w-auto h-11 px-8 bg-primary hover:bg-primary-hover text-white rounded-lg shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'>
                 {isSubmitting ? (
                   <>
                     <div className='h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent' />

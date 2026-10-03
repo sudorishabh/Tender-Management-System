@@ -34,19 +34,19 @@ function CustomButton({
   let btnStyle;
 
   switch (variant) {
+    // Solid brand blue; hover deepens towards the navy of the sign-in panel
     case "primary":
-      btnStyle =
-        "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-sm";
+      btnStyle = "bg-primary text-white shadow-sm hover:bg-primary-hover";
       break;
     case "secondary":
       btnStyle =
-        "bg-white border border-primary text-primary hover:bg-primary/10";
+        "bg-white border border-primary text-primary hover:bg-primary/5";
       break;
     case "tertiary":
-      btnStyle = "bg-primary/15 text-primary hover:bg-primary/25 shadow-none";
+      btnStyle = "bg-primary/10 text-primary hover:bg-primary/15 shadow-none";
       break;
     default:
-      btnStyle = "bg-primary text-white hover:bg-primary/90";
+      btnStyle = "bg-primary text-white hover:bg-primary-hover";
   }
 
   return (
