@@ -4,6 +4,7 @@ import { generatePageMetadata, BASE_URL } from "@/lib/seo.config";
 import { generateBreadcrumbSchema } from "@/lib/structured-data";
 import { JsonLdScript } from "@/_components/SEO/JsonLd";
 import Link from "next/link";
+import { allFaqs } from "@/lib/faqs";
 
 export const metadata: Metadata = {
   ...generatePageMetadata(
@@ -30,75 +31,12 @@ export const metadata: Metadata = {
   },
 };
 
-const faqs = [
-  {
-    question: "What is TERI Tenders?",
-    answer:
-      "TERI Tenders (etender.teri.res.in) is the official electronic tender management portal of The Energy and Resources Institute (TERI). It enables vendors to discover, bid, and manage tender opportunities from TERI for projects related to sustainable development, energy research, environmental consulting, and more.",
-  },
-  {
-    question: "How do I register as a vendor on TERI Tenders?",
-    answer:
-      "To register as a vendor on TERI Tenders: 1) Click the 'Register' button on the homepage, 2) Fill in your company details including business name, classification, and contact information, 3) Upload required documents such as GST registration, PAN card, and company registration, 4) Submit for verification. Once verified, you can start bidding on available tenders.",
-  },
-  {
-    question: "Is registration on TERI Tender portal free?",
-    answer:
-      "Yes, vendor registration on TERI Tenders portal is completely free. You can browse available tenders without registration. However, to submit bids and access tender documents, you need to create an account. Some specific tenders may have a tender document fee, which will be mentioned in the tender details.",
-  },
-  {
-    question: "What types of tenders are available on TERI Tenders?",
-    answer:
-      "TERI Tenders hosts various procurement opportunities including: Research and consulting projects, IT services and software development, Construction and infrastructure, Equipment and material supply, Environmental and sustainability projects, Energy research initiatives, Training and capacity building, Publications and documentation, and more across multiple departments of TERI.",
-  },
-  {
-    question: "How do I submit a bid on TERI Tender?",
-    answer:
-      "To submit a bid: 1) Log in to your vendor account, 2) Browse and select the tender you want to bid on, 3) Review all tender requirements and documents, 4) Purchase the tender if required, 5) Prepare your proposal documents as per specifications, 6) Upload all required documents before the deadline, 7) Submit your bid electronically. You'll receive confirmation upon successful submission.",
-  },
-  {
-    question: "What documents are required for TERI tender registration?",
-    answer:
-      "Typically required documents include: Company registration certificate, GST registration certificate, PAN card, Latest audited financial statements, Bank account details, Relevant experience certificates, Technical capability documents. Specific tenders may require additional documents as mentioned in the tender notice.",
-  },
-  {
-    question: "How do I get notifications for new TERI tenders?",
-    answer:
-      "After registering on TERI Tenders portal, you can opt-in for email notifications for new tender announcements. You can also set preferences for specific categories or departments. We recommend checking the portal regularly and following TERI's official social media channels for tender updates.",
-  },
-  {
-    question: "What is the tender evaluation process at TERI?",
-    answer:
-      "TERI follows a transparent tender evaluation process: 1) Technical evaluation based on specified criteria, 2) Financial evaluation for technically qualified bidders, 3) Combined scoring based on weightage mentioned in tender documents, 4) Final selection and award notification. All evaluations are conducted by authorized TERI committees.",
-  },
-  {
-    question: "Can international vendors participate in TERI tenders?",
-    answer:
-      "Yes, international vendors can participate in TERI tenders, subject to eligibility criteria mentioned in specific tender documents. International bidders may need to comply with additional requirements such as local representation, compliance with Indian laws, and currency specifications for bidding.",
-  },
-  {
-    question: "How do I contact TERI for tender-related queries?",
-    answer:
-      "For tender-related queries, you can: Email the procurement team at the address mentioned in the tender document, Call TERI's main office at +91-11-24682100, Visit TERI's office at Darbari Seth Block, IHC Complex, Lodhi Road, New Delhi - 110003. For technical issues with the portal, use the support section on the website.",
-  },
-  {
-    question: "What is TERI (The Energy and Resources Institute)?",
-    answer:
-      "TERI - The Energy and Resources Institute - is a leading independent, not-for-profit research organization focused on energy, environment, and sustainable development. Established in 1974 and headquartered in New Delhi, TERI conducts research, provides policy advice, and implements projects across India and globally. Visit www.teriin.org for more information.",
-  },
-  {
-    question: "How secure is the TERI eTender portal?",
-    answer:
-      "TERI Tenders portal employs industry-standard security measures including: HTTPS encryption for all data transmission, Secure authentication system, Encrypted storage of sensitive documents, Regular security audits, Access controls and audit trails. All bid information is kept confidential until the designated opening date.",
-  },
-];
-
 const FAQPage = () => {
   // Enhanced FAQ schema with all questions
   const enhancedFaqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqs.map((faq) => ({
+    mainEntity: allFaqs.map((faq) => ({
       "@type": "Question",
       name: faq.question,
       acceptedAnswer: {
@@ -151,9 +89,9 @@ const FAQPage = () => {
         <section
           aria-label='Frequently Asked Questions'
           className='space-y-6'>
-          {faqs.map((faq, index) => (
+          {allFaqs.map((faq) => (
             <details
-              key={index}
+              key={faq.id}
               className='bg-white rounded-lg border border-gray-200 group'>
               <summary className='px-6 py-4 cursor-pointer font-semibold text-gray-800 hover:text-primary list-none flex justify-between items-center'>
                 <span>{faq.question}</span>
