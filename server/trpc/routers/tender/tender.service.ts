@@ -545,13 +545,6 @@ export const homeLatestTenders = async (data: HomeLatestTendersType) => {
     sql`${tenderTable.tender_release_date} IS NOT NULL AND ${tenderTable.tender_release_date} <= ${nowFormatted}`,
   );
 
-  // Open / closed filter
-  if (availability === "open") {
-    conditions = and(conditions, sql`NOT ${isClosedExpr}`);
-  } else if (availability === "closed") {
-    conditions = and(conditions, isClosedExpr);
-  }
-
   // Department filter
   if (department) {
     conditions = and(conditions, eq(tenderTable.tender_department, department));
@@ -590,6 +583,16 @@ export const homeLatestTenders = async (data: HomeLatestTendersType) => {
   }
 
   // Publish date filter handled in query
+
+  // Every filter except open / closed - the tab counts are taken over this
+  const filterConditions = conditions;
+
+  // Open / closed filter
+  if (availability === "open") {
+    conditions = and(conditions, sql`NOT ${isClosedExpr}`);
+  } else if (availability === "closed") {
+    conditions = and(conditions, isClosedExpr);
+  }
 
   // Query tenders with computed status based on timeline
   const baseQuery = db
@@ -664,25 +667,33 @@ export const homeLatestTenders = async (data: HomeLatestTendersType) => {
     };
   });
 
-  // Total count
-  const [totalTenders] = await db
-    .select({ count: count() })
+  // Counts for each open / closed tab under the other filters, in one pass
+  const [tabCounts] = await db
+    .select({
+      all: count(),
+      closed: sql<number>`COALESCE(SUM(CASE WHEN ${isClosedExpr} THEN 1 ELSE 0 END), 0)`,
+    })
     .from(tenderTable)
-    .where(conditions);
+    .where(filterConditions);
 
-  const totalCount = totalTenders.count;
+  const availabilityCounts = {
+    all: Number(tabCounts.all),
+    open: Number(tabCounts.all) - Number(tabCounts.closed),
+    closed: Number(tabCounts.closed),
+  };
+
+  const totalCount = availabilityCounts[availability];
   const totalPages = Math.ceil(totalCount / Number(limit));
 
-  return { tenders, page: Number(page), totalPages, totalCount };
+  return {
+    tenders,
+    page: Number(page),
+    totalPages,
+    totalCount,
+    availabilityCounts,
+  };
 };
 
-/**
- * Headline counts for the public home banner.
- *
- * "Open" uses the same visibility rules as homeLatestTenders (active, already
- * released) plus a deadline still in the future, so the number cannot exceed
- * what a visitor is able to browse.
- */
 // Distinct locations of published tenders, offered as filter suggestions
 export const homeTenderLocations = async () => {
   const nowFormatted = getCurrentTimeFormatted(new Date());
@@ -705,6 +716,13 @@ export const homeTenderLocations = async () => {
   return { locations: [...new Set(locations)] };
 };
 
+/**
+ * Headline counts for the public home banner.
+ *
+ * "Open" uses the same visibility rules as homeLatestTenders (active, already
+ * released) plus a deadline still in the future, so the number cannot exceed
+ * what a visitor is able to browse.
+ */
 export const homeTenderStats = async () => {
   const now = new Date();
   const nowFormatted = getCurrentTimeFormatted(now);
