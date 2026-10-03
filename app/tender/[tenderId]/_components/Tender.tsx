@@ -6,6 +6,7 @@ import TenderTimeline from "./TenderTimeline";
 import TenderJsonLd from "./TenderJsonLd";
 import TenderClarifications from "./TenderClarifications";
 import TenderDocumentCard from "./TenderDocumentCard";
+import TenderDocumentsSection from "./TenderDocumentsSection";
 import { ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "@/_components/ui/button";
 import Link from "next/link";
@@ -74,6 +75,11 @@ const Tender: FC<Props> = ({ tenderData }) => {
           {tender.tender_contract_document && (
             <TenderDocumentCard fileKey={tender.tender_contract_document} />
           )}
+
+          <TenderDocumentsSection
+            tender={tender}
+            bidderDocs={tenderData.bidderDocumentsReq}
+          />
 
           <TenderDetails tender={tender} />
 

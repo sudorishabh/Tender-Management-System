@@ -21,6 +21,9 @@ export interface ITender {
   tender_financial_bid_opening: string | Date | null;
   tender_opening_venue: string | null;
   tender_project_duration: string | null;
+  // Whether the bid form asks for a technical / financial bid upload
+  tender_is_technical_doc?: boolean | null;
+  tender_is_financial_doc?: boolean | null;
   tender_status: string | null;
   tender_select_all?: boolean;
   tender_created_by_id?: number | null;
