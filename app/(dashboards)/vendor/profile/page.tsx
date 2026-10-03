@@ -8,9 +8,11 @@ import { trpc } from "@/lib/trpc";
 import VendorProfileView from "./_components/VendorProfileView";
 import VendorProfileEdit from "./_components/VendorProfileEdit";
 import AccountStatusBanner from "../_components/AccountStatusBanner";
+import type { ProfileFormField } from "../_components/profileCompleteness";
 
 const VendorProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
+  const [editFocusField, setEditFocusField] = useState<ProfileFormField>();
 
   const { data, isLoading, isError, refetch } =
     trpc.vendor.getMyProfile.useQuery();
@@ -28,6 +30,11 @@ const VendorProfilePage = () => {
       />
     );
   }
+
+  const startEditing = (field?: ProfileFormField) => {
+    setEditFocusField(field);
+    setIsEditing(true);
+  };
 
   const handleEditSuccess = () => {
     setIsEditing(false);
@@ -58,13 +65,14 @@ const VendorProfilePage = () => {
         {isEditing ? (
           <VendorProfileEdit
             data={data.vendorDetails}
+            focusField={editFocusField}
             onCancel={() => setIsEditing(false)}
             onSuccess={handleEditSuccess}
           />
         ) : (
           <VendorProfileView
             data={data.vendorDetails}
-            onEdit={() => setIsEditing(true)}
+            onEdit={startEditing}
           />
         )}
       </div>

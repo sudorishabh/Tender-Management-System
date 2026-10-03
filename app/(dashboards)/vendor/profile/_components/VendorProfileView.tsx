@@ -20,11 +20,16 @@ import StatusBadge from "@/_components/Shared/StatusBadge";
 import PdfViewerModal from "@/_components/Shared/PdfViewerModal";
 import { formatDisplayDate } from "@/utils/dateUtils";
 import ProfileSection from "./ProfileSection";
-import type { VendorProfileDetails } from "../../_components/profileCompleteness";
+import ProfileChecklist from "./ProfileChecklist";
+import type {
+  ProfileFormField,
+  VendorProfileDetails,
+} from "../../_components/profileCompleteness";
 
 interface VendorProfileViewProps {
   data: VendorProfileDetails;
-  onEdit: () => void;
+  /** Opens the edit form, optionally focused on one field */
+  onEdit: (field?: ProfileFormField) => void;
 }
 
 type Business = VendorProfileDetails["business"];
@@ -211,7 +216,7 @@ const VendorProfileView: React.FC<VendorProfileViewProps> = ({
           </div>
         </div>
         <Button
-          onClick={onEdit}
+          onClick={() => onEdit()}
           className='shrink-0 self-start sm:self-center'>
           <Pencil
             aria-hidden
@@ -328,6 +333,11 @@ const VendorProfileView: React.FC<VendorProfileViewProps> = ({
         </div>
 
         <aside className='space-y-6'>
+          <ProfileChecklist
+            profile={data}
+            onCompleteField={onEdit}
+          />
+
           <ProfileSection
             title='Documents'
             icon={FileText}

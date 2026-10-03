@@ -107,6 +107,7 @@ export const getProfileCompleteness = (profile: VendorProfileDetails) => {
   return {
     percent: Math.round((filled / profileChecks.length) * 100),
     missing,
+    total: profileChecks.length,
   };
 };
 

@@ -31,7 +31,10 @@ import { Save, X, User, Building, MapPin, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { isApiError } from "@/utils/isApiError";
 import { businessClassification } from "@/lib/constants";
-import type { VendorProfileDetails } from "../../_components/profileCompleteness";
+import type {
+  ProfileFormField,
+  VendorProfileDetails,
+} from "../../_components/profileCompleteness";
 
 const formSchema = z.object({
   user: z.object({
@@ -64,12 +67,15 @@ type FormData = z.infer<typeof formSchema>;
 
 interface VendorProfileEditProps {
   data: VendorProfileDetails;
+  /** Field to focus when the form opens */
+  focusField?: ProfileFormField;
   onCancel: () => void;
   onSuccess: () => void;
 }
 
 const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
   data,
+  focusField,
   onCancel,
   onSuccess,
 }) => {
@@ -136,6 +142,10 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
       },
     });
   }, [data, form, user, business]);
+
+  useEffect(() => {
+    if (focusField) form.setFocus(focusField);
+  }, [focusField, form]);
 
   const onSubmit = async (formData: FormData) => {
     try {
@@ -328,7 +338,9 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                         onValueChange={field.onChange}
                         value={field.value || ""}>
                         <FormControl>
-                          <SelectTrigger className='h-11'>
+                          <SelectTrigger
+                            ref={field.ref}
+                            className='h-11'>
                             <SelectValue placeholder='Select classification' />
                           </SelectTrigger>
                         </FormControl>
@@ -374,6 +386,7 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                         <FormLabel>Employee Count</FormLabel>
                         <FormControl>
                           <Input
+                            ref={field.ref}
                             type='number'
                             placeholder='e.g., 50'
                             value={field.value ?? ""}
