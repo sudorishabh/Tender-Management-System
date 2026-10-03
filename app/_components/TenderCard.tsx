@@ -30,6 +30,30 @@ const getDeadlineLabel = (days: number) => {
   return `${days} days left`;
 };
 
+/**
+ * Many tenders reuse the description's opening as the title, so the card
+ * would print the same sentence twice. Returns the rest of the description,
+ * resuming at the word the title stops in, or null when nothing new remains.
+ */
+const getDescriptionPreview = (title: string, description: string) => {
+  const collapse = (text: string) => text.replace(/\s+/g, " ").trim();
+  const heading = collapse(title);
+  const body = collapse(description);
+
+  if (!heading || !body.toLowerCase().startsWith(heading.toLowerCase())) {
+    return body;
+  }
+
+  // Back up to the start of a word the title cut through ("requir|ement")
+  const cutsWord =
+    /\w/.test(heading[heading.length - 1]) &&
+    /\w/.test(body[heading.length] ?? "");
+  const resumeAt = cutsWord ? heading.lastIndexOf(" ") + 1 : heading.length;
+  const rest = body.slice(resumeAt).replace(/^[\s,.;:–-]+/, "");
+
+  return rest ? `…${rest}` : null;
+};
+
 /** Low-emphasis inline attribute (department / location / scope). */
 const MetaChip: FC<{
   icon: React.ElementType;
@@ -91,6 +115,13 @@ const TenderCard: FC<{ tender: ITenderCard }> = ({ tender }) => {
   const countdown =
     tender.isLive && daysLeft !== null && daysLeft >= 0 ? daysLeft : null;
 
+  const descriptionPreview = tender.tender_description
+    ? getDescriptionPreview(
+        tender.tender_title ?? "",
+        tender.tender_description
+      )
+    : null;
+
   return (
     <Link
       href={`/tender/${tender.tender_id}`}
@@ -147,9 +178,9 @@ const TenderCard: FC<{ tender: ITenderCard }> = ({ tender }) => {
           )}>
           {capitalizeFirstLetter(tender.tender_title || "Untitled Tender")}
         </h3>
-        {tender.tender_description && (
+        {descriptionPreview && (
           <p className='line-clamp-2 text-xs leading-relaxed text-neutral-500'>
-            {tender.tender_description}
+            {descriptionPreview}
           </p>
         )}
 
