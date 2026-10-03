@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 
 import {
   Select,
@@ -18,6 +18,7 @@ import { Button } from "@/_components/ui/button";
 import { cn } from "@/lib/utils";
 import { primaryButtonStyle } from "@/app/styles";
 import { trpc } from "@/lib/trpc";
+import LocationSuggestions from "./LocationSuggestions";
 
 const HomeMobileFilterPanel = ({
   department,
@@ -40,6 +41,8 @@ const HomeMobileFilterPanel = ({
     setHomeTenderBudgetRange,
     // setHomeTenderSortBy,
   } = useTenderContext();
+
+  const locationListId = useId();
 
   // Fetch departments from database
   const { data: departmentData } = trpc.department.getAll.useQuery();
@@ -130,9 +133,11 @@ const HomeMobileFilterPanel = ({
           </Label>
           <Input
             placeholder='Enter location...'
+            list={locationListId}
             value={location}
             onChange={(e) => setHomeTenderLocation(e.target.value)}
           />
+          <LocationSuggestions id={locationListId} />
         </div>
 
         {/* Mobile Filter Actions */}

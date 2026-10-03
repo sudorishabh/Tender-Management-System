@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import {
   Select,
   SelectContent,
@@ -13,6 +13,7 @@ import { useTenderContext } from "@/context/TenderContext";
 import { cn } from "@/lib/utils";
 import { Input } from "@/_components/ui/input";
 import { trpc } from "@/lib/trpc";
+import LocationSuggestions from "./LocationSuggestions";
 
 const HomeDesktopFilterPanel = ({
   department,
@@ -28,6 +29,8 @@ const HomeDesktopFilterPanel = ({
     setHomeTenderLocation,
     setHomeTenderBudgetRange,
   } = useTenderContext();
+
+  const locationListId = useId();
 
   // Fetch departments from database
   const { data: departmentData } = trpc.department.getAll.useQuery();
@@ -73,6 +76,8 @@ const HomeDesktopFilterPanel = ({
           <MapPin className='absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-primary' />
           <Input
             placeholder='Location...'
+            aria-label='Location'
+            list={locationListId}
             value={location}
             onChange={(e) => setHomeTenderLocation(e.target.value)}
             className={cn(
@@ -80,6 +85,7 @@ const HomeDesktopFilterPanel = ({
               location && "border-primary bg-primary/5"
             )}
           />
+          <LocationSuggestions id={locationListId} />
         </div>
       </div>
 
