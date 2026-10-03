@@ -56,6 +56,9 @@ const PaginationLink = ({
         variant: isActive ? "outline" : "ghost",
         size,
       }),
+      // Light brand tint marks the current page without a heavy fill
+      isActive &&
+        "border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary",
       className
     )}
     {...props}
