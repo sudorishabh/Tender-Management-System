@@ -11,7 +11,19 @@ const describeDays = (days: number) => {
   return `In ${days} days`;
 };
 
-const DateCountdown = ({ date }: { date: Date | string | null }) => {
+const toneStyles = {
+  light: { normal: "text-slate-500", urgent: "text-amber-700" },
+  // For navy surfaces such as the sign-in panel
+  dark: { normal: "text-sidebar-foreground", urgent: "text-amber-300" },
+};
+
+const DateCountdown = ({
+  date,
+  tone = "light",
+}: {
+  date: Date | string | null;
+  tone?: keyof typeof toneStyles;
+}) => {
   const days = getDaysUntil(date);
   if (days === null || days < 0) return null;
 
@@ -21,7 +33,9 @@ const DateCountdown = ({ date }: { date: Date | string | null }) => {
     <span
       className={cn(
         "inline-flex items-center gap-1 whitespace-nowrap text-xs",
-        isUrgent ? "font-medium text-amber-700" : "text-slate-500",
+        isUrgent
+          ? cn("font-medium", toneStyles[tone].urgent)
+          : toneStyles[tone].normal,
       )}>
       {isUrgent && (
         <Clock

@@ -5,6 +5,9 @@ import TenderDetails from "./TenderDetails";
 import TenderTimeline from "./TenderTimeline";
 import TenderJsonLd from "./TenderJsonLd";
 import TenderClarifications from "./TenderClarifications";
+import TenderDocumentCard from "./TenderDocumentCard";
+import TenderDocumentsSection from "./TenderDocumentsSection";
+import TenderHelp from "./TenderHelp";
 import { ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "@/_components/ui/button";
 import Link from "next/link";
@@ -58,23 +61,37 @@ const Tender: FC<Props> = ({ tenderData }) => {
   }
 
   return (
-    <div className='min-h-screen bg-neutral-50 pb-24'>
+    <div className='min-h-screen bg-canvas pb-24'>
       {/* Structured Data for SEO */}
 
       <TenderJsonLd tender={tender} />
 
       <div className='max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8'>
 
-        <TenderHeader tender={tender} />
+        <TenderHeader
+          tender={tender}
+          isLive={isLive}
+        />
 
 
         <div className='mt-6 space-y-5'>
+          {/* The PDF is what bidders need most, so it leads the details */}
+          {tender.tender_contract_document && (
+            <TenderDocumentCard fileKey={tender.tender_contract_document} />
+          )}
+
+          <TenderDocumentsSection
+            tender={tender}
+            bidderDocs={tenderData.bidderDocumentsReq}
+          />
 
           <TenderDetails tender={tender} />
 
           <TenderTimeline tender={tender} />
 
           <TenderClarifications tenderId={tender.tender_id} />
+
+          <TenderHelp />
         </div>
       </div>
 

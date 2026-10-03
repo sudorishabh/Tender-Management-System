@@ -1,96 +1,86 @@
 import React from "react";
-import { Clock, Calendar, HelpCircle, Info } from "lucide-react";
+import { Check, HelpCircle } from "lucide-react";
 import { ITender } from "@/_types/tender";
+import { cn } from "@/lib/utils";
 import {
   formatDisplayDateWithWeekday,
   formatDisplayTime12,
+  getDaysUntil,
 } from "@/utils/dateUtils";
+import { normalizeDbDate } from "@/utils/normalizeDbDate";
 
 interface TenderTimelineProps {
   tender: ITender;
 }
 
+// Dates that should show time
+const datesWithTime = [
+  "tender_technical_bid_opening",
+  "tender_financial_bid_opening",
+  "tender_bid_submission_deadline",
+];
+
+// Query-related event keys
+const queryRelatedEvents = ["tender_query_deadline", "tender_query_response_date"];
+
+const DEADLINE_KEY = "tender_bid_submission_deadline";
+
+const shouldShowTime = (eventKey: string) => datesWithTime.includes(eventKey);
+
+/** Timed events pass at their hour; date-only ones once the day is over. */
+const hasPassed = (eventKey: string, date: string | Date | null) => {
+  if (!date) return false;
+  if (shouldShowTime(eventKey)) {
+    const at = normalizeDbDate(date);
+    return Boolean(at) && at!.getTime() < Date.now();
+  }
+  const daysLeft = getDaysUntil(date);
+  return daysLeft !== null && daysLeft < 0;
+};
+
 const TenderTimeline: React.FC<TenderTimelineProps> = ({ tender }) => {
-  // Dates that should show time
-  const datesWithTime = [
-    "tender_technical_bid_opening",
-    "tender_financial_bid_opening",
-    "tender_bid_submission_deadline",
-  ];
-
-  // Query-related event keys
-  const queryRelatedEvents = [
-    "tender_query_deadline",
-    "tender_query_response_date",
-  ];
-
   const timelineEvents = [
     {
       label: "Tender Release Date",
       description: "Date when tender was published and made available",
       date: tender.tender_release_date,
-      status: "completed",
       key: "tender_release_date",
     },
     {
       label: "Query Submission Deadline",
       description: "Last date to submit clarification queries",
       date: tender.tender_query_deadline,
-      status: "upcoming",
       key: "tender_query_deadline",
     },
     {
       label: "Query Response Date",
       description: "Date when responses to queries will be published",
       date: tender.tender_query_response_date,
-      status: "upcoming",
       key: "tender_query_response_date",
     },
     {
       label: "Bid Submission Deadline",
       description: "Final date and time to submit your bid",
       date: tender.tender_bid_submission_deadline,
-      status: "upcoming",
-      key: "tender_bid_submission_deadline",
+      key: DEADLINE_KEY,
     },
     {
       label: "Technical Bid Opening",
       description: "Date and time when technical bids will be opened",
       date: tender.tender_technical_bid_opening,
-      status: "upcoming",
       key: "tender_technical_bid_opening",
     },
     {
       label: "Financial Bid Opening",
       description: "Date and time when financial bids will be opened",
       date: tender.tender_financial_bid_opening,
-      status: "upcoming",
       key: "tender_financial_bid_opening",
     },
-  ];
+  ].map((event) => ({ ...event, isPast: hasPassed(event.key, event.date) }));
 
-  const getStatusColor = (status: string, eventKey: string) => {
-    // Special styling for query-related events
-    if (queryRelatedEvents.includes(eventKey)) {
-      return "bg-gradient-to-br from-blue-50 to-purple-50 border-blue-300 shadow-sm";
-    }
-
-    switch (status) {
-      case "completed":
-        return "bg-emerald-50 border-emerald-200";
-      case "active":
-        return "bg-slate-50 border-slate-200";
-      case "upcoming":
-        return "bg-neutral-50 border-neutral-200";
-      default:
-        return "bg-neutral-50 border-neutral-200";
-    }
-  };
-
-  const shouldShowTime = (eventKey: string) => datesWithTime.includes(eventKey);
-
-  const isQueryRelatedEvent = (eventKey: string) =>
-    queryRelatedEvents.includes(eventKey);
+  // The first dated event still ahead is what bidders should watch for
+  const nextKey = timelineEvents.find((event) => event.date && !event.isPast)
+    ?.key;
 
   return (
     <div className='bg-white rounded-lg border border-neutral-200 shadow-sm overflow-hidden'>
@@ -107,132 +97,141 @@ const TenderTimeline: React.FC<TenderTimelineProps> = ({ tender }) => {
         {/* Query Information Box */}
         {(tender.tender_query_deadline ||
           tender.tender_query_response_date) && (
-          <div className='mb-5 p-4 rounded-lg bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-2 border-blue-200'>
-            <div className='flex items-start gap-3'>
-              <div className='flex-shrink-0 mt-0.5'>
-                <div className='p-2 rounded-lg bg-blue-100'>
-                  <HelpCircle className='h-5 w-5 text-blue-600' />
-                </div>
-              </div>
-              <div className='flex-1'>
-                <h3 className='text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2'>
-                  <Info className='h-4 w-4' />
-                  Query Submission Process
-                </h3>
-                <div className='space-y-2'>
-                  <p className='text-xs text-blue-800 leading-relaxed'>
-                    <span className='font-semibold'>
-                      Query Submission Period:
-                    </span>{" "}
-                    You can submit clarification queries only{" "}
-                    <span className='font-bold text-blue-900'>
-                      before{" "}
-                      {tender.tender_query_deadline
-                        ? formatDisplayDateWithWeekday(
-                            tender.tender_query_deadline,
-                          )
-                        : "the query deadline"}
-                    </span>
-                    .
-                  </p>
-                  <p className='text-xs text-blue-800 leading-relaxed'>
-                    <span className='font-semibold'>Response Timeline:</span>{" "}
-                    All answers to submitted queries will be published{" "}
-                    <span className='font-bold text-blue-900'>
-                      on or before{" "}
-                      {tender.tender_query_response_date
-                        ? formatDisplayDateWithWeekday(
-                            tender.tender_query_response_date,
-                          )
-                        : "the response date"}
-                    </span>
-                    .
-                  </p>
-                  <p className='text-xs text-purple-800 leading-relaxed bg-purple-100/50 p-2 rounded border border-purple-200 mt-3'>
-                    <span className='font-semibold'>⚠️ Important:</span> Queries
-                    submitted after the deadline will not be entertained. Plan
-                    accordingly to receive timely clarifications.
-                  </p>
-                </div>
-              </div>
+          <div className='mb-6 flex gap-3 rounded-lg border border-sky-200 bg-sky-50 p-4'>
+            <HelpCircle
+              className='mt-0.5 size-4 shrink-0 text-sky-700'
+              aria-hidden='true'
+            />
+            <div className='space-y-1.5 text-xs leading-relaxed text-sky-900'>
+              <h3 className='text-sm font-semibold'>
+                Query Submission Process
+              </h3>
+              <p>
+                <span className='font-semibold'>Query Submission Period:</span>{" "}
+                You can submit clarification queries only{" "}
+                <span className='font-bold'>
+                  before{" "}
+                  {tender.tender_query_deadline
+                    ? formatDisplayDateWithWeekday(tender.tender_query_deadline)
+                    : "the query deadline"}
+                </span>
+                .
+              </p>
+              <p>
+                <span className='font-semibold'>Response Timeline:</span> All
+                answers to submitted queries will be published{" "}
+                <span className='font-bold'>
+                  on or before{" "}
+                  {tender.tender_query_response_date
+                    ? formatDisplayDateWithWeekday(
+                        tender.tender_query_response_date,
+                      )
+                    : "the response date"}
+                </span>
+                .
+              </p>
+              <p>
+                <span className='font-semibold'>Important:</span> Queries
+                submitted after the deadline will not be entertained. Plan
+                accordingly to receive timely clarifications.
+              </p>
             </div>
           </div>
         )}
 
-        <div className='space-y-3'>
-          {timelineEvents.map((event, index) => (
-            <div
-              key={index}
-              className={`p-4 rounded-lg border ${getStatusColor(
-                event.status,
-                event.key,
-              )}`}>
-              <div className='flex items-start justify-between gap-4'>
-                <div className='flex-1'>
-                  <div className='flex items-center gap-2 mb-1'>
-                    {isQueryRelatedEvent(event.key) ? (
-                      <HelpCircle className='h-3.5 w-3.5 text-blue-600' />
-                    ) : (
-                      <Clock className='h-3.5 w-3.5 text-slate-600' />
-                    )}
-                    <h3
-                      className={`font-semibold text-sm ${
-                        isQueryRelatedEvent(event.key)
-                          ? "text-blue-900"
-                          : "text-slate-900"
-                      }`}>
-                      {event.label}
-                    </h3>
-                    {isQueryRelatedEvent(event.key) && (
-                      <span className='px-2 py-0.5 text-[10px] font-semibold bg-primary text-white rounded-full uppercase tracking-wide'>
-                        Query
-                      </span>
-                    )}
+        <ol>
+          {timelineEvents.map((event) => {
+            const isNext = event.key === nextKey;
+            const isDeadline = event.key === DEADLINE_KEY;
+
+            return (
+              <li
+                key={event.key}
+                className='group relative flex gap-4 pb-6 last:pb-0'>
+                {/* Rail joining this step to the next */}
+                <span
+                  aria-hidden
+                  className='absolute bottom-0 left-3 top-7 w-px -translate-x-1/2 bg-slate-200 group-last:hidden'
+                />
+                <span
+                  aria-hidden
+                  className={cn(
+                    "relative mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full",
+                    event.isPast
+                      ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-600/20"
+                      : isNext
+                        ? "bg-primary ring-4 ring-primary/15"
+                        : "bg-white ring-1 ring-slate-300",
+                  )}>
+                  {event.isPast ? (
+                    <Check className='size-3.5' />
+                  ) : (
+                    isNext && <span className='size-2 rounded-full bg-white' />
+                  )}
+                </span>
+
+                <div className='flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4'>
+                  <div className='min-w-0'>
+                    <div className='flex flex-wrap items-center gap-2'>
+                      <h3
+                        className={cn(
+                          "text-sm text-slate-900",
+                          isDeadline ? "font-semibold" : "font-medium",
+                        )}>
+                        {event.label}
+                      </h3>
+                      {queryRelatedEvents.includes(event.key) && (
+                        <span className='rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-700 ring-1 ring-inset ring-sky-600/20'>
+                          Query
+                        </span>
+                      )}
+                      {isNext && (
+                        <span className='rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary'>
+                          Next
+                        </span>
+                      )}
+                    </div>
+                    <p className='mt-0.5 text-xs leading-relaxed text-slate-500'>
+                      {event.description}
+                    </p>
                   </div>
-                  <p
-                    className={`text-xs leading-relaxed ml-5 ${
-                      isQueryRelatedEvent(event.key)
-                        ? "text-blue-800"
-                        : "text-slate-600"
-                    }`}>
-                    {event.description}
-                  </p>
-                </div>
-                <div className='text-right flex-shrink-0'>
-                  {event.date ? (
-                    <>
-                      <div className='flex items-center gap-1.5 justify-end mb-0.5'>
-                        <Calendar className='h-3 w-3 text-slate-500' />
+
+                  <div className='shrink-0 sm:text-right'>
+                    {event.date ? (
+                      <>
                         <p
-                          className={`text-sm font-semibold ${
-                            isQueryRelatedEvent(event.key)
-                              ? "text-blue-900"
-                              : "text-slate-900"
-                          }`}>
+                          className={cn(
+                            "text-sm font-semibold",
+                            event.isPast
+                              ? "text-slate-500"
+                              : isDeadline
+                                ? "text-primary"
+                                : "text-slate-900",
+                          )}>
                           {formatDisplayDateWithWeekday(event.date)}
                         </p>
-                      </div>
-                      {shouldShowTime(event.key) && (
-                        <p className='text-xs text-slate-600 font-medium'>
-                          {formatDisplayTime12(event.date)}
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <p className='text-sm font-semibold text-neutral-400'>
-                      TBD
-                    </p>
-                  )}
+                        {shouldShowTime(event.key) && (
+                          <p className='text-xs text-slate-600 font-medium'>
+                            {formatDisplayTime12(event.date)}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <p className='text-sm font-semibold text-neutral-400'>
+                        TBD
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              </li>
+            );
+          })}
+        </ol>
 
         {/* Venue and Project Duration */}
         {(tender.tender_opening_venue || tender.tender_project_duration) && (
           <div
-            className={`grid gap-3 mt-5 pt-5 border-t border-neutral-100 ${
+            className={`grid gap-3 mt-6 pt-5 border-t border-neutral-100 ${
               tender.tender_opening_venue && tender.tender_project_duration
                 ? "grid-cols-1 sm:grid-cols-2"
                 : "grid-cols-1"
