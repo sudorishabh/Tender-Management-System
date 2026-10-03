@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, type Control, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -34,6 +34,7 @@ import { trpc } from "@/lib/trpc";
 import { isApiError } from "@/utils/isApiError";
 import { businessClassification } from "@/lib/constants";
 import ProfileSection from "./ProfileSection";
+import DiscardChangesDialog from "./DiscardChangesDialog";
 import type {
   ProfileFormField,
   VendorProfileDetails,
@@ -168,6 +169,29 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
     if (focusField) form.setFocus(focusField);
   }, [focusField, form]);
 
+  const [isDiscardDialogOpen, setIsDiscardDialogOpen] = useState(false);
+  const { isDirty } = form.formState;
+  const isSaving = updateProfileMutation.isPending;
+
+  // Warn before a reload or tab close drops unsaved edits
+  useEffect(() => {
+    if (!isDirty) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
+
+  const handleCancel = () => {
+    if (isDirty) {
+      setIsDiscardDialogOpen(true);
+    } else {
+      onCancel();
+    }
+  };
+
   const onSubmit = async (formData: FormData) => {
     try {
       await updateProfileMutation.mutateAsync(formData);
@@ -184,37 +208,7 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
   };
 
   return (
-    <div className='space-y-6'>
-      {/* Actions (the page header shows the title) */}
-      <div className='flex justify-end'>
-        <div className='flex items-center gap-3'>
-          <Button
-            type='button'
-            variant='outline'
-            onClick={onCancel}
-            className='border-gray-200'>
-            <X className='h-4 w-4 mr-2' />
-            Cancel
-          </Button>
-          <Button
-            onClick={form.handleSubmit(onSubmit)}
-            disabled={updateProfileMutation.isPending}
-            className='bg-primary hover:bg-primary text-white'>
-            {updateProfileMutation.isPending ? (
-              <>
-                <Loader2 className='h-4 w-4 mr-2 animate-spin' />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className='h-4 w-4 mr-2' />
-                Save Changes
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-
+    <>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -451,36 +445,49 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
             </ProfileSection>
           </div>
 
-          {/* Action Buttons (Mobile) */}
-          <div className='flex sm:hidden flex-col gap-3 pt-4'>
-            <Button
-              type='submit'
-              disabled={updateProfileMutation.isPending}
-              className='w-full bg-primary hover:bg-primary text-white h-12'>
-              {updateProfileMutation.isPending ? (
-                <>
-                  <Loader2 className='h-4 w-4 mr-2 animate-spin' />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className='h-4 w-4 mr-2' />
-                  Save Changes
-                </>
-              )}
-            </Button>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={onCancel}
-              className='w-full border-gray-200 h-12'>
-              <X className='h-4 w-4 mr-2' />
-              Cancel
-            </Button>
+          {/* Stays in view while scrolling through the form */}
+          <div className='sticky bottom-0 z-10 -mx-8 border-t border-slate-200 bg-white/95 px-8 py-3 backdrop-blur'>
+            <div className='flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between'>
+              <p
+                aria-live='polite'
+                className='text-xs text-slate-500'>
+                {isDirty ? "You have unsaved changes." : "No changes to save."}
+              </p>
+              <div className='flex gap-2'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  onClick={handleCancel}
+                  className='flex-1 sm:flex-none'>
+                  <X aria-hidden />
+                  Cancel
+                </Button>
+                <Button
+                  type='submit'
+                  disabled={isSaving || !isDirty}
+                  className='flex-1 sm:flex-none'>
+                  {isSaving ? (
+                    <Loader2
+                      aria-hidden
+                      className='animate-spin'
+                    />
+                  ) : (
+                    <Save aria-hidden />
+                  )}
+                  {isSaving ? "Saving..." : "Save changes"}
+                </Button>
+              </div>
+            </div>
           </div>
         </form>
       </Form>
-    </div>
+
+      <DiscardChangesDialog
+        open={isDiscardDialogOpen}
+        onOpenChange={setIsDiscardDialogOpen}
+        onDiscard={onCancel}
+      />
+    </>
   );
 };
 
