@@ -17,7 +17,7 @@ const BannerStats = ({ stats }: { stats: BannerStat[] }) => (
   <dl className='flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-white/20 pt-4'>
     {stats.map((stat) => (
       <div key={stat.label}>
-        <dt className='text-[0.7rem] uppercase tracking-wider text-white/70'>
+        <dt className='text-xs uppercase tracking-wider text-white/70'>
           {stat.label}
         </dt>
         <dd className='text-xl font-bold text-white md:text-2xl'>

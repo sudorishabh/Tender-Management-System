@@ -77,7 +77,7 @@ const VendorLinkBadge: FC<{ link: VendorTenderLink }> = ({ link }) => {
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[0.65rem] font-semibold",
+        "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold",
         className
       )}>
       <Icon
@@ -121,7 +121,7 @@ const MoneyStat: FC<{
       className='size-3.5 shrink-0 text-neutral-400'
       aria-hidden='true'
     />
-    <span className='text-[0.7rem] text-neutral-500'>{label}</span>
+    <span className='text-xs text-neutral-500'>{label}</span>
     {amount === null || amount === undefined || amount === "" ? (
       <span className='text-xs font-semibold text-neutral-400'>N/A</span>
     ) : (
@@ -173,7 +173,7 @@ const TenderCard: FC<{
           <div className='flex min-w-0 items-center gap-2'>
             <span
               className={cn(
-                "inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[0.65rem] font-semibold",
+                "inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-xs font-semibold",
                 tender.isLive
                   ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                   : "border-neutral-300 bg-neutral-100 text-neutral-600"
@@ -189,7 +189,7 @@ const TenderCard: FC<{
             </span>
             {vendorLink && <VendorLinkBadge link={vendorLink} />}
             {tender.tender_number && (
-              <span className='truncate rounded-md border border-neutral-300 bg-neutral-50 px-1.5 py-0.5 font-mono text-[0.65rem] tracking-wide text-neutral-500'>
+              <span className='truncate rounded-md border border-neutral-300 bg-neutral-50 px-1.5 py-0.5 font-mono text-xs tracking-wide text-neutral-500'>
                 #{tender.tender_number}
               </span>
             )}
@@ -198,7 +198,7 @@ const TenderCard: FC<{
           {countdown !== null && (
             <span
               className={cn(
-                "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[0.65rem] font-semibold",
+                "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold",
                 getDeadlineTone(countdown)
               )}>
               <CalendarClock
@@ -262,7 +262,7 @@ const TenderCard: FC<{
               className='size-3.5 shrink-0 text-neutral-400'
               aria-hidden='true'
             />
-            <span className='text-[0.7rem] text-neutral-500'>
+            <span className='text-xs text-neutral-500'>
               {tender.isLive ? "Closes" : "Closed on"}
             </span>
             <span className='text-xs font-semibold text-neutral-900'>
