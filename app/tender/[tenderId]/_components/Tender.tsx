@@ -7,6 +7,7 @@ import TenderJsonLd from "./TenderJsonLd";
 import TenderClarifications from "./TenderClarifications";
 import TenderDocumentCard from "./TenderDocumentCard";
 import TenderDocumentsSection from "./TenderDocumentsSection";
+import TenderHelp from "./TenderHelp";
 import { ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "@/_components/ui/button";
 import Link from "next/link";
@@ -60,7 +61,7 @@ const Tender: FC<Props> = ({ tenderData }) => {
   }
 
   return (
-    <div className='min-h-screen bg-neutral-50 pb-24'>
+    <div className='min-h-screen bg-canvas pb-24'>
       {/* Structured Data for SEO */}
 
       <TenderJsonLd tender={tender} />
@@ -89,6 +90,8 @@ const Tender: FC<Props> = ({ tenderData }) => {
           <TenderTimeline tender={tender} />
 
           <TenderClarifications tenderId={tender.tender_id} />
+
+          <TenderHelp />
         </div>
       </div>
 
