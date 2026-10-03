@@ -1,11 +1,12 @@
 "use client";
 import { trpc } from "@/lib/trpc";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
+import { useSession } from "next-auth/react";
 import { FileSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/_components/ui/button";
 import TenderCardSkeleton from "@/_components/Shared/skeleton/TenderCardSkeleton";
-import TenderCard from "./TenderCard";
+import TenderCard, { type VendorTenderLink } from "./TenderCard";
 import HomeAvailabilityTabs from "./HomeAvailabilityTabs";
 import PaginationComponent from "@/_components/Shared/Pagination";
 import { useTenderContext } from "@/context/TenderContext";
@@ -44,6 +45,21 @@ const HomeTenders = () => {
     sortBy,
     availability,
   });
+
+  // Signed-in vendors see which listed tenders they bid on or were invited to
+  const { data: session } = useSession();
+  const { data: tenderLinks } = trpc.vendor.getMyTenderLinks.useQuery(
+    undefined,
+    { enabled: session?.user?.role === "vendor", staleTime: 60 * 1000 }
+  );
+
+  const vendorLinks = useMemo(() => {
+    const links = new Map<number, VendorTenderLink>();
+    tenderLinks?.invitedTenderIds.forEach((id) => links.set(id, "invited"));
+    // A submitted bid is the more useful thing to know, so it wins
+    tenderLinks?.biddedTenderIds.forEach((id) => links.set(id, "bid"));
+    return links;
+  }, [tenderLinks]);
 
   useEffect(() => {
     resetLatestPage();
@@ -124,6 +140,7 @@ const HomeTenders = () => {
               <TenderCard
                 key={tender.tender_id}
                 tender={tender}
+                vendorLink={vendorLinks.get(tender.tender_id)}
               />
             ))}
           </div>

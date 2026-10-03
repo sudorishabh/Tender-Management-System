@@ -10,6 +10,8 @@ import {
   ArrowRight,
   CalendarClock,
   IndianRupee,
+  CircleCheck,
+  MailOpen,
 } from "lucide-react";
 import { formatDisplayDate, getDaysUntil } from "@/utils/dateUtils";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
@@ -52,6 +54,39 @@ const getDescriptionPreview = (title: string, description: string) => {
   const rest = body.slice(resumeAt).replace(/^[\s,.;:–-]+/, "");
 
   return rest ? `…${rest}` : null;
+};
+
+/** How the signed-in vendor is connected to a tender */
+export type VendorTenderLink = "bid" | "invited";
+
+const vendorLinkBadges = {
+  bid: {
+    icon: CircleCheck,
+    label: "Bid submitted",
+    className: "border-sky-200 bg-sky-50 text-sky-700",
+  },
+  invited: {
+    icon: MailOpen,
+    label: "Invited",
+    className: "border-violet-200 bg-violet-50 text-violet-700",
+  },
+} satisfies Record<VendorTenderLink, object>;
+
+const VendorLinkBadge: FC<{ link: VendorTenderLink }> = ({ link }) => {
+  const { icon: Icon, label, className } = vendorLinkBadges[link];
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[0.65rem] font-semibold",
+        className
+      )}>
+      <Icon
+        className='size-3'
+        aria-hidden='true'
+      />
+      {label}
+    </span>
+  );
 };
 
 /** Low-emphasis inline attribute (department / location / scope). */
@@ -101,7 +136,11 @@ const MoneyStat: FC<{
   </div>
 );
 
-const TenderCard: FC<{ tender: ITenderCard }> = ({ tender }) => {
+const TenderCard: FC<{
+  tender: ITenderCard;
+  /** Set for signed-in vendors who have bid on or been invited to it */
+  vendorLink?: VendorTenderLink;
+}> = ({ tender, vendorLink }) => {
   // Computed after mount only: the server may run in a different timezone than
   // the visitor, so a countdown rendered during SSR can disagree with the
   // client and trip a hydration mismatch. The absolute date in the footer is
@@ -148,6 +187,7 @@ const TenderCard: FC<{ tender: ITenderCard }> = ({ tender }) => {
               />
               {tender.isLive ? "Live" : "Closed"}
             </span>
+            {vendorLink && <VendorLinkBadge link={vendorLink} />}
             {tender.tender_number && (
               <span className='truncate rounded-md border border-neutral-300 bg-neutral-50 px-1.5 py-0.5 font-mono text-[0.65rem] tracking-wide text-neutral-500'>
                 #{tender.tender_number}
