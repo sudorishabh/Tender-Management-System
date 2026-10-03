@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ITableVendor } from "@/_types/vendor";
 import PaginationComponent from "@/components/Shared/Pagination";
+import StatusBadge from "@/components/Shared/StatusBadge";
 
 interface Props {
   data: ITableVendor[];
@@ -70,17 +71,7 @@ const VendorsTable: FC<Props> = ({
                   key={vendor.email}
                   className='hover:bg-gray-50'>
                   <TableCell>
-                    <span
-                      className={`font-medium text-xs border-[0.1rem] rounded-sm text-[0.8rem] py-0.5 px-2 ${vendor && vendor.vendor_status === "pending"
-                          ? "bg-orange-100  text-orange-700 border-orange-200"
-                          : vendor.vendor_status === "approved"
-                            ? "bg-green-100  text-green-700 border-green-200"
-                            : vendor.vendor_status === "rejected"
-                              ? "bg-red-100  text-red-700 border-red-200"
-                              : ""
-                        }`}>
-                      {capitalizeFirstLetter(vendor.vendor_status)}
-                    </span>
+                    <StatusBadge status={vendor.vendor_status} />
                   </TableCell>
                   <TableCell className='text-xs text-gray-900 w-[8rem]'>
                     <div className='truncate max-w-[8rem]'>

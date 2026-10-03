@@ -25,6 +25,7 @@ import Link from "next/link";
 import React from "react";
 import { ITenderCard } from "@/_types/tender/index";
 import { normalizeDbDate } from "@/utils/normalizeDbDate";
+import StatusBadge from "@/components/Shared/StatusBadge";
 
 function formatTimeRemaining(targetDate: Date): string {
   const now = new Date();
@@ -72,37 +73,12 @@ const LiveTenderCard = ({
 
   const isPending = bidEndDate && bidEndDate > new Date();
 
-  // Get status color based on tender status
-  const getStatusStyles = (isLive: boolean) => {
-    if (isLive) {
-      return {
-        dot: "bg-emerald-400",
-        badge: "text-emerald-700 bg-emerald-50",
-      };
-    } else {
-      return {
-        dot: "bg-neutral-400",
-        badge: "text-neutral-700 bg-neutral-50",
-      };
-    }
-  };
-
-  const statusStyles = getStatusStyles(tender.isLive);
-
   return (
     <Card className={cn(cardShadowStyle, "rounded-lg bg-gray-50")}>
       {/* Header */}
       <div className='flex items-center justify-between px-4 py-2 bg-gray-100 border-b border-gray-100'>
         <div className='flex items-center space-x-2'>
-          <div
-            className={cn("w-1.5 h-1.5 rounded-full", statusStyles.dot)}></div>
-          <span
-            className={cn(
-              "text-xs font-normal px-2 py-0.5 rounded",
-              statusStyles.badge,
-            )}>
-            {tender.isLive ? "Live" : "Closed"}
-          </span>
+          <StatusBadge status={tender.isLive ? "live" : "closed"} />
           {/* {isUrgent && !isClosed && (
             <span className='text-xs font-normal text-orange-700 bg-orange-50 px-2 py-0.5 rounded flex items-center'>
               <Clock className='w-3 h-3 mr-1' />
