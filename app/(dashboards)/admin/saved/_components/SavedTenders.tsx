@@ -144,7 +144,7 @@ const SavedTenders = () => {
             <p className='text-gray-600 mb-6'>
               You haven&apos;t created any draft tenders yet.
             </p>
-            <Link href='/admin/create-tender'>
+            <Link href='/admin/create'>
               <Button className={secondaryButtonStyle2}>
                 <Plus className='h-5 w-5 mr-2' />
                 Create your first tender

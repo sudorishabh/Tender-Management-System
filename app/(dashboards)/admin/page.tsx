@@ -49,7 +49,7 @@ const AdminDashboard = () => {
       button={{
         label: "Create New Tender",
         icon: FilePlus2,
-        onClick: () => router.push("/admin/create-tender"),
+        onClick: () => router.push("/admin/create"),
       }}>
       <div>
         <div className='mx-auto mb-12'>
