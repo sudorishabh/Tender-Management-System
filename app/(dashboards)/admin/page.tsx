@@ -73,7 +73,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className='flex flex-wrap items-center gap-1.5 mt-1'>
                   <span className='text-xs px-1.5 text-nowrap py-0.5 rounded-sm bg-green-100 text-green-800'>
-                    {data?.totalLiveTender} Live
+                    {data?.tendersAcceptingBids} Live
                   </span>
 
                   <span className='text-xs px-1.5 text-nowrap py-0.5 rounded-sm bg-yellow-100 text-yellow-800'>
