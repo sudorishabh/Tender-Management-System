@@ -3,7 +3,6 @@ import React, { FC } from "react";
 import TenderHeader from "./TenderHeader";
 import TenderDetails from "./TenderDetails";
 import TenderTimeline from "./TenderTimeline";
-import TenderJsonLd from "./TenderJsonLd";
 import TenderClarifications from "./TenderClarifications";
 import TenderDocumentCard from "./TenderDocumentCard";
 import TenderDocumentsSection from "./TenderDocumentsSection";
@@ -62,10 +61,7 @@ const Tender: FC<Props> = ({ tenderData }) => {
 
   return (
     <div className='min-h-screen bg-canvas pb-24'>
-      {/* Structured Data for SEO */}
-
-      <TenderJsonLd tender={tender} />
-
+      {/* Structured data is rendered on the server by the page */}
       <div className='max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8'>
 
         <TenderHeader

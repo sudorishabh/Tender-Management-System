@@ -463,7 +463,11 @@ export const getTenderWithRelatedData = async ({
     tender_status: tenderTable.tender_status,
     ...(isFromGetSavedTender
       ? {}
-      : { tender_created_by_id: tenderTable.tender_created_by_id }),
+      : {
+          tender_created_by_id: tenderTable.tender_created_by_id,
+          // The tender page only server-renders approved tenders
+          tender_is_active: tenderTable.tender_is_active,
+        }),
     created_at: tenderTable.created_at,
     updated_at: tenderTable.updated_at,
   };

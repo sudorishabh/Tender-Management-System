@@ -180,45 +180,47 @@ export const generateWebPageSchema = (
   return schema;
 };
 
-// Tender/Product Schema Generator
+/**
+ * Tender DATETIME columns hold Indian wall-clock time, which the driver reads
+ * as if it were UTC (see utils/dateUtils.ts). Re-attach the real +05:30 offset
+ * so search engines get the correct instant.
+ */
+const toIstIsoString = (value?: Date | string | null) => {
+  if (!value) return undefined;
+  const wallClock =
+    typeof value === "string"
+      ? value.replace(" ", "T").slice(0, 19)
+      : value.toISOString().slice(0, 19);
+  return `${wallClock}+05:30`;
+};
+
+// Tender Schema Generator - a tender is TERI seeking goods or services, which
+// schema.org models as a Demand (a Product would claim something is on sale)
 export const generateTenderSchema = (tender: {
   id: number;
   title: string;
   description?: string;
   department?: string;
-  bidStartDate?: Date;
-  bidEndDate?: Date;
-  estimatedValue?: number;
-  status?: string;
+  location?: string;
   referenceNumber?: string;
-}) => ({
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "@id": `${BASE_URL}/tender/${tender.id}/#tender`,
-  name: tender.title,
-  description: tender.description || `Tender opportunity: ${tender.title}`,
-  url: `${BASE_URL}/tender/${tender.id}`,
-  category: tender.department || "General",
-  sku: tender.referenceNumber || `TERI-${tender.id}`,
-  brand: {
-    "@type": "Brand",
-    name: "TERI Tenders",
-  },
-  offers: {
-    "@type": "Offer",
-    availability:
-      tender.status === "open"
-        ? "https://schema.org/InStock"
-        : "https://schema.org/OutOfStock",
-    validFrom: tender.bidStartDate?.toISOString(),
-    validThrough: tender.bidEndDate?.toISOString(),
-    price: tender.estimatedValue || 0,
-    priceCurrency: "INR",
-    seller: {
-      "@id": `${BASE_URL}/#organization`,
-    },
-  },
-});
+  releaseDate?: Date | string | null;
+  bidDeadline?: Date | string | null;
+}) => {
+  const url = `${BASE_URL}/tender/${tender.id}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Demand",
+    "@id": `${url}#tender`,
+    name: tender.title,
+    description: tender.description || `Tender opportunity: ${tender.title}`,
+    url,
+    identifier: tender.referenceNumber,
+    category: tender.department,
+    areaServed: tender.location,
+    availabilityStarts: toIstIsoString(tender.releaseDate),
+    availabilityEnds: toIstIsoString(tender.bidDeadline),
+  };
+};
 
 // Event Schema for Active Tenders
 export const generateTenderEventSchema = (tender: {

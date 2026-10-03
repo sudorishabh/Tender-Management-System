@@ -223,43 +223,68 @@ export const generatePageMetadata = (
   keywords: keywords || [],
 });
 
+// Search engines show roughly 160 characters of a description
+const toMetaDescription = (text: string, maxLength = 160) => {
+  const flat = text.replace(/\s+/g, " ").trim();
+  if (flat.length <= maxLength) return flat;
+  const cut = flat.slice(0, maxLength - 1);
+  return `${cut.slice(0, cut.lastIndexOf(" ")) || cut}…`;
+};
+
 // Tender detail page metadata generator
 export const generateTenderMetadata = (tender: {
   id: number;
   title: string;
-  description?: string;
-  department?: string;
-  bidEndDate?: Date;
-  estimatedValue?: number;
-}): Metadata => ({
-  title: tender.title,
-  description:
+  description?: string | null;
+  number?: string | null;
+  department?: string | null;
+  // Already formatted for display, e.g. "12 Oct 2026 at 3:00 PM"
+  bidDeadline?: string | null;
+}): Metadata => {
+  const url = `${BASE_URL}/tender/${tender.id}`;
+  const title = tender.title.charAt(0).toUpperCase() + tender.title.slice(1);
+
+  // Lead with the facts bidders scan for, then the tender's own description
+  const facts = [
+    tender.number && `Tender no. ${tender.number}`,
+    tender.department,
+    tender.bidDeadline && `Bids close ${tender.bidDeadline}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const summary =
     tender.description ||
-    `Bid on ${tender.title}. View tender details, requirements, and submit your proposal through TERI Tenders platform.`,
-  alternates: {
-    canonical: `${BASE_URL}/tender/${tender.id}`,
-  },
-  openGraph: {
-    title: `${tender.title} | TERI Tenders`,
-    description:
-      tender.description ||
-      `Tender opportunity from TERI. Department: ${
-        tender.department || "General"
-      }`,
-    url: `${BASE_URL}/tender/${tender.id}`,
-    type: "article",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `${tender.title} | TERI Tenders`,
-    description: tender.description || `Tender opportunity from TERI`,
-  },
-  keywords: [
-    "TERI Tender",
-    tender.title,
-    tender.department || "",
-    "Tender Bidding",
-    "Procurement Opportunity",
-    "Government Contract",
-  ].filter(Boolean),
-});
+    "View the tender details and documents and bid online on the TERI eTender Portal.";
+  const description = toMetaDescription(
+    [facts, summary].filter(Boolean).join(". "),
+  );
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    // These objects replace the root ones wholesale, so the shared fields are
+    // repeated here
+    openGraph: {
+      type: "article",
+      siteName: "TERI Tenders - Official eTender Portal",
+      locale: "en_IN",
+      title: `${title} | TERI Tenders`,
+      description,
+      url,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | TERI Tenders`,
+      description,
+    },
+    keywords: [
+      "TERI tender",
+      title,
+      tender.number || "",
+      tender.department || "",
+    ].filter(Boolean),
+  };
+};
