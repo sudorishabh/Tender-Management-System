@@ -17,12 +17,12 @@ import PageError from "@/_components/Shared/PageError";
 import StatusBadge from "@/components/Shared/StatusBadge";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 import { formatDisplayDate } from "@/utils/dateUtils";
-import DashboardStatTile from "./_components/DashboardStatTile";
-import AttentionCard from "./_components/AttentionCard";
+import DashboardStatTile from "@/components/Dashboard/DashboardStatTile";
+import AttentionCard from "@/components/Dashboard/AttentionCard";
 import {
   RecentActivityPanel,
   RecentActivityRow,
-} from "./_components/RecentActivityPanel";
+} from "@/components/Dashboard/RecentActivityPanel";
 
 const plural = (count: number, singular: string, pluralForm: string) =>
   count === 1 ? singular : pluralForm;
