@@ -59,12 +59,11 @@ svg {
   }
 }
 @layer base {
+  /* --sidebar-primary is the hover/active surface of sidebar menu items */
   :root {
     --radius: 0.5rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-primary: 240 4.8% 95.9%;
     --sidebar-primary-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
@@ -73,8 +72,6 @@ svg {
   .dark {
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-primary: 240 3.7% 15.9%;
     --sidebar-primary-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
@@ -87,15 +84,15 @@ svg {
 }
 
 *::-webkit-scrollbar-track {
-  /* background: rgba(165, 165, 165, 0.232); */
-
-  background: white;
+  background: transparent;
 }
 
 *::-webkit-scrollbar-thumb {
   background-color: rgba(206, 206, 206, 0.524);
+  background-clip: padding-box;
   border-radius: 6px;
-  border-inline: 2.5px solid white; /* Creates a padding effect on the right side */
+  /* Transparent border insets the thumb on any background */
+  border-inline: 2.5px solid transparent;
 }
 .custom-toaster,
 .custom-toaster * {

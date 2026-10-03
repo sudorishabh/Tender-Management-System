@@ -15,6 +15,16 @@ export default {
         primary: "#00619a",
         secondary: "",
         card: "#f6f6f6",
+        // Backed by the --sidebar-* variables in app/globals.css
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background) / <alpha-value>)",
+          foreground: "hsl(var(--sidebar-foreground) / <alpha-value>)",
+          primary: "hsl(var(--sidebar-primary) / <alpha-value>)",
+          "primary-foreground":
+            "hsl(var(--sidebar-primary-foreground) / <alpha-value>)",
+          border: "hsl(var(--sidebar-border) / <alpha-value>)",
+          ring: "hsl(var(--sidebar-ring) / <alpha-value>)",
+        },
       },
 
       borderRadius: {
