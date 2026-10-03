@@ -13,43 +13,17 @@ import {
 
 import { cn } from "@/lib/utils";
 import { surfaceStyle } from "@/app/styles";
+import { pickFaqs } from "@/lib/faqs";
 
-const registerFaq = {
-  question: "How do I register as a vendor?",
-  answer:
-    "Click on 'Register Now' and fill in your company details. You'll receive a verification email to complete the registration process.",
-};
-
-// Signed-in vendors are past registration, so they get account questions
-const vendorAccountFaqs = [
-  {
-    question: "Why can't I submit a bid yet?",
-    answer:
-      "Only approved accounts can submit bids. While your registration is pending, you can still browse tenders. Your account status is shown on your profile page.",
-  },
-  {
-    question: "How do I update my business details?",
-    answer:
-      "Open your profile from the dashboard and choose Edit profile. Documents uploaded during registration can't be changed there, so contact the tender team to replace one.",
-  },
-];
-
-const commonFaqs = [
-  {
-    question: "What documents do I need to bid?",
-    answer:
-      "Required documents vary by tender but typically include company registration, PAN card, GST certificate, and relevant experience certificates.",
-  },
-  {
-    question: "How can I track my bids?",
-    answer:
-      "Once logged in, visit your dashboard to view all your submitted bids, their status, and any updates from the tender management team.",
-  },
-  {
-    question: "What payment methods are accepted?",
-    answer:
-      "We accept online payments via net banking, credit/debit cards, and UPI. Detailed payment instructions are provided during the bidding process.",
-  },
+// Same answers as the FAQ page. Signed-in vendors are past registration,
+// so they get account questions instead
+const visitorFaqIds = ["register", "bid-documents", "track-bids", "payment"];
+const vendorFaqIds = [
+  "cant-bid",
+  "update-details",
+  "bid-documents",
+  "track-bids",
+  "payment",
 ];
 
 const ContactLink = ({
@@ -85,10 +59,9 @@ const HelpCard = () => {
   const faqId = useId();
   const { data: session } = useSession();
 
-  const faqs =
-    session?.user?.role === "vendor"
-      ? [...vendorAccountFaqs, ...commonFaqs]
-      : [registerFaq, ...commonFaqs];
+  const faqs = pickFaqs(
+    session?.user?.role === "vendor" ? vendorFaqIds : visitorFaqIds
+  );
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
