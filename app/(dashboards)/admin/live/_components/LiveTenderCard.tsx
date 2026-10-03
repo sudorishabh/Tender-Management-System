@@ -20,6 +20,7 @@ import {
   IndianRupee,
   Timer,
   Pencil,
+  MessageCircleQuestion,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -189,7 +190,7 @@ const LiveTenderCard = ({
         </div>
 
         {/* Action Buttons */}
-        <div className='grid grid-cols-3 gap-2 mt-4'>
+        <div className='grid grid-cols-2 gap-2 mt-4'>
           {/* View Details */}
           <Link
             href={`/tender/${tender.tender_id}`}
@@ -219,6 +220,22 @@ const LiveTenderCard = ({
               )}>
               <Pencil className='w-4 h-4 mr-1' />
               Edit
+            </Button>
+          </Link>
+
+          {/* Vendor clarification questions */}
+          <Link
+            href={`/admin/live/${tender.tender_id}/clarifications`}
+            className='col-span-1'>
+            <Button
+              size='sm'
+              variant='outline'
+              className={cn(
+                secondaryButtonStyle,
+                "w-full h-9 border-0 bg-gray-200/55",
+              )}>
+              <MessageCircleQuestion className='w-4 h-4 mr-1' />
+              Questions
             </Button>
           </Link>
 
