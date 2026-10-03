@@ -36,9 +36,59 @@ import { sendMail } from "@/lib/server/email";
 import { vendorStatusUpdatedEmail } from "@/lib/server/templates/vendor.templates";
 import { getCurrentTimeFormatted } from "@/lib/server/tenderStateHelpers";
 import { normalizeDbDate } from "@/utils/normalizeDbDate";
+import { notifyUsers } from "../notification/notification.service";
 
 // MUTATION
 ////////////////////////////////////////////////////////////////////
+
+const vendorStatusNotices: Record<
+  VENDOR_STATUS,
+  { title: string; message: string }
+> = {
+  [VENDOR_STATUS.APPROVED]: {
+    title: "Account approved",
+    message: "Your vendor account has been approved. You can now submit bids.",
+  },
+  [VENDOR_STATUS.REJECTED]: {
+    title: "Registration not approved",
+    message:
+      "Your vendor registration was not approved. See your dashboard for details.",
+  },
+  [VENDOR_STATUS.PENDING]: {
+    title: "Account under review",
+    message: "Your vendor account is awaiting review by an administrator.",
+  },
+};
+
+// Tells the vendor in-app that an admin changed their account status. Errors
+// are only logged so the status update itself is never affected.
+const notifyVendorStatusChange = async (
+  vendorId: number,
+  status: VENDOR_STATUS
+) => {
+  try {
+    const [vendor] = await db
+      .select({ user_id: vendorProfileTable.user_id })
+      .from(vendorProfileTable)
+      .where(eq(vendorProfileTable.vendor_id, vendorId))
+      .limit(1);
+
+    if (!vendor) return;
+
+    const { title, message } = vendorStatusNotices[status];
+    await notifyUsers([
+      {
+        user_id: vendor.user_id,
+        notif_type: "account",
+        notif_title: title,
+        notif_message: message,
+        notif_link: "/vendor",
+      },
+    ]);
+  } catch (error) {
+    console.error("Failed to notify vendor of status change:", error);
+  }
+};
 
 export const updateVendorStatus = async (data: UpdateVendorStatusInput) => {
   try {
@@ -78,6 +128,8 @@ export const updateVendorStatus = async (data: UpdateVendorStatusInput) => {
         });
       }
     });
+
+    await notifyVendorStatusChange(Number(vendorId), status);
 
     return {
       success: true,
