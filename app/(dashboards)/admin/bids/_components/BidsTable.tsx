@@ -15,36 +15,16 @@ import { Button } from "@/components/ui/button";
 import { formatDisplayDate } from "@/utils/dateUtils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ITableBid } from "@/_types/bids";
+import StatusBadge from "@/components/Shared/StatusBadge";
 
 interface Props {
   data: ITableBid[];
 }
 
 const BidsTable: FC<Props> = ({ data }) => {
-  const getStatusClass = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "approved":
-        return "bg-green-100 text-green-600 border-green-200";
-      case "rejected":
-        return "bg-red-100 text-red-600 border-red-200";
-      case "under_review":
-        return "bg-yellow-100 text-yellow-600 border-yellow-200";
-      case "reviewed":
-        return "bg-primary text-primary border-primary";
-      case "awarded":
-        return "bg-purple-100 text-purple-600 border-purple-200";
-      default:
-        return "bg-gray-100 text-gray-600 border-gray-200";
-    }
-  };
-
-  const formatStatus = (status: string) => {
-    return capitalizeFirstLetter(status.replace(/_/g, " "));
-  };
-
   return (
-    <div className='bg-gray-50 shadow p-5 rounded-lg'>
-      <ScrollArea className='h-[calc(100vh-16rem)] flex pr-1'>
+    <div className='p-5'>
+      <ScrollArea className='h-[calc(100vh-19.5rem)] flex pr-1'>
         <Table>
           <TableHeader>
             <TableRow>
@@ -82,19 +62,14 @@ const BidsTable: FC<Props> = ({ data }) => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span
-                      className={`font-medium text-nowrap border-[0.1rem] rounded-sm text-[0.8rem] px-1 ${getStatusClass(
-                        bid.bid_status
-                      )}`}>
-                      {formatStatus(bid.bid_status)}
-                    </span>
+                    <StatusBadge status={bid.bid_status} />
                   </TableCell>
                   <TableCell className='text-nowrap'>
                     {formatDisplayDate(bid.created_at)}
                   </TableCell>
                   <TableCell className='text-center'>
                     <Link
-                      href={`/admin/tenders/bids/details/${bid.tender_id}/${bid.bid_id}`}>
+                      href={`/admin/live/${bid.tender_id}/bid/${bid.bid_id}`}>
                       <Button
                         variant='ghost'
                         size='sm'

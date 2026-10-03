@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/_components/ui/input";
 import { useTenderContext } from "@/context/TenderContext";
@@ -21,17 +21,25 @@ const HomeSearchInput = () => {
   const [value, setValue] = useState(search);
   const debounced = useDebouncedValue(value, 350);
 
+  // The search both fields agree on, so neither side echoes the other back
+  const syncedSearch = useRef(search);
+
   useEffect(() => {
+    if (debounced === syncedSearch.current) return;
+    syncedSearch.current = debounced;
     setHomeTenderSearch(debounced);
   }, [debounced, setHomeTenderSearch]);
 
-  // Reflect external resets (e.g. "Clear all filters") back into the field
+  // Reflect outside changes (a search restored from the URL, or
+  // "Clear all filters") back into the field
   useEffect(() => {
-    if (search === "") setValue("");
+    if (search === syncedSearch.current) return;
+    syncedSearch.current = search;
+    setValue(search);
   }, [search]);
 
   return (
-    <div className='relative w-full'>
+    <div className='relative min-w-0 flex-1'>
       <Search
         className='pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400'
         aria-hidden='true'
@@ -40,10 +48,10 @@ const HomeSearchInput = () => {
         type='search'
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder='Search tenders by title, department, location...'
+        placeholder='Search tenders by title, department or location'
         aria-label='Search tenders'
         className={cn(
-          "h-9 w-full border-gray-300 bg-white pl-9 pr-9 text-sm transition-colors hover:border-primary/50 focus-visible:border-primary",
+          "h-10 w-full truncate rounded-lg border-slate-300 bg-white pl-9 pr-9 text-sm shadow-sm transition-colors placeholder:text-slate-500 hover:border-primary/50 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20",
           value && "border-primary"
         )}
       />

@@ -13,7 +13,7 @@ import {
   NotFoundError,
   InternalServerError,
 } from "@/lib/server/errors";
-import { ROLES } from "@/lib/server/constants";
+import { ROLES, TENDER_STATUS } from "@/lib/server/constants";
 import { getCurrentTimeFormatted } from "@/lib/server/tenderStateHelpers";
 
 // MUTATION
@@ -90,15 +90,23 @@ export const adminDashboard = async () => {
     const now = new Date();
     const nowFormatted = getCurrentTimeFormatted(now);
     const closedTenderCondition = sql`${tenderTable.tender_bid_submission_deadline} IS NOT NULL AND ${tenderTable.tender_bid_submission_deadline} < ${nowFormatted}`;
+    const openTenderCondition = sql`${tenderTable.tender_bid_submission_deadline} IS NOT NULL AND ${tenderTable.tender_bid_submission_deadline} > ${nowFormatted}`;
+    // Same base filter as the tabs of the admin live tenders page
+    const releasedTenderCondition = and(
+      eq(tenderTable.tender_is_active, true),
+      eq(tenderTable.tender_status, TENDER_STATUS.PUBLISHED),
+      sql`${tenderTable.tender_release_date} IS NOT NULL AND ${tenderTable.tender_release_date} <= ${nowFormatted}`,
+    );
 
     const [
       totalTender,
       totalBids,
       totalVendors,
-      tenderStatusCounts,
+      totalDraftTender,
+      tendersAcceptingBids,
+      tendersReadyForReview,
       bidStatusCounts,
       vendorStatusCounts,
-      totalLiveTenderValue,
       recentTender,
       recentBids,
     ] = await Promise.all([
@@ -110,14 +118,12 @@ export const adminDashboard = async () => {
         .where(closedTenderCondition)
         .then((res) => res[0].count),
       db.$count(vendorProfileTable),
-      db
-        .select({
-          status: tenderTable.tender_status,
-          count: count(),
-        })
-        .from(tenderTable)
-        .where(inArray(tenderTable.tender_status, ["rescheduled", "draft"]))
-        .groupBy(tenderTable.tender_status),
+      db.$count(tenderTable, eq(tenderTable.tender_status, TENDER_STATUS.DRAFT)),
+      db.$count(tenderTable, and(releasedTenderCondition, openTenderCondition)),
+      db.$count(
+        tenderTable,
+        and(releasedTenderCondition, closedTenderCondition),
+      ),
       db
         .select({
           status: bidsTable.bid_status,
@@ -132,9 +138,8 @@ export const adminDashboard = async () => {
           count: count(),
         })
         .from(vendorProfileTable)
-        .where(eq(vendorProfileTable.vendor_status, "approved"))
+        .where(inArray(vendorProfileTable.vendor_status, ["approved", "pending"]))
         .groupBy(vendorProfileTable.vendor_status),
-      Promise.resolve(0),
       db
         .select({
           tender_id: tenderTable.tender_id,
@@ -149,6 +154,7 @@ export const adminDashboard = async () => {
       db
         .select({
           bid_id: bidsTable.bid_id,
+          tender_id: bidsTable.tender_id,
           biz_name: businessTable.biz_legal_name,
           tender_title: tenderTable.tender_title,
           created_at: bidsTable.created_at,
@@ -166,14 +172,12 @@ export const adminDashboard = async () => {
     ]);
 
     // Extract counts from grouped results
-    const totalLiveTender =
-      tenderStatusCounts.find((t) => t.status === "rescheduled")?.count || 0;
-    const totalDraftTender =
-      tenderStatusCounts.find((t) => t.status === "draft")?.count || 0;
     const totalApprovedBids =
       bidStatusCounts.find((b) => b.status === "approved")?.count || 0;
     const totalApprovedVendors =
       vendorStatusCounts.find((v) => v.status === "approved")?.count || 0;
+    const totalPendingVendors =
+      vendorStatusCounts.find((v) => v.status === "pending")?.count || 0;
 
     // Get bid counts for recent tenders
     const recentTenderIds = recentTender.map((t) => t.tender_id);
@@ -196,11 +200,12 @@ export const adminDashboard = async () => {
       totalTender,
       totalBids,
       totalVendors,
-      totalLiveTender,
       totalDraftTender,
+      tendersAcceptingBids,
+      tendersReadyForReview,
       totalApprovedBids,
       totalApprovedVendors,
-      totalValue: Number(totalLiveTenderValue),
+      totalPendingVendors,
       recentTender,
       recentBids,
       totalBidsOnTenders,

@@ -521,6 +521,7 @@ export const homeLatestTenders = async (data: HomeLatestTendersType) => {
     publishDate: _publishDate,
     status,
     sortBy,
+    availability = "all",
   } = data;
   /* eslint-enable @typescript-eslint/no-unused-vars */
   const offset = (Number(page) - 1) * Number(limit);
@@ -528,6 +529,10 @@ export const homeLatestTenders = async (data: HomeLatestTendersType) => {
   // Format current time for SQL comparison using centralized helper
   const now = new Date();
   const nowFormatted = getCurrentTimeFormatted(now);
+
+  // Mirrors isTenderLive: a tender is closed once its bid deadline has passed
+  const deadline = tenderTable.tender_bid_submission_deadline;
+  const isClosedExpr = sql`(${deadline} IS NOT NULL AND ${deadline} <= ${nowFormatted})`;
 
   let conditions: SQL<unknown> | undefined;
 
@@ -579,6 +584,16 @@ export const homeLatestTenders = async (data: HomeLatestTendersType) => {
 
   // Publish date filter handled in query
 
+  // Every filter except open / closed - the tab counts are taken over this
+  const filterConditions = conditions;
+
+  // Open / closed filter
+  if (availability === "open") {
+    conditions = and(conditions, sql`NOT ${isClosedExpr}`);
+  } else if (availability === "closed") {
+    conditions = and(conditions, isClosedExpr);
+  }
+
   // Query tenders with computed status based on timeline
   const baseQuery = db
     .select({
@@ -608,10 +623,13 @@ export const homeLatestTenders = async (data: HomeLatestTendersType) => {
       case "oldest":
         return [asc(tenderTable.created_at)];
       case "deadline-soon":
-        // Tenders without a deadline sort last rather than leading the list
+        // Open tenders by nearest deadline, then ones without a deadline,
+        // then closed tenders with the most recently closed first
         return [
-          sql`${tenderTable.tender_bid_submission_deadline} IS NULL`,
-          asc(tenderTable.tender_bid_submission_deadline),
+          isClosedExpr,
+          sql`${deadline} IS NULL`,
+          sql`CASE WHEN ${isClosedExpr} THEN NULL ELSE ${deadline} END`,
+          desc(deadline),
         ];
       case "budget-high":
         return [desc(tenderCostExpr)];
@@ -649,16 +667,53 @@ export const homeLatestTenders = async (data: HomeLatestTendersType) => {
     };
   });
 
-  // Total count
-  const [totalTenders] = await db
-    .select({ count: count() })
+  // Counts for each open / closed tab under the other filters, in one pass
+  const [tabCounts] = await db
+    .select({
+      all: count(),
+      closed: sql<number>`COALESCE(SUM(CASE WHEN ${isClosedExpr} THEN 1 ELSE 0 END), 0)`,
+    })
     .from(tenderTable)
-    .where(conditions);
+    .where(filterConditions);
 
-  const totalCount = totalTenders.count;
+  const availabilityCounts = {
+    all: Number(tabCounts.all),
+    open: Number(tabCounts.all) - Number(tabCounts.closed),
+    closed: Number(tabCounts.closed),
+  };
+
+  const totalCount = availabilityCounts[availability];
   const totalPages = Math.ceil(totalCount / Number(limit));
 
-  return { tenders, page: Number(page), totalPages, totalCount };
+  return {
+    tenders,
+    page: Number(page),
+    totalPages,
+    totalCount,
+    availabilityCounts,
+  };
+};
+
+// Distinct locations of published tenders, offered as filter suggestions
+export const homeTenderLocations = async () => {
+  const nowFormatted = getCurrentTimeFormatted(new Date());
+
+  const rows = await db
+    .selectDistinct({ location: tenderTable.tender_location })
+    .from(tenderTable)
+    .where(
+      and(
+        eq(tenderTable.tender_is_active, true),
+        sql`${tenderTable.tender_release_date} IS NOT NULL AND ${tenderTable.tender_release_date} <= ${nowFormatted}`,
+        sql`TRIM(${tenderTable.tender_location}) <> ''`,
+      ),
+    )
+    .orderBy(asc(tenderTable.tender_location))
+    .limit(50);
+
+  // Trimmed values still match, since the filter is a substring search
+  const locations = rows.flatMap((row) => row.location?.trim() || []);
+  return { locations: [...new Set(locations)] };
 };
 
 /**

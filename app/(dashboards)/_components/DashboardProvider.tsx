@@ -1,10 +1,8 @@
 "use client";
 import React, { useEffect } from "react";
-import {
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/_components/ui/sidebar";
+import { SidebarProvider } from "@/_components/ui/sidebar";
 import { RoleSidebar, DashboardRole } from "@/_components/AppSidebar";
+import DashboardTopbar from "@/_components/DashboardTopbar";
 import ProtectedRoute from "@/_components/ProtectedRoute";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -15,14 +13,6 @@ import {
 } from "@/lib/auth/types";
 import type { DbRole } from "@/lib/auth/types";
 import PageLoading from "@/_components/Shared/PageLoading";
-
-const sidebarStyle: React.CSSProperties = {
-  backgroundColor: "gray",
-  borderRadius: "0.5rem",
-  padding: "0.4rem",
-  opacity: "0.6",
-  color: "white",
-};
 
 const DashboardProvider = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useSession();
@@ -55,12 +45,9 @@ const DashboardProvider = ({ children }: { children: React.ReactNode }) => {
     <ProtectedRoute>
       <SidebarProvider>
         <RoleSidebar role={role} />
-        <div className='w-full max-w-[100%]'>
-          <SidebarTrigger
-            className='fixed top-2 left-2.5 z-40 mt-0'
-            style={sidebarStyle}
-          />
-          <main>{children}</main>
+        <div className='flex min-h-svh w-full min-w-0 flex-col bg-canvas'>
+          <DashboardTopbar role={role} />
+          <main className='flex-1'>{children}</main>
         </div>
       </SidebarProvider>
     </ProtectedRoute>

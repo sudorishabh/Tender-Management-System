@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { TENDER_TITLE_MAX_LENGTH } from "@/lib/constants";
+
+const titleTooLong = `Title must be ${TENDER_TITLE_MAX_LENGTH} characters or fewer`;
 
 // Step 1: Primary Information validation schema
 export const step1Schema = z.object({
@@ -7,7 +10,10 @@ export const step1Schema = z.object({
   tender_number: z.string().min(1, "Tender number is required"),
   tender_type: z.string().min(1, "Tender type is required"),
   tender_scope: z.string().min(1, "Tender scope is required"),
-  tender_title: z.string().min(1, "Title is required"),
+  tender_title: z
+    .string()
+    .min(1, "Title is required")
+    .max(TENDER_TITLE_MAX_LENGTH, titleTooLong),
   tender_description: z.string().min(1, "Description is required"),
   tender_contract_document: z.string().optional(),
   tender_location: z.string().min(1, "Tender location is required"),
@@ -44,7 +50,7 @@ export const step1SaveSchema = z.object({
   tender_number: z.string().optional(),
   tender_type: z.string().optional(),
   tender_scope: z.string().optional(),
-  tender_title: z.string().optional(),
+  tender_title: z.string().max(TENDER_TITLE_MAX_LENGTH, titleTooLong).optional(),
   tender_description: z.string().optional(),
   tender_contract_document: z.string().optional(),
   tender_location: z.string().optional(),

@@ -55,6 +55,8 @@ interface Props<TFieldValues extends FieldValues = FieldValues> {
   isSelect?: boolean;
   selectOptions?: SelectOption[];
   isTextArea?: boolean;
+  /** Caps the input length and shows a character counter */
+  maxLength?: number;
   // Validation rules
   rules?: RegisterOptions<TFieldValues>;
 }
@@ -76,6 +78,7 @@ const CustomInput = <TFieldValues extends FieldValues = FieldValues>({
   isTextArea,
   formatDisplay,
   parseValue,
+  maxLength,
   rules,
 }: Props<TFieldValues>) => {
   return (
@@ -128,6 +131,7 @@ const CustomInput = <TFieldValues extends FieldValues = FieldValues>({
                   }`}
                 placeholder={placeholder ?? `Enter ${Label?.toLowerCase()}`}
                 disabled={disabled}
+                maxLength={maxLength}
                 {...field}
                 onChange={(e) => {
                   // textarea uses raw values, keep behavior
@@ -143,6 +147,7 @@ const CustomInput = <TFieldValues extends FieldValues = FieldValues>({
                     } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   placeholder={placeholder ?? `Enter ${Label?.toLowerCase()}`}
                   disabled={disabled}
+                  maxLength={maxLength}
                   // If formatting is provided, show the formatted value but
                   // store the raw value using parseValue on change.
                   value={
@@ -170,6 +175,15 @@ const CustomInput = <TFieldValues extends FieldValues = FieldValues>({
           </FormControl>
           {description && (
             <p className='text-xs text-neutral-500'>{description}</p>
+          )}
+          {maxLength !== undefined && (
+            <p
+              className={`text-right text-xs tabular-nums ${String(field.value ?? "").length >= maxLength
+                ? "text-amber-600"
+                : "text-neutral-400"
+                }`}>
+              {String(field.value ?? "").length}/{maxLength}
+            </p>
           )}
           <FormMessage className='text-xs' />
         </FormItem>

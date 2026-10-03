@@ -1,7 +1,22 @@
-import { and, count, desc, eq, like, or, SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  inArray,
+  like,
+  notInArray,
+  or,
+  sql,
+  SQL,
+} from "drizzle-orm";
 import { db } from "@/server/db";
 import {
+  bidsTable,
   businessTable,
+  tenderEmailInvitesTable,
+  tenderTable,
   usersTable,
   vendorProfileTable,
 } from "@/server/db/schema";
@@ -19,9 +34,61 @@ import {
 } from "@/lib/server/errors";
 import { sendMail } from "@/lib/server/email";
 import { vendorStatusUpdatedEmail } from "@/lib/server/templates/vendor.templates";
+import { getCurrentTimeFormatted } from "@/lib/server/tenderStateHelpers";
+import { normalizeDbDate } from "@/utils/normalizeDbDate";
+import { notifyUsers } from "../notification/notification.service";
 
 // MUTATION
 ////////////////////////////////////////////////////////////////////
+
+const vendorStatusNotices: Record<
+  VENDOR_STATUS,
+  { title: string; message: string }
+> = {
+  [VENDOR_STATUS.APPROVED]: {
+    title: "Account approved",
+    message: "Your vendor account has been approved. You can now submit bids.",
+  },
+  [VENDOR_STATUS.REJECTED]: {
+    title: "Registration not approved",
+    message:
+      "Your vendor registration was not approved. See your dashboard for details.",
+  },
+  [VENDOR_STATUS.PENDING]: {
+    title: "Account under review",
+    message: "Your vendor account is awaiting review by an administrator.",
+  },
+};
+
+// Tells the vendor in-app that an admin changed their account status. Errors
+// are only logged so the status update itself is never affected.
+const notifyVendorStatusChange = async (
+  vendorId: number,
+  status: VENDOR_STATUS
+) => {
+  try {
+    const [vendor] = await db
+      .select({ user_id: vendorProfileTable.user_id })
+      .from(vendorProfileTable)
+      .where(eq(vendorProfileTable.vendor_id, vendorId))
+      .limit(1);
+
+    if (!vendor) return;
+
+    const { title, message } = vendorStatusNotices[status];
+    await notifyUsers([
+      {
+        user_id: vendor.user_id,
+        notif_type: "account",
+        notif_title: title,
+        notif_message: message,
+        notif_link: "/vendor",
+      },
+    ]);
+  } catch (error) {
+    console.error("Failed to notify vendor of status change:", error);
+  }
+};
 
 export const updateVendorStatus = async (data: UpdateVendorStatusInput) => {
   try {
@@ -61,6 +128,8 @@ export const updateVendorStatus = async (data: UpdateVendorStatusInput) => {
         });
       }
     });
+
+    await notifyVendorStatusChange(Number(vendorId), status);
 
     return {
       success: true,
@@ -505,6 +574,7 @@ export const vendorProfileByUserId = async (userId: number) => {
           vendor_id: vendorProfileTable.vendor_id,
           vendor_code: vendorProfileTable.vendor_code,
           vendor_status: vendorProfileTable.vendor_status,
+          vendor_rejection_reason: vendorProfileTable.vendor_rejection_reason,
           vendor_contact: vendorProfileTable.vendor_contact,
           vendor_alt_contact: vendorProfileTable.vendor_alt_contact,
           vendor_pan_number: vendorProfileTable.vendor_pan_number,
@@ -560,6 +630,244 @@ export const vendorProfileByUserId = async (userId: number) => {
     throw new InternalServerError(
       "Failed to fetch vendor profile",
       "FETCH_VENDOR_PROFILE_ERROR"
+    );
+  }
+};
+
+// Rows shown in each vendor dashboard list
+const DASHBOARD_LIST_SIZE = 5;
+
+// DB datetimes hold local wall-clock values, so compare through normalizeDbDate
+const toLocalTime = (value: Date | string | null) =>
+  normalizeDbDate(value)?.getTime() ?? 0;
+
+/**
+ * Get dashboard summary for the signed-in vendor: account status, bid counts,
+ * recent bids, email invitations, open tenders closing soon and upcoming bid
+ * opening dates
+ */
+export const vendorDashboard = async (userId: number) => {
+  try {
+    const [vendor] = await db
+      .select({
+        vendor_id: vendorProfileTable.vendor_id,
+        vendor_status: vendorProfileTable.vendor_status,
+        vendor_rejection_reason: vendorProfileTable.vendor_rejection_reason,
+        email: usersTable.email,
+      })
+      .from(vendorProfileTable)
+      .innerJoin(usersTable, eq(usersTable.user_id, vendorProfileTable.user_id))
+      .where(eq(vendorProfileTable.user_id, userId))
+      .limit(1);
+
+    if (!vendor) {
+      throw new NotFoundError(
+        "Vendor profile not found",
+        "VENDOR_PROFILE_NOT_FOUND"
+      );
+    }
+
+    const now = new Date();
+    const nowFormatted = getCurrentTimeFormatted(now);
+    const isOwnBid = eq(bidsTable.vendor_id, vendor.vendor_id);
+
+    // Same visibility rule as the public listing, limited to tenders still
+    // accepting bids that this vendor has not bid on yet
+    const openTenderCondition = and(
+      eq(tenderTable.tender_is_active, true),
+      sql`${tenderTable.tender_release_date} IS NOT NULL AND ${tenderTable.tender_release_date} <= ${nowFormatted}`,
+      sql`${tenderTable.tender_bid_submission_deadline} > ${nowFormatted}`,
+      notInArray(
+        tenderTable.tender_id,
+        db
+          .select({ tender_id: bidsTable.tender_id })
+          .from(bidsTable)
+          .where(isOwnBid)
+      )
+    );
+
+    // Open tenders this vendor's email was invited to and not yet bid on
+    const invitedTenderCondition = and(
+      openTenderCondition,
+      inArray(
+        tenderTable.tender_id,
+        db
+          .select({ tender_id: tenderEmailInvitesTable.tender_id })
+          .from(tenderEmailInvitesTable)
+          .where(eq(tenderEmailInvitesTable.email, vendor.email))
+      )
+    );
+
+    const openTenderFields = {
+      tender_id: tenderTable.tender_id,
+      tender_title: tenderTable.tender_title,
+      tender_number: tenderTable.tender_number,
+      tender_department: tenderTable.tender_department,
+      tender_bid_submission_deadline: tenderTable.tender_bid_submission_deadline,
+    };
+
+    const [
+      bidStatusCounts,
+      recentBids,
+      openTenderCount,
+      closingSoon,
+      invitedTenders,
+      invitedTenderCount,
+      tendersWithOpenings,
+    ] = await Promise.all([
+      db
+        .select({ status: bidsTable.bid_status, count: count() })
+        .from(bidsTable)
+        .where(isOwnBid)
+        .groupBy(bidsTable.bid_status),
+      db
+        .select({
+          bid_id: bidsTable.bid_id,
+          tender_id: bidsTable.tender_id,
+          bid_status: bidsTable.bid_status,
+          bid_rejection_msg: bidsTable.bid_rejection_msg,
+          created_at: bidsTable.created_at,
+          tender_title: tenderTable.tender_title,
+          tender_number: tenderTable.tender_number,
+        })
+        .from(bidsTable)
+        .leftJoin(tenderTable, eq(bidsTable.tender_id, tenderTable.tender_id))
+        .where(isOwnBid)
+        .orderBy(desc(bidsTable.created_at))
+        .limit(DASHBOARD_LIST_SIZE),
+      db.$count(tenderTable, openTenderCondition),
+      db
+        .select(openTenderFields)
+        .from(tenderTable)
+        .where(openTenderCondition)
+        .orderBy(asc(tenderTable.tender_bid_submission_deadline))
+        .limit(DASHBOARD_LIST_SIZE),
+      db
+        .select(openTenderFields)
+        .from(tenderTable)
+        .where(invitedTenderCondition)
+        .orderBy(asc(tenderTable.tender_bid_submission_deadline))
+        .limit(DASHBOARD_LIST_SIZE),
+      db.$count(tenderTable, invitedTenderCondition),
+      db
+        .selectDistinct({
+          tender_id: tenderTable.tender_id,
+          tender_title: tenderTable.tender_title,
+          tender_number: tenderTable.tender_number,
+          tender_technical_bid_opening: tenderTable.tender_technical_bid_opening,
+          tender_financial_bid_opening: tenderTable.tender_financial_bid_opening,
+        })
+        .from(bidsTable)
+        .innerJoin(tenderTable, eq(bidsTable.tender_id, tenderTable.tender_id))
+        .where(
+          and(
+            isOwnBid,
+            or(
+              sql`${tenderTable.tender_technical_bid_opening} > ${nowFormatted}`,
+              sql`${tenderTable.tender_financial_bid_opening} > ${nowFormatted}`
+            )
+          )
+        ),
+    ]);
+
+    // One entry per opening still ahead, soonest first
+    const upcomingOpenings = tendersWithOpenings
+      .flatMap(
+        ({
+          tender_technical_bid_opening,
+          tender_financial_bid_opening,
+          ...tender
+        }) => [
+          {
+            ...tender,
+            stage: "technical" as const,
+            opens_at: tender_technical_bid_opening,
+          },
+          {
+            ...tender,
+            stage: "financial" as const,
+            opens_at: tender_financial_bid_opening,
+          },
+        ]
+      )
+      .filter((opening) => toLocalTime(opening.opens_at) > now.getTime())
+      .sort((a, b) => toLocalTime(a.opens_at) - toLocalTime(b.opens_at))
+      .slice(0, DASHBOARD_LIST_SIZE);
+
+    const countBids = (...statuses: string[]) =>
+      bidStatusCounts
+        .filter((row) => statuses.includes(row.status))
+        .reduce((total, row) => total + row.count, 0);
+
+    return {
+      account: {
+        status: vendor.vendor_status,
+        rejectionReason: vendor.vendor_rejection_reason,
+      },
+      bidCounts: {
+        total: bidStatusCounts.reduce((total, row) => total + row.count, 0),
+        underReview: countBids("under_review"),
+        // Vendors see ranked bids as selected, matching the purchased tenders page
+        selected: countBids("ranked", "selected"),
+        approved: countBids("approved"),
+        rejected: countBids("rejected"),
+      },
+      openTenderCount,
+      closingSoon,
+      invitedTenders,
+      invitedTenderCount,
+      recentBids,
+      upcomingOpenings,
+    };
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new InternalServerError(
+      "Failed to fetch vendor dashboard",
+      "FETCH_VENDOR_DASHBOARD_ERROR"
+    );
+  }
+};
+
+// Tenders the vendor has bid on or been invited to, used to mark listing cards
+export const vendorTenderLinks = async (userId: number) => {
+  try {
+    const [vendor] = await db
+      .select({
+        vendor_id: vendorProfileTable.vendor_id,
+        email: usersTable.email,
+      })
+      .from(vendorProfileTable)
+      .innerJoin(usersTable, eq(usersTable.user_id, vendorProfileTable.user_id))
+      .where(eq(vendorProfileTable.user_id, userId))
+      .limit(1);
+
+    if (!vendor) {
+      throw new NotFoundError(
+        "Vendor profile not found",
+        "VENDOR_PROFILE_NOT_FOUND"
+      );
+    }
+
+    const [bids, invites] = await Promise.all([
+      db
+        .selectDistinct({ tender_id: bidsTable.tender_id })
+        .from(bidsTable)
+        .where(eq(bidsTable.vendor_id, vendor.vendor_id)),
+      db
+        .selectDistinct({ tender_id: tenderEmailInvitesTable.tender_id })
+        .from(tenderEmailInvitesTable)
+        .where(eq(tenderEmailInvitesTable.email, vendor.email)),
+    ]);
+
+    return {
+      biddedTenderIds: bids.map((row) => row.tender_id),
+      invitedTenderIds: invites.map((row) => row.tender_id),
+    };
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new InternalServerError(
+      "Failed to fetch vendor tender links",
+      "FETCH_VENDOR_TENDER_LINKS_ERROR"
     );
   }
 };

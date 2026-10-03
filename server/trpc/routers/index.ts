@@ -11,6 +11,8 @@ import { adminQueryRoute } from "./admin/admin.query.route";
 import { adminMutationRoute } from "./admin/admin.mutation.route";
 import { departmentRouter } from "./department";
 import { s3Router } from "./s3/s3.route";
+import { notificationRouter } from "./notification/notification.route";
+import { clarificationRouter } from "./clarification/clarification.route";
 
 // Merge query and mutation routes into single namespaces
 const vendorRouter = t.mergeRouters(vendorQueryRoute, vendorMutationRoute);
@@ -30,6 +32,8 @@ export const appRouter = router({
   // Other routers
   department: departmentRouter,
   s3: s3Router,
+  notification: notificationRouter,
+  clarification: clarificationRouter,
 });
 
 // Export type definition of API

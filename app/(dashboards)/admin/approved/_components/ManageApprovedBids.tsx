@@ -5,6 +5,8 @@ import ApprovedBidsTable from "./ApprovedBidsTable";
 import RowTableSkeleton from "@/components/RowTableSkeleton";
 import PageError from "@/components/Shared/PageError";
 import { trpc } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
+import { surfaceStyle } from "@/app/styles";
 
 const ManageApprovedBids = () => {
   const pageRef = useRef(1);
@@ -30,7 +32,7 @@ const ManageApprovedBids = () => {
 
   return (
     <div className='mx-auto space-y-6 mb-12'>
-      <div className='bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden'>
+      <div className={cn(surfaceStyle, "overflow-hidden")}>
         <div className='p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-b flex items-center justify-between'>
           <div className='flex items-center gap-2'>
             <Award

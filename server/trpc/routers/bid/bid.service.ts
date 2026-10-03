@@ -12,7 +12,7 @@ import {
   BadRequestError,
   InternalServerError,
 } from "@/lib/server/errors";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, ne, or, sql } from "drizzle-orm";
 import { getDownloadUrl } from "@/lib/server/s3";
 import { sendMail } from "@/lib/server/email";
 import { bidSubmissionNotificationEmail } from "@/lib/server/templates/bid.templates";
@@ -21,6 +21,10 @@ import {
   canSubmitBid,
   getCurrentTimeFormatted,
 } from "@/lib/server/tenderStateHelpers";
+import {
+  notifyUsers,
+  type NewNotification,
+} from "../notification/notification.service";
 
 // Type for vendor document upload
 interface VendorDocUpload {
@@ -166,6 +170,62 @@ export async function createBid(
   return result;
 }
 
+// In-app notices for an approval: the winning vendor plus every vendor whose
+// bid on the tender is about to be rejected. Must run before the update so
+// already-rejected bids are skipped. Errors are only logged so the approval
+// itself is never affected.
+async function bidDecisionNotifications(
+  tenderId: number,
+  approvedBidId: number
+): Promise<NewNotification[]> {
+  try {
+    const recipients = await db
+      .select({
+        bid_id: bidsTable.bid_id,
+        user_id: vendorProfileTable.user_id,
+        tender_title: tenderTable.tender_title,
+      })
+      .from(bidsTable)
+      .innerJoin(
+        vendorProfileTable,
+        eq(bidsTable.vendor_id, vendorProfileTable.vendor_id)
+      )
+      .innerJoin(tenderTable, eq(bidsTable.tender_id, tenderTable.tender_id))
+      .where(
+        and(
+          eq(bidsTable.tender_id, tenderId),
+          or(
+            eq(bidsTable.bid_id, approvedBidId),
+            ne(bidsTable.bid_status, "rejected")
+          )
+        )
+      );
+
+    return recipients.map(({ bid_id, user_id, tender_title }) => {
+      const tenderName = tender_title ? `"${tender_title}"` : "this tender";
+
+      return bid_id === approvedBidId
+        ? {
+            user_id,
+            notif_type: "bid_status",
+            notif_title: "Bid approved",
+            notif_message: `Your bid for ${tenderName} has been approved.`,
+            notif_link: "/vendor/awarded",
+          }
+        : {
+            user_id,
+            notif_type: "bid_status",
+            notif_title: "Bid not selected",
+            notif_message: `Another bid has been approved for ${tenderName}.`,
+            notif_link: "/vendor/purchased",
+          };
+    });
+  } catch (error) {
+    console.error("Failed to prepare bid decision notifications:", error);
+    return [];
+  }
+}
+
 // Approve a bid and reject all other bids for the same tender
 export async function approveBid(bidId: string) {
   const bid_id = Number(bidId);
@@ -188,6 +248,8 @@ export async function approveBid(bidId: string) {
   if (bid.bid_status === "approved") {
     throw new ApiError("Bid is already approved", 400, "BID_ALREADY_APPROVED");
   }
+
+  const notifications = await bidDecisionNotifications(bid.tender_id, bid_id);
 
   // Use transaction to ensure atomicity
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -212,6 +274,8 @@ export async function approveBid(bidId: string) {
         )
       );
   });
+
+  await notifyUsers(notifications);
 
   return { success: true, bidId: bid_id, tenderId: bid.tender_id };
 }

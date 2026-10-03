@@ -1,260 +1,210 @@
 "use client";
-import { useMemo } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { ScrollArea } from "@/_components/ui/scroll-area";
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { House, LogOut, Loader2 } from "lucide-react";
 import {
   Sidebar,
+  SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarContent,
+  SidebarSeparator,
   useSidebar,
 } from "@/_components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/_components/ui/avatar";
-import { Separator } from "@/_components/ui/separator";
-import {
-  LayoutDashboard,
-  BadgePlus,
-  Blocks,
-  CircleCheckBig,
-  Save,
-  Users,
-  ArrowDownUp,
-  LogOut,
-  ShoppingBag,
-  BadgeCheck,
-  UserCircle,
-  Share2,
-  ClipboardList,
-} from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/_components/ui/avatar";
 import { cn } from "@/lib/utils";
 import useLogout from "@/hooks/useLogout";
+import {
+  getRoleDashboard,
+  mapUiRoleToDb,
+  type UiRole,
+} from "@/lib/auth/types";
+import {
+  dashboardNav,
+  dashboardRoleLabels,
+  findActiveNavItem,
+  type DashboardNavItem,
+} from "@/lib/dashboard-nav";
 
-// Roles supported
-export type DashboardRole = "admin" | "vendor" | "super";
+export type DashboardRole = UiRole;
 
 interface RoleSidebarProps {
   role: DashboardRole;
 }
 
-interface LinkItem {
-  title: string;
-  link: string;
-  icon: any; // lucide icon component
-  group?: string; // for vendor grouping
-}
+const isTeriBrand = process.env.NEXT_PUBLIC_APP_NAME === "TERI";
 
-const adminLinks: LinkItem[] = [
-  { title: "Dashboard", link: "/admin", icon: LayoutDashboard },
-  { title: "Create Tender", link: "/admin/create", icon: BadgePlus },
-  { title: "Live Tenders & Bids", link: "/admin/live", icon: Blocks },
-  { title: "Approved Bids", link: "/admin/approved", icon: CircleCheckBig },
-  { title: "Saved & Reviewed Tenders", link: "/admin/saved", icon: Save },
-  { title: "Manage Vendors", link: "/admin/vendors", icon: Users },
-  { title: "All Bids", link: "/admin/bids", icon: ArrowDownUp },
-];
-
-const vendorLinks: LinkItem[] = [
-  { title: "Dashboard", link: "/vendor", icon: LayoutDashboard, group: "main" },
-  {
-    title: "Purchased Tenders",
-    link: "/vendor/purchased",
-    icon: ShoppingBag,
-    group: "tenders",
-  },
-  {
-    title: "Profile",
-    link: "/vendor/profile",
-    icon: UserCircle,
-    group: "account",
-  },
-];
-
-const superLinks: LinkItem[] = [
-  { title: "Invite Admin", link: "/super/invite", icon: Share2 },
-  { title: "Manage Admins", link: "/super/admins", icon: Users },
-  { title: "Review Tender", link: "/super/tenders", icon: ClipboardList },
-];
-
-// Avatar/header config per role
-const roleHeaderConfig: Record<
-  DashboardRole,
-  { image?: string; fallback: string; nameLine1: string; nameLine2: string }
-> = {
-  admin: {
-    image: "https://github.com/shadcn.png",
-    fallback: "TERI",
-    nameLine1: "TERI",
-    nameLine2: "Administrator",
-  },
-  vendor: {
-    image: "/avatar.png",
-    fallback: "VS",
-    nameLine1: "Vendor Portal",
-    nameLine2: "Manage your tenders",
-  },
-  super: {
-    image: "https://github.com/shadcn.png",
-    fallback: "RN",
-    nameLine1: "Super Admin",
-    nameLine2: "Dashboard",
-  },
+// Leaves the dashboard for the public site, so it is never the active item
+const homePageLink: DashboardNavItem = {
+  title: "Home page",
+  href: "/",
+  icon: House,
 };
+
+// "Rishabh Negi" -> "RN", "jane.doe@teri.res.in" -> "JD"
+const getInitials = (value: string) =>
+  value
+    .split(/[\s@._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("");
+
+const NavLink = ({
+  item,
+  isActive,
+}: {
+  item: DashboardNavItem;
+  isActive: boolean;
+}) => (
+  <SidebarMenuItem>
+    <SidebarMenuButton
+      asChild
+      isActive={isActive}
+      tooltip={item.title}
+      className='relative h-9 text-[13px] text-sidebar-foreground'>
+      <Link
+        href={item.href}
+        aria-current={isActive ? "page" : undefined}>
+        {isActive && (
+          <span
+            aria-hidden
+            className='absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-sidebar-accent'
+          />
+        )}
+        <item.icon className={cn(isActive && "text-sidebar-accent")} />
+        <span>{item.title}</span>
+      </Link>
+    </SidebarMenuButton>
+  </SidebarMenuItem>
+);
 
 export const RoleSidebar = ({ role }: RoleSidebarProps) => {
   const pathname = usePathname();
-  const { state } = useSidebar();
+  const { data: session } = useSession();
+  const { state, isMobile } = useSidebar();
   const { logout, isLoggingOut } = useLogout();
 
-  // Pick links for role
-  const links: LinkItem[] = useMemo(() => {
-    if (role === "admin") return adminLinks;
-    if (role === "vendor") return vendorLinks;
-    return superLinks;
-  }, [role]);
+  // The mobile sheet always shows labels, whatever the desktop state is
+  const isCollapsed = state === "collapsed" && !isMobile;
+  const navGroups = dashboardNav[role];
+  const activeHref = findActiveNavItem(role, pathname)?.href;
 
-  // Vendor grouping
-  const vendorGroupsOrder = ["main", "tenders", "account"];
-  const groupedVendorLinks: Record<string, LinkItem[]> = useMemo(() => {
-    if (role !== "vendor") return {};
-    return vendorGroupsOrder.reduce(
-      (acc, grp) => {
-        acc[grp] = links.filter((l) => l.group === grp);
-        return acc;
-      },
-      {} as Record<string, LinkItem[]>,
-    );
-  }, [links, role]);
-
-  // Render helper for a single link item
-  const renderLink = (item: LinkItem) => {
-    const isActive =
-      item.link === (role === "admin" ? `/${role}` : `/${role}`)
-        ? pathname === item.link
-        : pathname.startsWith(item.link);
-    return (
-      <SidebarMenuItem key={item.title}>
-        <SidebarMenuButton
-          asChild
-          isActive={isActive}
-          tooltip={item.title}
-          className={`w-full pl-5 my-0.5 py-[1rem] rounded-sm ${
-            isActive
-              ? " text-primary font-medium hover:"
-              : "hover:bg-gray-100 text-gray-600"
-          }`}>
-          <Link
-            href={item.link}
-            className='w-full flex'>
-            <item.icon
-              className={cn(isActive ? "text-primary" : "text-gray-700")}
-            />
-            <span
-              className={cn(
-                "text-[12.5px]",
-                isActive ? "text-primary" : "text-gray-700",
-              )}>
-              {item.title}
-            </span>
-          </Link>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    );
-  };
-
-  // Safely access roleHeaderConfig with a fallback for invalid roles
-  const headerConfig = roleHeaderConfig[role as DashboardRole] || {
-    fallback: "U",
-    nameLine1: "User",
-    nameLine2: "Dashboard",
-  };
-  const { image, fallback, nameLine1, nameLine2 } = headerConfig;
+  const userName = session?.user?.name;
+  const userEmail = session?.user?.email;
+  const displayName = userName || userEmail || "User";
 
   return (
     <Sidebar
       collapsible='icon'
-      className='pt-2 h-screen border-r  border-gray-200 bg-white shadow-sm'>
-      <SidebarContent>
-        <SidebarGroup className='h-[calc(100vh-0.5rem)] p-0'>
-          <SidebarGroupLabel className='flex flex-col h-auto px-2 mt-2'>
-            <div className='flex items-center gap-2.5 justify-center'>
-              <Avatar
-                className={`border-2 border-primary/20 mb-1 shadow-sm transition-all ${
-                  state === "collapsed" ? "size-8" : "size-10"
-                }`}>
-                {/* <AvatarImage
-                  src={image}
-                  alt={nameLine1}
-                /> */}
-                <AvatarFallback
-                  className={`bg-primary/10 text-gray-500 font-medium ${
-                    state === "collapsed" ? "text-xs" : "text-base"
-                  }`}>
-                  {fallback}
-                </AvatarFallback>
-              </Avatar>
-              {state === "expanded" && (
-                <span className='flex flex-col items-start gap-0'>
-                  <p className='font-semibold text-sm text-gray-500'>
-                    {nameLine1}
-                  </p>
-                  <p className='text-xs text-gray-500'>{nameLine2}</p>
-                </span>
+      className='border-sidebar-border'>
+      <SidebarHeader className='py-4'>
+        <Link
+          href={getRoleDashboard(mapUiRoleToDb(role))}
+          aria-label={`TERI Tenders, ${dashboardRoleLabels[role]}`}
+          className='flex items-center gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring'>
+          <span className='flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white shadow-sm'>
+            {isTeriBrand ? (
+              <Image
+                src='/TERI_LOGO.png'
+                alt=''
+                width={28}
+                height={28}
+                className='size-7 object-contain'
+              />
+            ) : (
+              <span className='text-xs font-bold text-primary'>T</span>
+            )}
+          </span>
+          {!isCollapsed && (
+            <span className='flex min-w-0 flex-col leading-tight'>
+              <span className='truncate text-sm font-semibold text-white'>
+                TERI Tenders
+              </span>
+              <span className='truncate text-xs text-sidebar-foreground/70'>
+                {dashboardRoleLabels[role]}
+              </span>
+            </span>
+          )}
+        </Link>
+        <SidebarMenu>
+          <NavLink
+            item={homePageLink}
+            isActive={false}
+          />
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarSeparator />
+
+      <SidebarContent className='py-2'>
+        {navGroups.map((group, idx) => (
+          <SidebarGroup
+            key={group.label ?? idx}
+            className='py-1'>
+            {group.label && (
+              <SidebarGroupLabel className='text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/60'>
+                {group.label}
+              </SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.href}
+                    item={item}
+                    isActive={item.href === activeHref}
+                  />
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+
+      <SidebarSeparator />
+
+      <SidebarFooter className='gap-1 py-3'>
+        <div className='flex items-center gap-3'>
+          <Avatar className='size-8 shrink-0'>
+            <AvatarFallback className='bg-sidebar-primary text-xs font-semibold text-white'>
+              {getInitials(displayName) || "U"}
+            </AvatarFallback>
+          </Avatar>
+          {!isCollapsed && (
+            <div className='min-w-0 leading-tight'>
+              <p className='truncate text-sm font-medium text-white'>
+                {displayName}
+              </p>
+              {userName && userEmail && (
+                <p className='truncate text-xs text-sidebar-foreground/70'>
+                  {userEmail}
+                </p>
               )}
             </div>
-          </SidebarGroupLabel>
+          )}
+        </div>
 
-          <SidebarGroupContent
-            className={`${state === "collapsed" ? "mt-10" : "mt-5"}`}>
-            <ScrollArea
-              className={`h-[calc(100vh-10rem)] ${
-                state !== "collapsed" ? "pr-3 ml-3" : "pr-0 ml-0"
-              }`}>
-              <SidebarMenu>
-                {role === "vendor" ? (
-                  // Vendor grouped sections
-                  Object.entries(groupedVendorLinks).map(
-                    ([groupKey, groupLinks], idx) => (
-                      <div
-                        key={groupKey}
-                        className='w-full'>
-                        {groupLinks.map(renderLink)}
-                        {idx < vendorGroupsOrder.length - 1 && (
-                          <Separator className='my-3' />
-                        )}
-                      </div>
-                    ),
-                  )
-                ) : (
-                  // Admin & Super (flat)
-                  <>{links.map(renderLink)}</>
-                )}
-
-                <Separator className='my-2' />
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    tooltip='Logout'
-                    className='w-full pl-6 text-red-500 hover:bg-red-50'
-                    disabled={isLoggingOut}
-                    onClick={logout}>
-                    <LogOut />
-                    {isLoggingOut ? (
-                      <Loader2 className='h-4 w-4 animate-spin' />
-                    ) : (
-                      "Logout"
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </ScrollArea>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip='Log out'
+              disabled={isLoggingOut}
+              onClick={logout}
+              className='h-9 text-[13px] text-sidebar-foreground hover:bg-red-500/15 hover:text-red-200'>
+              {isLoggingOut ? <Loader2 className='animate-spin' /> : <LogOut />}
+              <span>Log out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 };

@@ -6,7 +6,7 @@ import { Skeleton } from "@/_components/ui/skeleton";
  * shift the layout.
  */
 const TenderCardSkeletonItem = () => (
-  <div className='overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm'>
+  <div className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
     <div className='p-4 pb-3'>
       {/* Badge row + deadline pill */}
       <div className='mb-3 flex items-center justify-between gap-3'>
@@ -32,7 +32,7 @@ const TenderCardSkeletonItem = () => (
     </div>
 
     {/* Footer strip */}
-    <div className='flex items-center justify-between gap-4 border-t border-dashed border-neutral-200 bg-neutral-50/60 px-4 py-3'>
+    <div className='flex items-center justify-between gap-4 border-t border-dashed border-slate-200 bg-slate-50/60 px-4 py-3'>
       <div className='flex flex-wrap items-center gap-4'>
         <Skeleton className='h-3 w-24 bg-gray-200/70' />
         <Skeleton className='h-3 w-20 bg-gray-200/70' />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 
 import {
   Select,
@@ -18,6 +18,7 @@ import { Button } from "@/_components/ui/button";
 import { cn } from "@/lib/utils";
 import { primaryButtonStyle } from "@/app/styles";
 import { trpc } from "@/lib/trpc";
+import LocationSuggestions from "./LocationSuggestions";
 
 const HomeMobileFilterPanel = ({
   department,
@@ -40,6 +41,8 @@ const HomeMobileFilterPanel = ({
     setHomeTenderBudgetRange,
     // setHomeTenderSortBy,
   } = useTenderContext();
+
+  const locationListId = useId();
 
   // Fetch departments from database
   const { data: departmentData } = trpc.department.getAll.useQuery();
@@ -66,9 +69,9 @@ const HomeMobileFilterPanel = ({
                 <SelectItem value='latest'>Latest First</SelectItem>
                 <SelectItem value='deadline-soon'>Deadline Soon</SelectItem>
                 <SelectItem value='budget-high'>
-                  Budget (High to Low)
+                  Fee + EMD (High to Low)
                 </SelectItem>
-                <SelectItem value='budget-low'>Budget (Low to High)</SelectItem>
+                <SelectItem value='budget-low'>Fee + EMD (Low to High)</SelectItem>
                 <SelectItem value='oldest'>Oldest First</SelectItem>
               </SelectGroup>
             </SelectContent>
@@ -102,17 +105,17 @@ const HomeMobileFilterPanel = ({
           </Select>
         </div>
 
-        {/* Budget Range Filter */}
+        {/* Fee + EMD range filter */}
         <div className='space-y-2 '>
           <Label className='  flex items-center gap-2'>
             <IndianRupee className='size-3' />
-            <p className='!text-xs'>Budget (Doc Fee + EMD)</p>
+            <p className='!text-xs'>Document fee + EMD</p>
           </Label>
           <Select
             onValueChange={(value) => setHomeTenderBudgetRange(value)}
             value={budgetRange}>
             <SelectTrigger className='w-full'>
-              <SelectValue placeholder='Select budget range' />
+              <SelectValue placeholder='Select fee + EMD range' />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value='low'>Under ₹10 Lakhs</SelectItem>
@@ -130,9 +133,11 @@ const HomeMobileFilterPanel = ({
           </Label>
           <Input
             placeholder='Enter location...'
+            list={locationListId}
             value={location}
             onChange={(e) => setHomeTenderLocation(e.target.value)}
           />
+          <LocationSuggestions id={locationListId} />
         </div>
 
         {/* Mobile Filter Actions */}

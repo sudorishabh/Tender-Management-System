@@ -22,6 +22,20 @@
       "when": 1766222059730,
       "tag": "0002_milky_robin_chapel",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1791013244188,
+      "tag": "0003_add_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1791013543730,
+      "tag": "0004_add_tender_clarifications",
+      "breakpoints": true
     }
   ]
 }

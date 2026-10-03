@@ -186,26 +186,48 @@ export const bidVendorDocsTable = mysqlTable("bid_vendor_docs", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 });
 
-// export const notificationsTable = mysqlTable("notifications", {
-//   notif_id: int("notif_id").autoincrement().primaryKey(),
-//   user_id: int("user_id")
-//     .references(() => usersTable.user_id, { onDelete: "cascade" })
-//     .notNull(),
-//   notif_title: varchar("notif_title", { length: 100 }).notNull(),
-//   notif_message: text("notif_message").notNull(),
-//   notif_is_read: boolean("notif_is_read").default(false).notNull(),
-//   notif_type: mysqlEnum([
-//     "bid_status",
-//     "tender_update",
-//     "account",
-//     "clarification",
-//     "system",
-//   ]).notNull(),
-//   notif_ref_id: int("notif_ref_id"),
-//   notif_ref_type: varchar("notif_ref_type", { length: 50 }),
-//   created_at: timestamp("created_at").defaultNow().notNull(),
-//   updated_at: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
-// });
+// Clarification questions vendors ask about a tender before the query
+// deadline. Answered questions are shown to everyone without the asker.
+export const tenderClarificationsTable = mysqlTable("tender_clarifications", {
+  clar_id: int("clar_id").autoincrement().primaryKey(),
+  tender_id: int("tender_id")
+    .references(() => tenderTable.tender_id, { onDelete: "cascade" })
+    .notNull(),
+  vendor_id: int("vendor_id")
+    .references(() => vendorProfileTable.vendor_id, { onDelete: "cascade" })
+    .notNull(),
+  clar_question: text("clar_question").notNull(),
+  clar_answer: text("clar_answer"),
+  clar_answered_by: int("clar_answered_by").references(
+    () => usersTable.user_id,
+    { onDelete: "set null" }
+  ),
+  clar_answered_at: timestamp("clar_answered_at"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+// In-app notifications shown in the dashboard top bar
+export const notificationsTable = mysqlTable("notifications", {
+  notif_id: int("notif_id").autoincrement().primaryKey(),
+  user_id: int("user_id")
+    .references(() => usersTable.user_id, { onDelete: "cascade" })
+    .notNull(),
+  notif_title: varchar("notif_title", { length: 100 }).notNull(),
+  notif_message: text("notif_message").notNull(),
+  notif_is_read: boolean("notif_is_read").default(false).notNull(),
+  notif_type: mysqlEnum([
+    "bid_status",
+    "tender_update",
+    "account",
+    "clarification",
+    "system",
+  ]).notNull(),
+  // App path opened when the notification is clicked, e.g. "/tender/12"
+  notif_link: varchar("notif_link", { length: 255 }),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
 
 export const adminInvitesTable = mysqlTable("admin_invites", {
   invite_id: int("invite_id").autoincrement().primaryKey(),
