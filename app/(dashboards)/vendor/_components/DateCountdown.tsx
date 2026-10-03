@@ -14,7 +14,7 @@ const describeDays = (days: number) => {
 const toneStyles = {
   light: { normal: "text-slate-500", urgent: "text-amber-700" },
   // For navy surfaces such as the sign-in panel
-  dark: { normal: "text-sidebar-foreground", urgent: "text-amber-300" },
+  dark: { normal: "text-navy-foreground", urgent: "text-amber-300" },
 };
 
 const DateCountdown = ({

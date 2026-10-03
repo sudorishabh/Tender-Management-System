@@ -12,11 +12,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#00619a",
+        // Brand blue for buttons, links and active states. Same hue as the
+        // navy, lighter so controls read as blue rather than black. Hover
+        // deepens towards the navy
+        primary: {
+          DEFAULT: "#00619a",
+          hover: "#044973",
+        },
         secondary: "",
         card: "#f6f6f6",
         // Page background behind dashboard content
         canvas: "#f4f6f9",
+        // Brand navy for large surfaces only: the sign-in panel and dashboard
+        // sidebar, with soft starting the banners. Too heavy for buttons.
+        // Backed by the --navy-* variables in app/globals.css
+        navy: {
+          DEFAULT: "hsl(var(--navy) / <alpha-value>)",
+          hover: "hsl(var(--navy-hover) / <alpha-value>)",
+          soft: "hsl(var(--navy-soft) / <alpha-value>)",
+          foreground: "hsl(var(--navy-foreground) / <alpha-value>)",
+          accent: "hsl(var(--navy-accent) / <alpha-value>)",
+        },
         // Backed by the --sidebar-* variables in app/globals.css
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background) / <alpha-value>)",
