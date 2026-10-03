@@ -48,10 +48,10 @@ const HomeSearchInput = () => {
         type='search'
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder='Search tenders by title, department, location...'
+        placeholder='Search tenders by title, department or location'
         aria-label='Search tenders'
         className={cn(
-          "h-9 w-full border-gray-300 bg-white pl-9 pr-9 text-sm transition-colors hover:border-primary/50 focus-visible:border-primary",
+          "h-10 w-full truncate rounded-lg border-slate-300 bg-white pl-9 pr-9 text-sm shadow-sm transition-colors placeholder:text-slate-500 hover:border-primary/50 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20",
           value && "border-primary"
         )}
       />

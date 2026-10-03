@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { X, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/_components/ui/button";
 import { Badge } from "@/_components/ui/badge";
+import { cn } from "@/lib/utils";
 import { useTenderContext } from "@/context/TenderContext";
 import HomeSortSection from "./TenderActionBarComp/HomeSortSection";
 import HomeMobileFilterPanel from "./TenderActionBarComp/HomeMobileFilterPanel";
@@ -56,20 +57,24 @@ const HomeTendersActionBar = () => {
           {/* Below lg the filters fold behind a button beside the search */}
           <div className='flex items-center gap-2'>
             <HomeSearchInput />
+            {/* Same height and border as the search box it sits beside */}
             <Button
               variant='outline'
-              size='sm'
               onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
               aria-expanded={isMobileFiltersOpen}
-              className='flex shrink-0 items-center gap-2 bg-white border-gray-300 hover:border-primary lg:hidden'>
-              <SlidersHorizontal className='h-4 w-4' />
-              <span className='text-sm'>Filters</span>
+              className={cn(
+                "h-10 shrink-0 gap-2 rounded-lg border-slate-300 bg-white px-3 font-normal text-slate-700 hover:border-primary/50 hover:bg-white lg:hidden",
+                isMobileFiltersOpen && "border-primary bg-primary/5"
+              )}>
+              <SlidersHorizontal
+                className='text-primary'
+                aria-hidden='true'
+              />
+              Filters
               {activeFiltersCount > 0 && (
-                <Badge
-                  variant='secondary'
-                  className='text-xs'>
+                <span className='rounded-full bg-primary px-1.5 text-xs font-semibold tabular-nums text-white'>
                   {activeFiltersCount}
-                </Badge>
+                </span>
               )}
             </Button>
           </div>
