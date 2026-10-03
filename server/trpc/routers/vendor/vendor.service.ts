@@ -574,6 +574,7 @@ export const vendorProfileByUserId = async (userId: number) => {
           vendor_id: vendorProfileTable.vendor_id,
           vendor_code: vendorProfileTable.vendor_code,
           vendor_status: vendorProfileTable.vendor_status,
+          vendor_rejection_reason: vendorProfileTable.vendor_rejection_reason,
           vendor_contact: vendorProfileTable.vendor_contact,
           vendor_alt_contact: vendorProfileTable.vendor_alt_contact,
           vendor_pan_number: vendorProfileTable.vendor_pan_number,

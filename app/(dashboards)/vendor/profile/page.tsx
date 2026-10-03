@@ -7,6 +7,7 @@ import DashboardWrapper from "@/components/DashboardWrapper";
 import { trpc } from "@/lib/trpc";
 import VendorProfileView from "./_components/VendorProfileView";
 import VendorProfileEdit from "./_components/VendorProfileEdit";
+import AccountStatusBanner from "../_components/AccountStatusBanner";
 
 const VendorProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -47,18 +48,26 @@ const VendorProfilePage = () => {
         keywords='Profile, Vendor, Business'
       />
 
-      {isEditing ? (
-        <VendorProfileEdit
-          data={data.vendorDetails}
-          onCancel={() => setIsEditing(false)}
-          onSuccess={handleEditSuccess}
+      <div className='space-y-6'>
+        <AccountStatusBanner
+          status={data.vendorDetails.user.vendor_status}
+          rejectionReason={data.vendorDetails.user.vendor_rejection_reason}
+          showProfileLink={false}
         />
-      ) : (
-        <VendorProfileView
-          data={data.vendorDetails}
-          onEdit={() => setIsEditing(true)}
-        />
-      )}
+
+        {isEditing ? (
+          <VendorProfileEdit
+            data={data.vendorDetails}
+            onCancel={() => setIsEditing(false)}
+            onSuccess={handleEditSuccess}
+          />
+        ) : (
+          <VendorProfileView
+            data={data.vendorDetails}
+            onEdit={() => setIsEditing(true)}
+          />
+        )}
+      </div>
     </DashboardWrapper>
   );
 };

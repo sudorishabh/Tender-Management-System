@@ -7,6 +7,8 @@ type BlockedStatus = "pending" | "rejected";
 interface Props {
   status: BlockedStatus | "approved";
   rejectionReason: string | null;
+  /** Hide the link when the banner is already on the profile page */
+  showProfileLink?: boolean;
 }
 
 // Only approved vendors can submit bids, so the other states explain why
@@ -29,7 +31,11 @@ const variants = {
   },
 } satisfies Record<BlockedStatus, object>;
 
-const AccountStatusBanner = ({ status, rejectionReason }: Props) => {
+const AccountStatusBanner = ({
+  status,
+  rejectionReason,
+  showProfileLink = true,
+}: Props) => {
   if (status === "approved") return null;
 
   const { icon: Icon, title, description, className, iconClassName } =
@@ -52,11 +58,13 @@ const AccountStatusBanner = ({ status, rejectionReason }: Props) => {
           </p>
         )}
       </div>
-      <Link
-        href='/vendor/profile'
-        className='shrink-0 text-xs font-medium text-primary hover:underline'>
-        Review profile
-      </Link>
+      {showProfileLink && (
+        <Link
+          href='/vendor/profile'
+          className='shrink-0 text-xs font-medium text-primary hover:underline'>
+          Review profile
+        </Link>
+      )}
     </div>
   );
 };
