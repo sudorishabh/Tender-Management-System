@@ -13,6 +13,7 @@ import {
   vendorDetails,
   vendorForSelection,
   vendorProfileByUserId,
+  vendorDashboard,
 } from "./vendor.service";
 import { z } from "zod";
 import { vendorForSelectionSchema, vendorsQuerySchema } from "./vendor.schema";
@@ -81,6 +82,16 @@ export const vendorQueryRoute = router({
       return { success: true, ...result };
     } catch (error) {
       throw handleProcedureError(error, "Profile not found");
+    }
+  }),
+
+  // Get dashboard summary for the signed-in vendor (vendor only)
+  getDashboard: vendorProcedure.query(async ({ ctx }) => {
+    try {
+      const result = await vendorDashboard(Number(ctx.user.id));
+      return { success: true, ...result };
+    } catch (error) {
+      throw handleProcedureError(error, "Failed to fetch vendor dashboard");
     }
   }),
 });
