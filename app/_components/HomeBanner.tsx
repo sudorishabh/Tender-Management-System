@@ -200,52 +200,50 @@ const HomeBanner = () => {
     );
   }
 
-  // Unauthenticated user banner
+  // Unauthenticated user banner - kept short so tenders show above the fold
   return (
-    <div className='relative mb-5 overflow-hidden rounded-xl bg-gradient-to-r from-primary to-primary/90 shadow-lg'>
+    <div className='relative mb-5 overflow-hidden rounded-xl bg-gradient-to-r from-primary to-primary/90 shadow-md'>
       {/* Decorative element */}
-      <div className='absolute top-0 right-0 h-64 w-64 translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-10'></div>
+      <div className='absolute top-0 right-0 h-48 w-48 translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-10'></div>
 
       {/* Top accent line */}
-      <div className='absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-white/50 via-white to-white/50'></div>
+      <div className='absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-white/50 via-white to-white/50'></div>
 
-      <div className='relative z-10 px-5 md:px-8 py-6 md:py-9'>
-        <div className='mx-auto max-w-4xl'>
-          <h1 className='mb-2.5 text-2xl font-bold leading-tight text-white md:text-4xl'>
-            TERI Official eTender Portal
-          </h1>
+      <div className='relative z-10 space-y-4 px-5 py-5 md:px-7 md:py-6'>
+        <div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
+          <div className='min-w-0'>
+            <h1 className='text-xl font-bold leading-tight text-white md:text-2xl'>
+              TERI Official eTender Portal
+            </h1>
+            <p className='mt-1.5 max-w-xl text-sm leading-relaxed text-white/90'>
+              Discover and bid on TERI tenders for sustainable development,
+              energy research and environmental projects.
+            </p>
+          </div>
 
-          <p className='mb-6 max-w-2xl text-sm leading-relaxed text-white/90 md:text-base'>
-            Welcome to The Energy and Resources Institute (TERI) tender portal.
-            Discover, bid, and manage tenders for sustainable development,
-            energy research, and environmental projects.
-          </p>
-
-          <HomeBannerStats />
-
-          <div className='mt-6 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center'>
-            <div className='flex gap-2.5'>
-              <Link href='/register'>
-                <button className='rounded-lg bg-white px-4 py-2 text-xs font-semibold text-primary shadow-md transition-all hover:shadow-lg hover:scale-105'>
-                  Register Now
-                </button>
-              </Link>
-              <Link href='/sign-in'>
-                <button className='rounded-lg border-2 border-white/60 bg-white/10 px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-white/20 hover:border-white'>
-                  Sign In
-                </button>
-              </Link>
-            </div>
+          <div className='flex shrink-0 flex-wrap items-center gap-2.5'>
+            <Link
+              href='/register'
+              className='rounded-lg bg-white px-4 py-2 text-xs font-semibold text-primary shadow-md transition-all hover:shadow-lg hover:scale-105'>
+              Register Now
+            </Link>
+            <Link
+              href='/sign-in'
+              className='rounded-lg border-2 border-white/60 bg-white/10 px-4 py-1.5 text-xs font-semibold text-white transition-all hover:bg-white/20 hover:border-white'>
+              Sign In
+            </Link>
             <Link
               href='/about'
-              className='flex items-center text-white/90 text-xs font-medium hover:text-white transition-colors group'>
+              className='group ml-1 flex items-center text-xs font-medium text-white/90 transition-colors hover:text-white'>
               <span className='underline-offset-4 group-hover:underline'>
                 Learn More
               </span>
-              <ChevronRight className='h-3.5 w-3.5 ml-1 group-hover:translate-x-0.5 transition-transform' />
+              <ChevronRight className='ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5' />
             </Link>
           </div>
         </div>
+
+        <HomeBannerStats />
       </div>
     </div>
   );
