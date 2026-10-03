@@ -4,8 +4,8 @@ import { ChevronRight, ListChecks } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { surfaceStyle } from "@/app/styles";
 
-// Mirrors the real flow: registration review, then the bank transfer receipt
-// that the bid form asks for
+// Mirrors the real flow: registration review, then the payment receipt the
+// bid form asks for. Payment methods follow the tender page's instructions.
 const steps = [
   {
     title: "Register your business",
@@ -19,7 +19,7 @@ const steps = [
   {
     title: "Pay the fee and EMD",
     detail:
-      "Transfer them to the bank account shown on the tender and keep the receipt.",
+      "The fee by bank cheque and the EMD by demand draft, as set out on the tender. Keep the receipt.",
   },
   {
     title: "Submit your bid",
