@@ -139,8 +139,12 @@ const TenderCard: FC<{ tender: ITenderCard }> = ({ tender }) => {
           )}
         </div>
 
-        {/* Title & Description */}
-        <h3 className='mb-1 line-clamp-2 text-base font-bold leading-snug text-primary underline-offset-2 group-hover:underline'>
+        {/* Title & Description - closed tenders recede so open ones lead */}
+        <h3
+          className={cn(
+            "mb-1 line-clamp-2 text-base font-bold leading-snug underline-offset-2 group-hover:underline",
+            tender.isLive ? "text-primary" : "text-neutral-700"
+          )}>
           {capitalizeFirstLetter(tender.tender_title || "Untitled Tender")}
         </h3>
         {tender.tender_description && (
@@ -187,7 +191,9 @@ const TenderCard: FC<{ tender: ITenderCard }> = ({ tender }) => {
               className='size-3.5 shrink-0 text-neutral-400'
               aria-hidden='true'
             />
-            <span className='text-[0.7rem] text-neutral-500'>Closes</span>
+            <span className='text-[0.7rem] text-neutral-500'>
+              {tender.isLive ? "Closes" : "Closed on"}
+            </span>
             <span className='text-xs font-semibold text-neutral-900'>
               {tender.tender_bid_end_date
                 ? formatDisplayDate(tender.tender_bid_end_date)
