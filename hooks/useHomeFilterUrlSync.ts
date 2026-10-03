@@ -71,7 +71,7 @@ export function useHomeFilterUrlSync() {
     if (!isRestored) return;
 
     const params = new URLSearchParams();
-    if (availability !== "open") params.set("show", availability);
+    if (availability !== "all") params.set("show", availability);
     if (search) params.set("q", search);
     if (department) params.set("department", department);
     if (location) params.set("location", location);

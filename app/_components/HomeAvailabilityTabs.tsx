@@ -7,9 +7,9 @@ import {
 } from "@/context/TenderContext";
 
 const TABS: { value: TenderAvailability; label: string }[] = [
+  { value: "all", label: "All" },
   { value: "open", label: "Open" },
   { value: "closed", label: "Closed" },
-  { value: "all", label: "All" },
 ];
 
 /** Switches the home list between open, closed and all tenders. */

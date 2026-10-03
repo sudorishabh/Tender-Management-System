@@ -76,7 +76,7 @@ export const TenderProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const [tenderHomeFilter, setTenderHomeFilter] = useState<TenderHomeFilter>({
-    availability: "open",
+    availability: "all",
     search: "",
     department: "",
     location: "",
