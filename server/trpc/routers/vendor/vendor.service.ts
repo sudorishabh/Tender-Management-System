@@ -827,3 +827,47 @@ export const vendorDashboard = async (userId: number) => {
     );
   }
 };
+
+// Tenders the vendor has bid on or been invited to, used to mark listing cards
+export const vendorTenderLinks = async (userId: number) => {
+  try {
+    const [vendor] = await db
+      .select({
+        vendor_id: vendorProfileTable.vendor_id,
+        email: usersTable.email,
+      })
+      .from(vendorProfileTable)
+      .innerJoin(usersTable, eq(usersTable.user_id, vendorProfileTable.user_id))
+      .where(eq(vendorProfileTable.user_id, userId))
+      .limit(1);
+
+    if (!vendor) {
+      throw new NotFoundError(
+        "Vendor profile not found",
+        "VENDOR_PROFILE_NOT_FOUND"
+      );
+    }
+
+    const [bids, invites] = await Promise.all([
+      db
+        .selectDistinct({ tender_id: bidsTable.tender_id })
+        .from(bidsTable)
+        .where(eq(bidsTable.vendor_id, vendor.vendor_id)),
+      db
+        .selectDistinct({ tender_id: tenderEmailInvitesTable.tender_id })
+        .from(tenderEmailInvitesTable)
+        .where(eq(tenderEmailInvitesTable.email, vendor.email)),
+    ]);
+
+    return {
+      biddedTenderIds: bids.map((row) => row.tender_id),
+      invitedTenderIds: invites.map((row) => row.tender_id),
+    };
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new InternalServerError(
+      "Failed to fetch vendor tender links",
+      "FETCH_VENDOR_TENDER_LINKS_ERROR"
+    );
+  }
+};
