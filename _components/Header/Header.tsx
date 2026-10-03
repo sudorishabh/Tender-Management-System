@@ -24,21 +24,34 @@ const isDashboardRoute = (pathname: string | null) =>
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
 
-// Small Logo component to keep Header JSX tidy
-const Logo = () => (
-  <div>
+// TERI is the parent organisation, so the product name sits beside its logo
+// to make clear this site is TERI's eTender portal, not TERI itself
+const BrandLockup = () => (
+  <>
     {process.env.NEXT_PUBLIC_APP_NAME === "TERI" ? (
       <Image
         src='/TERI_LOGO.png'
-        alt='TERI Logo'
+        alt=''
         height={120}
         width={120}
         className='w-10 h-9 md:w-12 md:h-11'
       />
     ) : (
-      <span className='text-primary text-2xl font-bold'>TERI</span>
+      <span className='text-navy text-2xl font-bold'>TERI</span>
     )}
-  </div>
+    <span
+      aria-hidden
+      className='h-7 md:h-8 w-px bg-gray-200'
+    />
+    <span className='flex flex-col leading-tight whitespace-nowrap'>
+      <span className='text-[13px] sm:text-sm md:text-base font-semibold text-navy'>
+        eTender Portal
+      </span>
+      <span className='hidden sm:block text-[11px] text-text-secondary-color'>
+        The Energy and Resources Institute
+      </span>
+    </span>
+  </>
 );
 
 const Header = () => {
@@ -65,8 +78,9 @@ const Header = () => {
         aria-label='Primary navigation'>
         <Link
           href='/'
-          className='flex items-center gap-2'>
-          <Logo />
+          aria-label='TERI eTender Portal home'
+          className='flex items-center gap-2 md:gap-3'>
+          <BrandLockup />
         </Link>
 
         <div className='flex items-center gap-2 md:gap-4 font-medium text-text-secondary-color'>
