@@ -8,6 +8,7 @@ import {
   Save,
   Share2,
   ShoppingBag,
+  Trophy,
   UserCircle,
   Users,
   type LucideIcon,
@@ -72,6 +73,7 @@ export const dashboardNav: Record<UiRole, DashboardNavGroup[]> = {
           href: "/vendor/purchased",
           icon: ShoppingBag,
         },
+        { title: "Awarded Tenders", href: "/vendor/awarded", icon: Trophy },
       ],
     },
     {

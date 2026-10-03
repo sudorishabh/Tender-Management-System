@@ -98,7 +98,7 @@ const VendorDashboard = () => {
               label='Approved'
               value={bidCounts.approved}
               icon={Trophy}
-              href='/vendor/purchased'
+              href='/vendor/awarded'
               detail='Accepted after evaluation'
             />
             <DashboardStatTile
