@@ -1,4 +1,4 @@
-import { and, asc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "@/server/db";
 import {
   businessTable,
@@ -15,6 +15,7 @@ import {
 } from "@/lib/server/errors";
 import { ROLES } from "@/lib/server/constants";
 import { normalizeDbDate } from "@/utils/normalizeDbDate";
+import { getCurrentTimeFormatted } from "@/lib/server/tenderStateHelpers";
 import { notifyUsers } from "../notification/notification.service";
 import type {
   AnswerClarificationInput,
@@ -23,6 +24,9 @@ import type {
 
 // Stops one vendor flooding a tender with unanswered questions
 const MAX_PENDING_PER_VENDOR = 5;
+
+// How many answered questions the home page highlights
+const RECENT_ANSWERED_LIMIT = 3;
 
 interface Viewer {
   userId: number;
@@ -300,6 +304,52 @@ export const tenderClarifications = async (
     throw new InternalServerError(
       "Failed to fetch clarifications",
       "FETCH_CLARIFICATIONS_ERROR"
+    );
+  }
+};
+
+/**
+ * Latest answered questions on tenders still taking bids, for the home page.
+ *
+ * Uses the home list's visibility rules (active, already released) so a
+ * question never points at a tender visitors can't open. Like the tender
+ * page, it never reveals which vendor asked.
+ */
+export const recentAnsweredClarifications = async () => {
+  try {
+    const nowFormatted = getCurrentTimeFormatted(new Date());
+
+    const clarifications = await db
+      .select({
+        clar_id: tenderClarificationsTable.clar_id,
+        clar_question: tenderClarificationsTable.clar_question,
+        clar_answer: tenderClarificationsTable.clar_answer,
+        clar_answered_at: tenderClarificationsTable.clar_answered_at,
+        tender_id: tenderTable.tender_id,
+        tender_title: tenderTable.tender_title,
+      })
+      .from(tenderClarificationsTable)
+      .innerJoin(
+        tenderTable,
+        eq(tenderTable.tender_id, tenderClarificationsTable.tender_id)
+      )
+      .where(
+        and(
+          isNotNull(tenderClarificationsTable.clar_answer),
+          eq(tenderTable.tender_is_active, true),
+          sql`${tenderTable.tender_release_date} IS NOT NULL AND ${tenderTable.tender_release_date} <= ${nowFormatted}`,
+          sql`(${tenderTable.tender_bid_submission_deadline} IS NULL OR ${tenderTable.tender_bid_submission_deadline} > ${nowFormatted})`
+        )
+      )
+      .orderBy(desc(tenderClarificationsTable.clar_answered_at))
+      .limit(RECENT_ANSWERED_LIMIT);
+
+    return { clarifications };
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new InternalServerError(
+      "Failed to fetch recent clarifications",
+      "FETCH_RECENT_CLARIFICATIONS_ERROR"
     );
   }
 };

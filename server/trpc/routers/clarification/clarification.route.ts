@@ -14,6 +14,7 @@ import {
   adminTenderClarifications,
   answerClarification,
   askClarification,
+  recentAnsweredClarifications,
   tenderClarifications,
 } from "./clarification.service";
 
@@ -33,6 +34,16 @@ export const clarificationRouter = router({
         throw handleProcedureError(error, "Failed to fetch clarifications");
       }
     }),
+
+  // Latest answered questions on open tenders, for the home page (public)
+  getRecentAnswered: publicProcedure.query(async () => {
+    try {
+      const result = await recentAnsweredClarifications();
+      return { success: true, ...result };
+    } catch (error) {
+      throw handleProcedureError(error, "Failed to fetch clarifications");
+    }
+  }),
 
   // Ask a clarification question (approved vendors only)
   ask: vendorProcedure
