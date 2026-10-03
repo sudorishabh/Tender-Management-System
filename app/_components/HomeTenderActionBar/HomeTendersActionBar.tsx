@@ -48,7 +48,7 @@ const HomeTendersActionBar = () => {
   };
 
   return (
-    <div className='sticky top-12 md:top-14 z-10 mb-4 border-b border-gray-300 bg-white/95 backdrop-blur-sm'>
+    <div className='sticky top-12 md:top-14 z-10 mb-4 border-b border-gray-300 bg-canvas/95 backdrop-blur-sm'>
       {/* No bottom padding: the tab underline sits on the bar's border */}
       <div className='pt-2'>
         {/* Main Filter Bar */}

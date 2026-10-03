@@ -55,7 +55,7 @@ const HomeAvailabilityTabs = () => {
                   "ml-1.5 rounded-full px-1.5 py-0.5 text-xs tabular-nums",
                   isActive
                     ? "bg-primary/10 text-primary"
-                    : "bg-slate-100 text-slate-600"
+                    : "bg-slate-200/70 text-slate-600"
                 )}>
                 {counts[tab.value]}
               </span>
