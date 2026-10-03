@@ -1,10 +1,11 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   useTenderContext,
   type TenderAvailability,
 } from "@/context/TenderContext";
+import { useHomeTendersQuery } from "@/hooks/useHomeTendersQuery";
 
 const TABS: { value: TenderAvailability; label: string }[] = [
   { value: "all", label: "All" },
@@ -18,6 +19,15 @@ const HomeAvailabilityTabs = () => {
     tenderHomeFilter: { availability },
     setHomeTenderAvailability,
   } = useTenderContext();
+
+  // Reads the list's cached result - HomeTenders owns the fetch
+  const { data } = useHomeTendersQuery({ enabled: false });
+
+  // Hold the last counts while new filters load, so the numbers don't blink
+  const [counts, setCounts] = useState<Record<TenderAvailability, number>>();
+  useEffect(() => {
+    if (data?.availabilityCounts) setCounts(data.availabilityCounts);
+  }, [data]);
 
   return (
     <div
@@ -39,6 +49,17 @@ const HomeAvailabilityTabs = () => {
                 : "border-transparent text-neutral-500 hover:text-neutral-900"
             )}>
             {tab.label}
+            {counts && (
+              <span
+                className={cn(
+                  "ml-1.5 rounded-full px-1.5 py-0.5 text-xs tabular-nums",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "bg-slate-100 text-slate-600"
+                )}>
+                {counts[tab.value]}
+              </span>
+            )}
           </button>
         );
       })}

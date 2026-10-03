@@ -10,6 +10,10 @@ import TenderCard, { type VendorTenderLink } from "./TenderCard";
 import PaginationComponent from "@/_components/Shared/Pagination";
 import { useTenderContext } from "@/context/TenderContext";
 import { useHomeFilterUrlSync } from "@/hooks/useHomeFilterUrlSync";
+import {
+  HOME_TENDERS_PAGE_SIZE,
+  useHomeTendersQuery,
+} from "@/hooks/useHomeTendersQuery";
 
 const HomeTenders = () => {
   const {
@@ -28,28 +32,14 @@ const HomeTenders = () => {
     setHomeTenderAvailability,
   } = useTenderContext();
 
-  const loadTenderLimit = 20;
   const filtersRestored = useHomeFilterUrlSync();
 
-  // Query for latest tenders
+  // Wait for filters in the URL so the unfiltered list never flashes first
   const {
     data: latestData,
     isLoading: latestIsLoading,
     isFetching: latestIsFetching,
-  } = trpc.tender.getHomeLatest.useQuery(
-    {
-      page: latestPage,
-      limit: loadTenderLimit,
-      search,
-      department,
-      location,
-      budgetRange,
-      sortBy,
-      availability,
-    },
-    // Wait for filters in the URL so the unfiltered list never flashes first
-    { enabled: filtersRestored }
-  );
+  } = useHomeTendersQuery({ enabled: filtersRestored });
 
   const isListLoading = !filtersRestored || latestIsLoading;
 
@@ -94,8 +84,8 @@ const HomeTenders = () => {
   const totalCount = latestData?.totalCount ?? 0;
   const hasTenders = tenders && tenders.length > 0;
 
-  const rangeFrom = (latestPage - 1) * loadTenderLimit + 1;
-  const rangeTo = Math.min(latestPage * loadTenderLimit, totalCount);
+  const rangeFrom = (latestPage - 1) * HOME_TENDERS_PAGE_SIZE + 1;
+  const rangeTo = Math.min(latestPage * HOME_TENDERS_PAGE_SIZE, totalCount);
 
   const emptyMessage = (() => {
     if (hasActiveFilters) {
