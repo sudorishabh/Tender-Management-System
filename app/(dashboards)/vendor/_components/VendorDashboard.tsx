@@ -21,6 +21,7 @@ import {
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 import { formatDisplayDate } from "@/utils/dateUtils";
 import VendorProfileSummary from "./VendorProfileSummary";
+import AccountStatusBanner from "./AccountStatusBanner";
 
 // Vendors see ranked bids as selected, matching the purchased tenders page
 const toVendorBidStatus = (status: string) =>
@@ -40,7 +41,7 @@ const VendorDashboard = () => {
     return <PageError onRetry={() => dashboard.refetch()} />;
   }
 
-  const { bidCounts, openTenderCount, recentBids } = dashboard.data;
+  const { account, bidCounts, openTenderCount, recentBids } = dashboard.data;
 
   return (
     <DashboardWrapper
@@ -52,6 +53,11 @@ const VendorDashboard = () => {
         onClick: () => router.push("/"),
       }}>
       <div className='space-y-8'>
+        <AccountStatusBanner
+          status={account.status}
+          rejectionReason={account.rejectionReason}
+        />
+
         <section aria-labelledby='overview-heading'>
           <h2
             id='overview-heading'
