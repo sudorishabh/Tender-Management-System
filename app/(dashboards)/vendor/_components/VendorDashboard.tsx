@@ -26,10 +26,7 @@ import { formatDisplayDate, formatDisplayDateTime } from "@/utils/dateUtils";
 import VendorProfileSummary from "./VendorProfileSummary";
 import AccountStatusBanner from "./AccountStatusBanner";
 import DateCountdown from "./DateCountdown";
-
-// Vendors see ranked bids as selected, matching the purchased tenders page
-const toVendorBidStatus = (status: string) =>
-  status === "ranked" ? "selected" : status;
+import { toVendorBidStatus } from "./vendorBidStatus";
 
 const openingStageLabels = {
   technical: "Technical bid opening",

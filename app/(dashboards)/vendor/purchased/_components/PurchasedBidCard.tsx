@@ -1,10 +1,17 @@
 import React, { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import {
+  Calendar,
+  ChevronRight,
+  Clock,
+  FileText,
+  MessageSquare,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { surfaceStyle } from "@/app/styles";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, ChevronRight, Calendar, MessageSquare } from "lucide-react";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
+import StatusBadge from "@/components/Shared/StatusBadge";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatDisplayDateTime } from "@/utils/dateUtils";
+import { toVendorBidStatus } from "../../_components/vendorBidStatus";
 
 interface Bid {
   bid_id: number;
@@ -41,155 +49,112 @@ interface BidCardProps {
 const PurchasedBidCard: React.FC<BidCardProps> = ({ bid, tender }) => {
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "approved":
-        return "bg-green-100 text-green-800 hover:bg-green-200 border-green-300";
-      case "selected":
-      case "ranked":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-300";
-      case "under_review":
-        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-300";
-      case "rejected":
-        return "bg-red-100 text-red-800 hover:bg-red-200 border-red-300";
-      default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200 border-gray-300";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "under_review":
-        return "Under Review";
-      case "ranked":
-        return "Selected";
-      case "approved":
-        return "Approved";
-      case "rejected":
-        return "Rejected";
-      case "selected":
-        return "Selected";
-      default:
-        return status;
-    }
-  };
-
-  const openMessageDialog = () => {
-    setMessageDialogOpen(true);
-  };
+  const showRejectionReason =
+    bid.bid_status === "rejected" && !!bid.bid_rejection_msg;
 
   return (
     <>
-      <Card className='overflow-hidden transition-all duration-300 hover:shadow-lg border-l-2 border-l-primary'>
-        <CardContent className='p-0'>
-          <div className='flex flex-col lg:flex-row w-full'>
-            {/* Left section - Tender Information */}
-            <div className='bg-white p-4 lg:w-2/5 flex flex-col justify-between border-r'>
-              <div>
-                <div className='flex items-center gap-1.5 mb-2'>
-                  <FileText className='h-4 w-4 text-primary' />
-                  <h3 className='font-semibold text-gray-700 text-xs'>
-                    Tender #{tender?.tender_number || bid.tender_id}
-                  </h3>
-                </div>
-                <h2 className='font-bold text-base text-gray-900 mb-2 line-clamp-2'>
-                  {tender?.tender_title || "Tender Title"}
-                </h2>
-                <p className='text-xs text-gray-600 mb-1.5'>
-                  <span className='font-medium'>Department:</span>{" "}
-                  {tender?.tender_department || "N/A"}
-                </p>
-                <p className='text-xs text-gray-600'>
-                  <span className='font-medium'>Location:</span>{" "}
-                  {tender?.tender_location || "N/A"}
-                </p>
-              </div>
-              <div className='flex flex-wrap gap-1.5 mt-3'>
+      <article className={cn(surfaceStyle, "overflow-hidden")}>
+        <div className='flex flex-col gap-3 p-5 sm:flex-row sm:items-start sm:justify-between'>
+          <div className='min-w-0 space-y-1.5'>
+            <p className='flex items-center gap-1.5 text-xs font-medium text-slate-500'>
+              <FileText
+                aria-hidden
+                className='size-3.5 text-primary'
+              />
+              Tender #{tender?.tender_number || bid.tender_id}
+            </p>
+            <h2 className='line-clamp-2 text-base font-semibold text-slate-900'>
+              {tender?.tender_title || "Tender Title"}
+            </h2>
+            <p className='text-xs text-slate-600'>
+              <span className='text-slate-500'>Department:</span>{" "}
+              {tender?.tender_department || "N/A"}
+              <span
+                aria-hidden
+                className='mx-2 text-slate-300'>
+                |
+              </span>
+              <span className='text-slate-500'>Location:</span>{" "}
+              {tender?.tender_location || "N/A"}
+            </p>
+            {(tender?.tender_type || tender?.tender_scope) && (
+              <div className='flex flex-wrap gap-1.5 pt-1'>
                 {tender?.tender_type && (
                   <Badge
                     variant='outline'
-                    className='text-xs px-2 py-0.5 text-primary border-primary/30 bg-primary/5'>
+                    className='border-primary/30 bg-primary/5 px-2 py-0.5 text-xs font-normal text-primary'>
                     {tender.tender_type}
                   </Badge>
                 )}
                 {tender?.tender_scope && (
                   <Badge
                     variant='outline'
-                    className='text-xs px-2 py-0.5 bg-gray-50 text-gray-700 border-gray-300'>
+                    className='border-slate-300 bg-slate-50 px-2 py-0.5 text-xs font-normal text-slate-700'>
                     {tender.tender_scope}
                   </Badge>
                 )}
               </div>
-            </div>
-
-            {/* Right section - Bid Details & Status */}
-            <div className='p-4 lg:w-3/5 flex flex-col justify-between bg-gray-50/50'>
-              <div className='space-y-2'>
-                {/* Bid Status */}
-                <div className='flex items-center justify-between'>
-                  <div className='flex items-center gap-2'>
-                    <span className='text-xs font-medium text-gray-600'>
-                      Status:
-                    </span>
-                    <Badge
-                      className={cn(
-                        "text-xs font-medium px-2 py-0.5 border",
-                        getStatusColor(bid.bid_status)
-                      )}>
-                      {getStatusText(bid.bid_status)}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Bid Submitted Date */}
-                <div className='flex items-center gap-1.5 text-xs'>
-                  <Calendar className='h-3.5 w-3.5 text-gray-500' />
-                  <span className='text-gray-600'>Submitted:</span>
-                  <span className='font-medium text-gray-900'>
-                    {formatDisplayDateTime(bid.created_at)}
-                  </span>
-                </div>
-
-                {/* Submission Deadline */}
-                {tender?.tender_bid_submission_deadline && (
-                  <div className='flex items-center gap-1.5 text-xs'>
-                    <span className='text-gray-600'>Deadline:</span>
-                    <span className='font-medium text-gray-900'>
-                      {formatDisplayDateTime(tender.tender_bid_submission_deadline)}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className='flex items-center justify-between mt-3 pt-3 border-t border-gray-200'>
-                {bid.bid_status === "rejected" && bid.bid_rejection_msg && (
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    className='text-xs h-7 text-red-700 hover:text-red-800 hover:bg-red-50'
-                    onClick={openMessageDialog}>
-                    <MessageSquare className='h-3.5 w-3.5 mr-1' />
-                    View Rejection Reason
-                  </Button>
-                )}
-                <div className='flex-1'></div>
-                <Link
-                  href={`/tender/${tender?.tender_id ?? ''}`}
-                  target='_blank'
-                  rel='noopener noreferrer'>
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    className='text-xs h-7 text-primary hover:text-primary/80 hover:bg-primary/10'>
-                    View Details <ChevronRight className='ml-1 h-3.5 w-3.5' />
-                  </Button>
-                </Link>
-              </div>
-            </div>
+            )}
           </div>
-        </CardContent>
-      </Card>
+          <StatusBadge
+            status={toVendorBidStatus(bid.bid_status)}
+            className='self-start'
+          />
+        </div>
+
+        <div className='flex flex-col gap-3 border-t border-slate-100 bg-slate-50/60 px-5 py-3 sm:flex-row sm:items-center sm:justify-between'>
+          <dl className='flex flex-wrap gap-x-6 gap-y-1 text-xs'>
+            <div className='flex items-center gap-1.5'>
+              <Calendar
+                aria-hidden
+                className='size-3.5 text-slate-400'
+              />
+              <dt className='text-slate-500'>Submitted</dt>
+              <dd className='font-medium text-slate-900'>
+                {formatDisplayDateTime(bid.created_at)}
+              </dd>
+            </div>
+            {tender?.tender_bid_submission_deadline && (
+              <div className='flex items-center gap-1.5'>
+                <Clock
+                  aria-hidden
+                  className='size-3.5 text-slate-400'
+                />
+                <dt className='text-slate-500'>Deadline</dt>
+                <dd className='font-medium text-slate-900'>
+                  {formatDisplayDateTime(tender.tender_bid_submission_deadline)}
+                </dd>
+              </div>
+            )}
+          </dl>
+
+          <div className='flex items-center gap-1'>
+            {showRejectionReason && (
+              <Button
+                variant='ghost'
+                size='sm'
+                className='h-7 text-xs text-red-700 hover:bg-red-50 hover:text-red-800'
+                onClick={() => setMessageDialogOpen(true)}>
+                <MessageSquare className='mr-1 size-3.5' />
+                View Rejection Reason
+              </Button>
+            )}
+            <Button
+              asChild
+              variant='ghost'
+              size='sm'
+              className='h-7 text-xs text-primary hover:bg-primary/10 hover:text-primary/80'>
+              <Link
+                href={`/tender/${tender?.tender_id ?? ""}`}
+                target='_blank'
+                rel='noopener noreferrer'>
+                View Details <ChevronRight className='ml-1 size-3.5' />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </article>
 
       {/* Rejection Message Dialog */}
       <Dialog
@@ -203,7 +168,7 @@ const PurchasedBidCard: React.FC<BidCardProps> = ({ bid, tender }) => {
               {tender?.tender_number || bid.tender_id}
             </DialogDescription>
           </DialogHeader>
-          <div className='mt-3 p-3 bg-red-50 rounded-md border border-red-200'>
+          <div className='mt-3 rounded-md border border-red-200 bg-red-50 p-3'>
             <p className='text-sm text-gray-800'>
               {bid.bid_rejection_msg || "No rejection reason provided."}
             </p>
