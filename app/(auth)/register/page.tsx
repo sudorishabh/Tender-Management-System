@@ -1,6 +1,15 @@
 import Registration from "@/app/(auth)/register/_components/Registration";
 import { Suspense } from "react";
 import { ShieldCheck, Clock } from "lucide-react";
+import { Metadata } from "next";
+import { generatePageMetadata } from "@/lib/seo.config";
+
+export const metadata: Metadata = generatePageMetadata(
+  "Vendor Registration",
+  "Register your company as a vendor on the TERI eTender Portal to receive tender updates, buy tender documents and submit bids online.",
+  "/register",
+  ["TERI vendor registration", "TERI tender registration", "Vendor Registration"]
+);
 
 const VendorRegistration = () => {
   return (

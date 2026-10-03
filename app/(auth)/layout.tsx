@@ -1,20 +1,7 @@
 import PublicProtected from "@/_components/PublicProtected";
-import { Metadata } from "next";
-import { generatePageMetadata } from "@/lib/seo.config";
 
-export const metadata: Metadata = {
-  ...generatePageMetadata(
-    "Sign In",
-    "Sign in to TERI Tenders to access your vendor dashboard, submit bids, and manage your tender applications.",
-    "/sign-in",
-    ["TERI Tenders Login", "Vendor Sign In", "Tender Portal Access"]
-  ),
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
-
+// Each auth page sets its own metadata - a shared one gave /register and
+// /accept-invite the sign-in page's canonical
 export default function AuthLayout({
   children,
 }: {
