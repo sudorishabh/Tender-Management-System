@@ -11,22 +11,53 @@ import {
 import { cn } from "@/lib/utils";
 import { surfaceStyle } from "@/app/styles";
 import StatusBadge from "@/components/Shared/StatusBadge";
-
-interface VendorProfile {
-  user: {
-    email: string | null;
-    vendor_status: string;
-    vendor_contact: string | null;
-  };
-  business: {
-    biz_trade_name: string | null;
-    biz_legal_name: string | null;
-  } | null;
-}
+import {
+  getProfileCompleteness,
+  summariseMissing,
+  type VendorProfileDetails,
+} from "./profileCompleteness";
 
 interface Props {
-  profile?: VendorProfile;
+  profile?: VendorProfileDetails;
 }
+
+const ProfileCompleteness = ({
+  profile,
+}: {
+  profile: VendorProfileDetails;
+}) => {
+  const { percent, missing } = getProfileCompleteness(profile);
+
+  return (
+    <div className='border-t border-slate-100 px-5 py-4'>
+      <div className='flex items-center justify-between text-xs'>
+        <span
+          id='profile-completeness-label'
+          className='font-medium text-slate-700'>
+          Profile completeness
+        </span>
+        <span className='font-semibold text-slate-900'>{percent}%</span>
+      </div>
+      <div
+        role='progressbar'
+        aria-labelledby='profile-completeness-label'
+        aria-valuenow={percent}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        className='mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100'>
+        <div
+          className='h-full rounded-full bg-primary transition-[width]'
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      <p className='mt-2 text-xs text-slate-500'>
+        {missing.length > 0
+          ? `Add ${summariseMissing(missing)} to complete your profile.`
+          : "All business details are filled in."}
+      </p>
+    </div>
+  );
+};
 
 const ProfileField = ({
   label,
@@ -68,32 +99,35 @@ const VendorProfileSummary = ({ profile }: Props) => (
       </Link>
     </header>
     {profile ? (
-      <dl className='space-y-4 px-5 py-4'>
-        <ProfileField
-          label='Organisation'
-          icon={Building2}>
-          {profile.business?.biz_trade_name ||
-            profile.business?.biz_legal_name ||
-            "Not added"}
-        </ProfileField>
-        <ProfileField
-          label='Account status'
-          icon={ShieldCheck}>
-          <StatusBadge status={profile.user.vendor_status} />
-        </ProfileField>
-        <ProfileField
-          label='Email'
-          icon={Mail}>
-          <span title={profile.user.email ?? undefined}>
-            {profile.user.email || "Not added"}
-          </span>
-        </ProfileField>
-        <ProfileField
-          label='Phone'
-          icon={Phone}>
-          {profile.user.vendor_contact || "Not added"}
-        </ProfileField>
-      </dl>
+      <>
+        <dl className='space-y-4 px-5 py-4'>
+          <ProfileField
+            label='Organisation'
+            icon={Building2}>
+            {profile.business?.biz_trade_name ||
+              profile.business?.biz_legal_name ||
+              "Not added"}
+          </ProfileField>
+          <ProfileField
+            label='Account status'
+            icon={ShieldCheck}>
+            <StatusBadge status={profile.user.vendor_status} />
+          </ProfileField>
+          <ProfileField
+            label='Email'
+            icon={Mail}>
+            <span title={profile.user.email ?? undefined}>
+              {profile.user.email || "Not added"}
+            </span>
+          </ProfileField>
+          <ProfileField
+            label='Phone'
+            icon={Phone}>
+            {profile.user.vendor_contact || "Not added"}
+          </ProfileField>
+        </dl>
+        <ProfileCompleteness profile={profile} />
+      </>
     ) : (
       <p className='px-5 py-10 text-center text-sm text-slate-500'>
         Profile information not available.
