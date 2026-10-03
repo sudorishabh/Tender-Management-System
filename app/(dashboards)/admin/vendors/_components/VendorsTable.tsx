@@ -32,7 +32,7 @@ const VendorsTable: FC<Props> = ({
   totalPages,
 }) => {
   return (
-    <div className='bg-gray-50 p-5 rounded-lg'>
+    <div className='p-5'>
       <ScrollArea className='h-[calc(100vh-20.5rem)] pr-1'>
         <Table>
           <TableHeader>

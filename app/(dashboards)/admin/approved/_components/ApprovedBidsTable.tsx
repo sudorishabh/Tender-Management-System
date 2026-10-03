@@ -33,7 +33,7 @@ const ApprovedBidsTable: FC<Props> = ({
   pageRef,
 }) => {
   return (
-    <div className='bg-gray-50 shadow-sm p-6 rounded-md'>
+    <div className='p-6'>
       <ScrollArea className='h-[calc(100vh-24.5rem)] flex pr-1'>
         <Table>
           <TableHeader>

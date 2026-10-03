@@ -22,3 +22,7 @@ export const borderStyle = "border-gray-200";
 export const headerHeight = 14;
 
 export const cardShadowStyle = "border border-gray-100 shadow-md ";
+
+// White panel that stands off the tinted dashboard canvas
+export const surfaceStyle =
+  "rounded-xl border border-slate-200 bg-white shadow-sm";

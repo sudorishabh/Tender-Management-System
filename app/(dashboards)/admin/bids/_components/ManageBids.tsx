@@ -9,6 +9,8 @@ import BidsTable from "./BidsTable";
 import AdminManageVendorSkeleton from "./AdminManageVendorSkeleton";
 import PageError from "@/components/Shared/PageError";
 import { trpc } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
+import { surfaceStyle } from "@/app/styles";
 
 const ManageBids = () => {
   const { data, isLoading, isError } = trpc.bid.getAll.useQuery();
@@ -23,7 +25,7 @@ const ManageBids = () => {
 
   return (
     <div className='space-y-6'>
-      <div className='bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden'>
+      <div className={cn(surfaceStyle, "overflow-hidden")}>
         <div className='p-4 bg-gray-50 border-b flex items-center justify-between'>
           <div className='flex items-center gap-2'>
             <BadgeIndianRupee

@@ -1,6 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { surfaceStyle } from "@/app/styles";
 
 interface PanelProps {
   title: string;
@@ -19,7 +21,7 @@ export const RecentActivityPanel = ({
   isEmpty,
   children,
 }: PanelProps) => (
-  <section className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
+  <section className={cn(surfaceStyle, "overflow-hidden")}>
     <header className='flex items-center justify-between border-b border-slate-100 px-5 py-3.5'>
       <h2 className='flex items-center gap-2 text-sm font-semibold text-slate-900'>
         <Icon

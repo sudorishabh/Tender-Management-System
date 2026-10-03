@@ -23,7 +23,7 @@ interface Props {
 
 const BidsTable: FC<Props> = ({ data }) => {
   return (
-    <div className='bg-gray-50 shadow p-5 rounded-lg'>
+    <div className='p-5'>
       <ScrollArea className='h-[calc(100vh-19.5rem)] flex pr-1'>
         <Table>
           <TableHeader>

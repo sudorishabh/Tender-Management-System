@@ -46,7 +46,7 @@ const LiveTendersFilterBar: FC = () => {
               <Search className='absolute left-2.5 top-2.5 h-4 w-4 text-gray-700' />
               <Input
                 id='search'
-                className={cn(inputStyle, "border-0 bg-gray-100")}
+                className={inputStyle}
                 style={{ paddingLeft: "2rem" }}
                 value={searchQuery}
                 onChange={(e) => setManageTenderSearchQuery(e.target.value)}
@@ -62,7 +62,7 @@ const LiveTendersFilterBar: FC = () => {
             onValueChange={(value) => setTenderDepartmentAdmin(value)}>
             <SelectTrigger
               id='department'
-              className={cn(inputStyle, "w-44 bg-gray-100 border-0")}>
+              className={cn(inputStyle, "w-44")}>
               <SelectValue placeholder='Select Department' />
             </SelectTrigger>
             <SelectContent align='center'>

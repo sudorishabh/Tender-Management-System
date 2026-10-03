@@ -1,7 +1,7 @@
 import {
-  cardShadowStyle,
   primaryButtonStyle,
   secondaryButtonStyle,
+  surfaceStyle,
 } from "@/app/styles";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -74,9 +74,9 @@ const LiveTenderCard = ({
   const isPending = bidEndDate && bidEndDate > new Date();
 
   return (
-    <Card className={cn(cardShadowStyle, "rounded-lg bg-gray-50")}>
+    <Card className={cn(surfaceStyle, "overflow-hidden")}>
       {/* Header */}
-      <div className='flex items-center justify-between px-4 py-2 bg-gray-100 border-b border-gray-100'>
+      <div className='flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-100'>
         <div className='flex items-center space-x-2'>
           <StatusBadge status={tender.isLive ? "live" : "closed"} />
           {/* {isUrgent && !isClosed && (

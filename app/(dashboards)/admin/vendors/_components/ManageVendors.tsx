@@ -7,6 +7,7 @@ import { Building, SearchX, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import VendorsTable from "./VendorsTable";
+import { surfaceStyle } from "@/app/styles";
 
 const ManageVendors = () => {
   const [searchInput, setSearchInput] = useState("");
@@ -45,7 +46,7 @@ const ManageVendors = () => {
 
   return (
     <div className='space-y-6'>
-      <div className='bg-white rounded-md shadow-sm border border-gray-100'>
+      <div className={surfaceStyle}>
         <div className='p-4 bg-gray-50 border-b flex items-center justify-between'>
           <div className='flex items-center gap-4'>
             <Users
