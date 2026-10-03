@@ -4,6 +4,7 @@ import TenderHeader from "./TenderHeader";
 import TenderDetails from "./TenderDetails";
 import TenderTimeline from "./TenderTimeline";
 import TenderJsonLd from "./TenderJsonLd";
+import TenderClarifications from "./TenderClarifications";
 import { ShoppingCart, Loader2 } from "lucide-react";
 import { Button } from "@/_components/ui/button";
 import Link from "next/link";
@@ -72,6 +73,8 @@ const Tender: FC<Props> = ({ tenderData }) => {
           <TenderDetails tender={tender} />
 
           <TenderTimeline tender={tender} />
+
+          <TenderClarifications tenderId={tender.tender_id} />
         </div>
       </div>
 
