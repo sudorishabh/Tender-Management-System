@@ -28,11 +28,11 @@ _components/
     └── SEOHead.tsx        # Dynamic head component
 
 app/
-├── sitemap.ts             # Automatic sitemap generation
+├── sitemap.ts             # Static pages + every public tender, rebuilt hourly
 ├── robots.ts              # Robots.txt configuration
-├── api/
-│   ├── og/route.tsx       # Dynamic OG image API
-│   └── sitemap/route.ts   # Dynamic sitemap API
+├── opengraph-image.tsx    # 1200x630 share image used as og:image site-wide
+└── tender/[tenderId]/
+    └── page.tsx           # Server-rendered: generateMetadata + tender JSON-LD
 
 public/
 └── manifest.json          # PWA manifest
@@ -121,13 +121,12 @@ Generate OG images for tenders:
 
 The following Schema.org types are implemented:
 
-1. **Organization** - TERI organization details
-2. **WebSite** - Site-wide schema with search action
-3. **Service** - eTender management service
-4. **Product** - Individual tender listings
-5. **Event** - Active tender bidding events
-6. **FAQPage** - Common tender questions
-7. **BreadcrumbList** - Navigation breadcrumbs
+1. **Organization** - TERI organization details (every page)
+2. **WebSite** - Site-wide schema with search action on `/?q=` (every page)
+3. **Service** - eTender management service (every page)
+4. **Demand** - Individual tender pages (a tender is TERI seeking goods or services)
+5. **FAQPage** - `/faq` only, built from `lib/faqs.ts`
+6. **BreadcrumbList** - Tender pages and `/faq`
 
 ## SEO Checklist
 
@@ -188,4 +187,4 @@ Edit `lib/structured-data.ts` → `generateTenderSchema()`
 
 ### Add New FAQ
 
-Edit `lib/structured-data.ts` → `faqSchema.mainEntity`
+Edit `lib/faqs.ts` - the FAQ page and its FAQPage markup both read from it
