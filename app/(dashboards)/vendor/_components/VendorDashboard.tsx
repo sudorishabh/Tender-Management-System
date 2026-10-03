@@ -2,9 +2,11 @@
 import { useRouter } from "next/navigation";
 import {
   BadgeCheck,
+  CalendarClock,
   ClipboardList,
   FileSearch,
   FileText,
+  Hourglass,
   Send,
   Trophy,
 } from "lucide-react";
@@ -19,13 +21,19 @@ import {
   RecentActivityRow,
 } from "@/components/Dashboard/RecentActivityPanel";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
-import { formatDisplayDate } from "@/utils/dateUtils";
+import { formatDisplayDate, formatDisplayDateTime } from "@/utils/dateUtils";
 import VendorProfileSummary from "./VendorProfileSummary";
 import AccountStatusBanner from "./AccountStatusBanner";
+import DateCountdown from "./DateCountdown";
 
 // Vendors see ranked bids as selected, matching the purchased tenders page
 const toVendorBidStatus = (status: string) =>
   status === "ranked" ? "selected" : status;
+
+const openingStageLabels = {
+  technical: "Technical bid opening",
+  financial: "Financial bid opening",
+} as const;
 
 // Joins the non-empty parts of a row's secondary line with a middot
 const joinMeta = (...parts: (string | null | undefined)[]) =>
@@ -41,7 +49,14 @@ const VendorDashboard = () => {
     return <PageError onRetry={() => dashboard.refetch()} />;
   }
 
-  const { account, bidCounts, openTenderCount, recentBids } = dashboard.data;
+  const {
+    account,
+    bidCounts,
+    openTenderCount,
+    closingSoon,
+    recentBids,
+    upcomingOpenings,
+  } = dashboard.data;
 
   return (
     <DashboardWrapper
@@ -95,6 +110,54 @@ const VendorDashboard = () => {
             />
           </div>
         </section>
+
+        <div className='grid gap-6 lg:grid-cols-2'>
+          <RecentActivityPanel
+            title='Open tenders closing soon'
+            icon={Hourglass}
+            viewAllHref='/'
+            emptyMessage='No open tenders are waiting for your bid'
+            isEmpty={closingSoon.length === 0}>
+            {closingSoon.map((tender) => (
+              <RecentActivityRow
+                key={tender.tender_id}
+                href={`/tender/${tender.tender_id}`}
+                title={
+                  capitalizeFirstLetter(tender.tender_title) ||
+                  "Untitled tender"
+                }
+                meta={joinMeta(
+                  tender.tender_number,
+                  `Closes ${formatDisplayDateTime(tender.tender_bid_submission_deadline)}`,
+                )}>
+                <DateCountdown date={tender.tender_bid_submission_deadline} />
+              </RecentActivityRow>
+            ))}
+          </RecentActivityPanel>
+
+          <RecentActivityPanel
+            title='Upcoming bid openings'
+            icon={CalendarClock}
+            viewAllHref='/vendor/purchased'
+            emptyMessage='No bid openings scheduled for your bids'
+            isEmpty={upcomingOpenings.length === 0}>
+            {upcomingOpenings.map((opening) => (
+              <RecentActivityRow
+                key={`${opening.tender_id}-${opening.stage}`}
+                href={`/tender/${opening.tender_id}`}
+                title={
+                  capitalizeFirstLetter(opening.tender_title) ||
+                  "Untitled tender"
+                }
+                meta={joinMeta(
+                  openingStageLabels[opening.stage],
+                  formatDisplayDateTime(opening.opens_at),
+                )}>
+                <DateCountdown date={opening.opens_at} />
+              </RecentActivityRow>
+            ))}
+          </RecentActivityPanel>
+        </div>
 
         <div className='grid gap-6 lg:grid-cols-3'>
           <div className='lg:col-span-2'>
