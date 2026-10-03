@@ -8,6 +8,7 @@ import HomeSortSection from "./TenderActionBarComp/HomeSortSection";
 import HomeMobileFilterPanel from "./TenderActionBarComp/HomeMobileFilterPanel";
 import HomeDesktopFilterPanel from "./TenderActionBarComp/HomeDesktopFilterPanel";
 import HomeSearchInput from "./TenderActionBarComp/HomeSearchInput";
+import HomeAvailabilityTabs from "../HomeAvailabilityTabs";
 
 const HomeTendersActionBar = () => {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
@@ -48,7 +49,8 @@ const HomeTendersActionBar = () => {
 
   return (
     <div className='sticky top-12 md:top-14 z-10 mb-4 border-b border-gray-300 bg-white/95 backdrop-blur-sm'>
-      <div className='py-2'>
+      {/* No bottom padding: the tab underline sits on the bar's border */}
+      <div className='pt-2'>
         {/* Main Filter Bar */}
         <div className='flex flex-col gap-3'>
           <HomeSearchInput />
@@ -151,6 +153,8 @@ const HomeTendersActionBar = () => {
               </Button>
             </div>
           )}
+
+          <HomeAvailabilityTabs />
         </div>
       </div>
     </div>

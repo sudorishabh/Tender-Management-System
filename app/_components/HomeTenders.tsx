@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/_components/ui/button";
 import TenderCardSkeleton from "@/_components/Shared/skeleton/TenderCardSkeleton";
 import TenderCard, { type VendorTenderLink } from "./TenderCard";
-import HomeAvailabilityTabs from "./HomeAvailabilityTabs";
 import PaginationComponent from "@/_components/Shared/Pagination";
 import { useTenderContext } from "@/context/TenderContext";
 import { useHomeFilterUrlSync } from "@/hooks/useHomeFilterUrlSync";
@@ -113,24 +112,21 @@ const HomeTenders = () => {
 
   return (
     <div>
-      <div className='mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-gray-300'>
-        <HomeAvailabilityTabs />
-        {!isListLoading && hasTenders && (
-          <p
-            className='pb-2 text-sm text-neutral-600'
-            aria-live='polite'>
-            Showing{" "}
-            <span className='font-semibold text-neutral-900'>
-              {rangeFrom}&ndash;{rangeTo}
-            </span>{" "}
-            of{" "}
-            <span className='font-semibold text-neutral-900'>
-              {totalCount}
-            </span>{" "}
-            {totalCount === 1 ? "tender" : "tenders"}
-          </p>
-        )}
-      </div>
+      {!isListLoading && hasTenders && (
+        <p
+          className='mb-4 text-sm text-neutral-600'
+          aria-live='polite'>
+          Showing{" "}
+          <span className='font-semibold text-neutral-900'>
+            {rangeFrom}&ndash;{rangeTo}
+          </span>{" "}
+          of{" "}
+          <span className='font-semibold text-neutral-900'>
+            {totalCount}
+          </span>{" "}
+          {totalCount === 1 ? "tender" : "tenders"}
+        </p>
+      )}
 
       {isListLoading ? (
         <TenderCardSkeleton />
