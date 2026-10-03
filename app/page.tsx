@@ -28,10 +28,10 @@ const Home = () => {
           </main>
           {/* Sidebar - stacks below the listings on small screens so mobile
               visitors still get the support contacts and FAQ. On desktop it
-              stays in view while the list scrolls. */}
+              spans the list's height so its help card can stay in view. */}
           <aside
             aria-label='Help and support'
-            className='mt-10 shrink-0 lg:sticky lg:top-20 lg:mt-0 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto'>
+            className='mt-10 shrink-0 lg:mt-0 lg:flex'>
             <HomeSidebar />
           </aside>
         </div>
