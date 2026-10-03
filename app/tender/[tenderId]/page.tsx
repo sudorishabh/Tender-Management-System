@@ -72,7 +72,7 @@ const TenderPage = ({ params }: { params: Promise<{ tenderId: string }> }) => {
               </div>
             )}
             <Link href='/'>
-              <Button className='bg-primary hover:bg-primary/90'>
+              <Button>
                 Browse Available Tenders
               </Button>
             </Link>

@@ -3,30 +3,7 @@ import Link from "next/link";
 import { ChevronRight, ListChecks } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { surfaceStyle } from "@/app/styles";
-
-// Mirrors the real flow: registration review, then the payment receipt the
-// bid form asks for. Payment methods follow the tender page's instructions.
-const steps = [
-  {
-    title: "Register your business",
-    detail:
-      "It's free. Add your company details with your GST, PAN and registration documents.",
-  },
-  {
-    title: "Get approved",
-    detail: "TERI verifies your account. Only approved vendors can bid.",
-  },
-  {
-    title: "Pay the fee and EMD",
-    detail:
-      "The fee by bank cheque and the EMD by demand draft, as set out on the tender. Keep the receipt.",
-  },
-  {
-    title: "Submit your bid",
-    detail:
-      "Upload the receipt and the required documents before the deadline.",
-  },
-];
+import { bidSteps as steps } from "@/lib/bid-steps";
 
 /** The bidding process at a glance, for visitors who haven't signed up. */
 const HowToBidCard = () => (

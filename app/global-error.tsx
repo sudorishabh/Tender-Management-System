@@ -17,7 +17,7 @@ export default function GlobalError({
           </h2>
           <button
             onClick={() => reset()}
-            className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary'>
+            className='px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover'>
             Try again
           </button>
         </div>

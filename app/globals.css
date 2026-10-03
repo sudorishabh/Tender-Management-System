@@ -59,18 +59,27 @@ svg {
   }
 }
 @layer base {
-  /* The dashboard sidebar is brand navy in every theme.
-     --sidebar-primary is the hover/active surface of menu items and
-     --sidebar-accent marks the active item. */
+  /* Brand navy: the sign-in panel and dashboard sidebar read these, so they
+     stay the same shade. --navy-hover is the lighter navy a menu item takes
+     on hover, --navy-soft is where the home and about banners start before
+     blending into the brand blue, --navy-foreground is body text on navy and
+     --navy-accent picks out links and highlights on navy. */
   :root {
     --radius: 0.5rem;
-    --sidebar-background: 205 72% 13%;
-    --sidebar-foreground: 205 25% 78%;
-    --sidebar-primary: 205 60% 20%;
+    --navy: 205 72% 13%;
+    --navy-soft: 205 62% 26%;
+    --navy-hover: 205 60% 20%;
+    --navy-foreground: 205 25% 78%;
+    --navy-accent: 199 89% 64%;
+    /* --sidebar-primary is the hover/active surface of menu items and
+       --sidebar-accent marks the active item */
+    --sidebar-background: var(--navy);
+    --sidebar-foreground: var(--navy-foreground);
+    --sidebar-primary: var(--navy-hover);
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 199 89% 64%;
+    --sidebar-accent: var(--navy-accent);
     --sidebar-border: 205 50% 19%;
-    --sidebar-ring: 199 89% 64%;
+    --sidebar-ring: var(--navy-accent);
   }
 }
 

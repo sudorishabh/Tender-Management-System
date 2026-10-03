@@ -37,16 +37,13 @@ const AboutPage = () => {
   return (
     <div className='pt-16 min-h-screen bg-gradient-to-b from-gray-50 to-white'>
       {/* Hero Section */}
-      <div className='relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 shadow-lg'>
-        {/* Decorative elements */}
-        <div className='absolute top-0 right-0 h-64 w-64 translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-10'></div>
-        <div className='absolute bottom-0 left-0 h-48 w-48 -translate-x-1/4 translate-y-1/4 rounded-full bg-white opacity-5'></div>
-
-        <div className='relative z-10 max-w-6xl mx-auto px-4 py-16 md:py-20'>
-          <h1 className='text-3xl md:text-5xl font-bold text-white mb-4'>
+      {/* Same navy-to-blue blend as the home banner */}
+      <div className='bg-gradient-to-r from-navy-soft to-primary'>
+        <div className='max-w-6xl mx-auto px-4 py-16 md:py-20'>
+          <h1 className='text-3xl md:text-5xl font-bold tracking-tight text-white mb-4'>
             About TERI Tenders
           </h1>
-          <p className='text-white/90 text-lg md:text-xl max-w-3xl leading-relaxed'>
+          <p className='text-white/85 text-lg md:text-xl max-w-3xl leading-relaxed'>
             India&apos;s premier eTender management platform for sustainable
             development and environmental excellence
           </p>
@@ -412,7 +409,7 @@ const AboutPage = () => {
                 <div
                   key={idx}
                   className='flex items-start'>
-                  <div className='flex-shrink-0 w-12 h-12 bg-gradient-to-br from-primary to-primary/80 text-white rounded-full flex items-center justify-center font-bold text-lg mr-4'>
+                  <div className='flex-shrink-0 w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center font-bold text-lg mr-4'>
                     {item.step}
                   </div>
                   <div className='flex-1'>
@@ -445,18 +442,18 @@ const AboutPage = () => {
 
         {/* Contact & Support */}
         <section className='mb-16'>
-          <div className='bg-gradient-to-r from-primary to-primary/90 rounded-lg shadow-lg overflow-hidden'>
+          <div className='bg-gradient-to-r from-navy-soft to-primary rounded-lg shadow-sm overflow-hidden'>
             <div className='p-6 md:p-8 text-white'>
               <h2 className='text-2xl md:text-3xl font-bold mb-4'>
                 Need Help?
               </h2>
-              <p className='text-white/90 mb-6 max-w-2xl'>
+              <p className='text-white/85 mb-6 max-w-2xl'>
                 Our dedicated support team is here to assist you with any
                 questions or concerns about the tender process, registration, or
                 technical issues.
               </p>
               <div className='grid md:grid-cols-2 gap-6'>
-                <div className='bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20'>
+                <div className='bg-white/5 rounded-lg p-4 border border-white/10'>
                   <div className='flex items-center mb-2'>
                     <svg
                       className='w-5 h-5 mr-2'
@@ -478,7 +475,7 @@ const AboutPage = () => {
                     +91 8560064756
                   </a>
                 </div>
-                <div className='bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20'>
+                <div className='bg-white/5 rounded-lg p-4 border border-white/10'>
                   <div className='flex items-center mb-2'>
                     <svg
                       className='w-5 h-5 mr-2'
@@ -518,12 +515,12 @@ const AboutPage = () => {
             <div className='flex flex-col sm:flex-row gap-4 justify-center'>
               <a
                 href='/register'
-                className='inline-block px-8 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-primary/90 transition-all hover:shadow-lg'>
+                className='inline-block px-8 py-3 bg-primary text-white font-semibold rounded-lg shadow-sm hover:bg-primary-hover transition-colors'>
                 Register Now
               </a>
               <Link
                 href='/'
-                className='inline-block px-8 py-3 bg-white text-primary font-semibold rounded-lg border-2 border-primary hover:bg-primary/5 transition-all'>
+                className='inline-block px-8 py-3 bg-white text-primary font-semibold rounded-lg border-2 border-primary hover:bg-primary/5 transition-colors'>
                 Browse Tenders
               </Link>
             </div>

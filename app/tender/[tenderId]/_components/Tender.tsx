@@ -134,7 +134,7 @@ const Tender: FC<Props> = ({ tenderData }) => {
             </div>
             {!isAuthenticated ? (
               <Link href='/sign-in'>
-                <Button className='bg-primary hover:bg-primary/90 text-white font-medium h-11 px-8 transition-colors shadow-sm'>
+                <Button className='h-11 px-8 font-medium shadow-sm'>
                   Sign In
                 </Button>
               </Link>
@@ -154,7 +154,7 @@ const Tender: FC<Props> = ({ tenderData }) => {
             ) : isLive ? (
               // Tender is live - allow purchase
               <Link href={`/tender/buy/${tender?.tender_id ?? ''}`}>
-                <Button className='bg-primary hover:bg-primary/90 text-white font-medium h-11 px-8 transition-colors shadow-sm'>
+                <Button className='h-11 px-8 font-medium shadow-sm'>
                   Proceed to Purchase
                 </Button>
               </Link>

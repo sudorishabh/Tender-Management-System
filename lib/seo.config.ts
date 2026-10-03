@@ -87,6 +87,7 @@ export const defaultMetadata: Metadata = {
     // Combined Keywords
     "TERI tender 2024",
     "TERI tender 2025",
+    "TERI tender 2026",
     "TERI online tender",
     "TERI government tender",
     "TERI sustainable tender",
@@ -202,7 +203,7 @@ export const generatePageMetadata = (
   title: string,
   description: string,
   path: string,
-  keywords?: string[]
+  keywords?: string[],
 ): Metadata => ({
   title,
   description,

@@ -60,7 +60,7 @@ const TenderDocumentCard = ({ fileKey }: Props) => {
             value={fileKey}
             isS3File={true}
             triggerButton={
-              <Button className='flex-1 bg-primary text-white hover:bg-primary/90 sm:flex-none'>
+              <Button className='flex-1 sm:flex-none'>
                 <Eye aria-hidden='true' />
                 View document
               </Button>

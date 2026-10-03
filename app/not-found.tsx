@@ -31,7 +31,7 @@ export default function NotFound() {
         {/* Action Button */}
         <Button
           asChild
-          className='bg-primary hover:bg-primary/90 mt-2'>
+          className='mt-2'>
           <Link
             href='/'
             className='flex items-center gap-2'>
