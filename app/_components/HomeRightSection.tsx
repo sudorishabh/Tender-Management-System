@@ -3,6 +3,7 @@ import React from "react";
 import { useSession } from "next-auth/react";
 import ClosingSoonCard from "./HomeSidebar/ClosingSoonCard";
 import HowToBidCard from "./HomeSidebar/HowToBidCard";
+import AnsweredQuestionsCard from "./HomeSidebar/AnsweredQuestionsCard";
 import HelpCard from "./HomeSidebar/HelpCard";
 
 /**
@@ -20,6 +21,7 @@ const HomeRightSection = () => {
     <div className='flex w-full flex-col gap-4 lg:w-64 xl:w-80'>
       <ClosingSoonCard />
       {isVisitor && <HowToBidCard />}
+      <AnsweredQuestionsCard />
       <div className='lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto'>
         <HelpCard />
       </div>
