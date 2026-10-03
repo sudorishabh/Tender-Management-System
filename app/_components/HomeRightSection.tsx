@@ -2,6 +2,7 @@
 import React from "react";
 import { useSession } from "next-auth/react";
 import VendorInvitationsCard from "./HomeSidebar/VendorInvitationsCard";
+import UpcomingOpeningsCard from "./HomeSidebar/UpcomingOpeningsCard";
 import ClosingSoonCard from "./HomeSidebar/ClosingSoonCard";
 import HowToBidCard from "./HomeSidebar/HowToBidCard";
 import AnsweredQuestionsCard from "./HomeSidebar/AnsweredQuestionsCard";
@@ -23,6 +24,7 @@ const HomeRightSection = () => {
     <div className='flex w-full flex-col gap-4 lg:w-64 xl:w-80'>
       {/* A vendor's own tenders lead, ahead of the portal-wide cards */}
       {isVendor && <VendorInvitationsCard />}
+      {isVendor && <UpcomingOpeningsCard />}
       <ClosingSoonCard />
       {isVisitor && <HowToBidCard />}
       <AnsweredQuestionsCard />
