@@ -30,7 +30,7 @@ const Home = () => {
               visitors still get the support contacts and FAQ. On desktop it
               spans the list's height so its help card can stay in view. */}
           <aside
-            aria-label='Help and support'
+            aria-label='Tender updates and help'
             className='mt-10 shrink-0 lg:mt-0 lg:flex'>
             <HomeSidebar />
           </aside>
