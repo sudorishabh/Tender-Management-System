@@ -177,7 +177,12 @@ const VendorDashboard = () => {
                   meta={joinMeta(
                     bid.tender_number,
                     `Submitted ${formatDisplayDate(bid.created_at)}`,
-                  )}>
+                  )}
+                  note={
+                    bid.bid_status === "rejected" && bid.bid_rejection_msg
+                      ? `Reason: ${bid.bid_rejection_msg}`
+                      : undefined
+                  }>
                   <StatusBadge status={toVendorBidStatus(bid.bid_status)} />
                 </RecentActivityRow>
               ))}

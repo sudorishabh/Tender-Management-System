@@ -645,6 +645,7 @@ export const vendorDashboard = async (userId: number) => {
           bid_id: bidsTable.bid_id,
           tender_id: bidsTable.tender_id,
           bid_status: bidsTable.bid_status,
+          bid_rejection_msg: bidsTable.bid_rejection_msg,
           created_at: bidsTable.created_at,
           tender_title: tenderTable.tender_title,
           tender_number: tenderTable.tender_number,

@@ -50,11 +50,19 @@ interface RowProps {
   href: string;
   title: string;
   meta: string;
+  /** Optional extra line under the meta, e.g. a rejection reason */
+  note?: string;
   /** Right-aligned content such as status badges */
   children?: React.ReactNode;
 }
 
-export const RecentActivityRow = ({ href, title, meta, children }: RowProps) => (
+export const RecentActivityRow = ({
+  href,
+  title,
+  meta,
+  note,
+  children,
+}: RowProps) => (
   <li>
     <Link
       href={href}
@@ -62,6 +70,9 @@ export const RecentActivityRow = ({ href, title, meta, children }: RowProps) => 
       <div className='min-w-0'>
         <p className='truncate text-sm font-medium text-slate-900'>{title}</p>
         <p className='truncate text-xs text-slate-500'>{meta}</p>
+        {note && (
+          <p className='mt-1 line-clamp-2 text-xs text-slate-600'>{note}</p>
+        )}
       </div>
       <div className='flex shrink-0 items-center gap-3'>{children}</div>
     </Link>
