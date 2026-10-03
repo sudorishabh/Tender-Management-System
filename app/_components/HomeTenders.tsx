@@ -10,6 +10,7 @@ import TenderCard, { type VendorTenderLink } from "./TenderCard";
 import HomeAvailabilityTabs from "./HomeAvailabilityTabs";
 import PaginationComponent from "@/_components/Shared/Pagination";
 import { useTenderContext } from "@/context/TenderContext";
+import { useHomeFilterUrlSync } from "@/hooks/useHomeFilterUrlSync";
 
 const HomeTenders = () => {
   const {
@@ -29,22 +30,29 @@ const HomeTenders = () => {
   } = useTenderContext();
 
   const loadTenderLimit = 20;
+  const filtersRestored = useHomeFilterUrlSync();
 
   // Query for latest tenders
   const {
     data: latestData,
     isLoading: latestIsLoading,
     isFetching: latestIsFetching,
-  } = trpc.tender.getHomeLatest.useQuery({
-    page: latestPage,
-    limit: loadTenderLimit,
-    search,
-    department,
-    location,
-    budgetRange,
-    sortBy,
-    availability,
-  });
+  } = trpc.tender.getHomeLatest.useQuery(
+    {
+      page: latestPage,
+      limit: loadTenderLimit,
+      search,
+      department,
+      location,
+      budgetRange,
+      sortBy,
+      availability,
+    },
+    // Wait for filters in the URL so the unfiltered list never flashes first
+    { enabled: filtersRestored }
+  );
+
+  const isListLoading = !filtersRestored || latestIsLoading;
 
   // Signed-in vendors see which listed tenders they bid on or were invited to
   const { data: session } = useSession();
@@ -107,7 +115,7 @@ const HomeTenders = () => {
     <div>
       <div className='mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-gray-300'>
         <HomeAvailabilityTabs />
-        {!latestIsLoading && hasTenders && (
+        {!isListLoading && hasTenders && (
           <p
             className='pb-2 text-sm text-neutral-600'
             aria-live='polite'>
@@ -124,7 +132,7 @@ const HomeTenders = () => {
         )}
       </div>
 
-      {latestIsLoading ? (
+      {isListLoading ? (
         <TenderCardSkeleton />
       ) : hasTenders ? (
         <div className='space-y-6'>
