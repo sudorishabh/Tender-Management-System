@@ -686,6 +686,18 @@ export const vendorDashboard = async (userId: number) => {
       )
     );
 
+    // Open tenders this vendor's email was invited to and not yet bid on
+    const invitedTenderCondition = and(
+      openTenderCondition,
+      inArray(
+        tenderTable.tender_id,
+        db
+          .select({ tender_id: tenderEmailInvitesTable.tender_id })
+          .from(tenderEmailInvitesTable)
+          .where(eq(tenderEmailInvitesTable.email, vendor.email))
+      )
+    );
+
     const openTenderFields = {
       tender_id: tenderTable.tender_id,
       tender_title: tenderTable.tender_title,
@@ -700,6 +712,7 @@ export const vendorDashboard = async (userId: number) => {
       openTenderCount,
       closingSoon,
       invitedTenders,
+      invitedTenderCount,
       tendersWithOpenings,
     ] = await Promise.all([
       db
@@ -729,24 +742,13 @@ export const vendorDashboard = async (userId: number) => {
         .where(openTenderCondition)
         .orderBy(asc(tenderTable.tender_bid_submission_deadline))
         .limit(DASHBOARD_LIST_SIZE),
-      // Open tenders this vendor's email was invited to and not yet bid on
       db
         .select(openTenderFields)
         .from(tenderTable)
-        .where(
-          and(
-            openTenderCondition,
-            inArray(
-              tenderTable.tender_id,
-              db
-                .select({ tender_id: tenderEmailInvitesTable.tender_id })
-                .from(tenderEmailInvitesTable)
-                .where(eq(tenderEmailInvitesTable.email, vendor.email))
-            )
-          )
-        )
+        .where(invitedTenderCondition)
         .orderBy(asc(tenderTable.tender_bid_submission_deadline))
         .limit(DASHBOARD_LIST_SIZE),
+      db.$count(tenderTable, invitedTenderCondition),
       db
         .selectDistinct({
           tender_id: tenderTable.tender_id,
@@ -813,6 +815,7 @@ export const vendorDashboard = async (userId: number) => {
       openTenderCount,
       closingSoon,
       invitedTenders,
+      invitedTenderCount,
       recentBids,
       upcomingOpenings,
     };
