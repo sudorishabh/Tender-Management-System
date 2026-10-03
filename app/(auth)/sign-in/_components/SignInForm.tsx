@@ -10,7 +10,7 @@ import {
 } from "@/_components/ui/form";
 import { Input } from "@/_components/ui/input";
 import { toast } from "sonner";
-import { AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -195,7 +195,6 @@ const SignInForm = () => {
           variant='primary'
           type='submit'
           fullWidth={true}
-          RightIcon={ArrowRight}
           isLoading={isLoading}
           className='h-10 rounded-lg text-sm'
         />
