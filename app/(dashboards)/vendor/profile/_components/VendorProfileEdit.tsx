@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Control, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -65,6 +65,76 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
+// Form paths that hold plain text values
+type TextFieldName = Exclude<
+  FieldPath<FormData>,
+  "user" | "business" | "business.biz_employee_count"
+>;
+
+const toFormValues = ({ user, business }: VendorProfileDetails): FormData => ({
+  user: {
+    full_name: user.full_name || "",
+    vendor_contact: user.vendor_contact || "",
+    vendor_alt_contact: user.vendor_alt_contact || "",
+  },
+  business: {
+    biz_legal_name: business?.biz_legal_name || "",
+    biz_trade_name: business?.biz_trade_name || "",
+    biz_classification: business?.biz_classification || "",
+    biz_established_year: business?.biz_established_year || "",
+    biz_addr_line1: business?.biz_addr_line1 || "",
+    biz_addr_line2: business?.biz_addr_line2 || "",
+    biz_locality: business?.biz_locality || "",
+    biz_city: business?.biz_city || "",
+    biz_state: business?.biz_state || "",
+    biz_pin_code: business?.biz_pin_code || "",
+    biz_country: business?.biz_country || "",
+    biz_website: business?.biz_website || "",
+    biz_email: business?.biz_email || "",
+    biz_phone: business?.biz_phone || "",
+    biz_gst_number: business?.biz_gst_number || "",
+    biz_3_year_turnover: business?.biz_3_year_turnover || "",
+    biz_employee_count: business?.biz_employee_count || undefined,
+  },
+});
+
+interface ProfileTextFieldProps
+  extends Omit<React.ComponentProps<typeof Input>, "name"> {
+  control: Control<FormData>;
+  name: TextFieldName;
+  label: string;
+  required?: boolean;
+}
+
+const ProfileTextField = ({
+  control,
+  name,
+  label,
+  required = false,
+  ...inputProps
+}: ProfileTextFieldProps) => (
+  <FormField
+    control={control}
+    name={name}
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel>
+          {label}
+          {required && <span className='text-red-500'> *</span>}
+        </FormLabel>
+        <FormControl>
+          <Input
+            {...inputProps}
+            {...field}
+            className='h-11'
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+);
+
 interface VendorProfileEditProps {
   data: VendorProfileDetails;
   /** Field to focus when the form opens */
@@ -79,69 +149,17 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
   onCancel,
   onSuccess,
 }) => {
-  const { user, business } = data;
-
   const updateProfileMutation = trpc.vendor.updateMyProfile.useMutation();
   const utils = trpc.useUtils();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      user: {
-        full_name: user.full_name || "",
-        vendor_contact: user.vendor_contact || "",
-        vendor_alt_contact: user.vendor_alt_contact || "",
-      },
-      business: {
-        biz_legal_name: business?.biz_legal_name || "",
-        biz_trade_name: business?.biz_trade_name || "",
-        biz_classification: business?.biz_classification || "",
-        biz_established_year: business?.biz_established_year || "",
-        biz_addr_line1: business?.biz_addr_line1 || "",
-        biz_addr_line2: business?.biz_addr_line2 || "",
-        biz_locality: business?.biz_locality || "",
-        biz_city: business?.biz_city || "",
-        biz_state: business?.biz_state || "",
-        biz_pin_code: business?.biz_pin_code || "",
-        biz_country: business?.biz_country || "",
-        biz_website: business?.biz_website || "",
-        biz_email: business?.biz_email || "",
-        biz_phone: business?.biz_phone || "",
-        biz_gst_number: business?.biz_gst_number || "",
-        biz_3_year_turnover: business?.biz_3_year_turnover || "",
-        biz_employee_count: business?.biz_employee_count || undefined,
-      },
-    },
+    defaultValues: toFormValues(data),
   });
 
   useEffect(() => {
-    form.reset({
-      user: {
-        full_name: user.full_name || "",
-        vendor_contact: user.vendor_contact || "",
-        vendor_alt_contact: user.vendor_alt_contact || "",
-      },
-      business: {
-        biz_legal_name: business?.biz_legal_name || "",
-        biz_trade_name: business?.biz_trade_name || "",
-        biz_classification: business?.biz_classification || "",
-        biz_established_year: business?.biz_established_year || "",
-        biz_addr_line1: business?.biz_addr_line1 || "",
-        biz_addr_line2: business?.biz_addr_line2 || "",
-        biz_locality: business?.biz_locality || "",
-        biz_city: business?.biz_city || "",
-        biz_state: business?.biz_state || "",
-        biz_pin_code: business?.biz_pin_code || "",
-        biz_country: business?.biz_country || "",
-        biz_website: business?.biz_website || "",
-        biz_email: business?.biz_email || "",
-        biz_phone: business?.biz_phone || "",
-        biz_gst_number: business?.biz_gst_number || "",
-        biz_3_year_turnover: business?.biz_3_year_turnover || "",
-        biz_employee_count: business?.biz_employee_count || undefined,
-      },
-    });
-  }, [data, form, user, business]);
+    form.reset(toFormValues(data));
+  }, [data, form]);
 
   useEffect(() => {
     if (focusField) form.setFocus(focusField);
@@ -210,67 +228,32 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className='space-y-4'>
-                <FormField
+                <ProfileTextField
                   control={form.control}
                   name='user.full_name'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Full Name <span className='text-red-500'>*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='Enter your full name'
-                          {...field}
-                          className='h-11'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label='Full Name'
+                  required
+                  placeholder='Enter your full name'
                 />
 
-                <FormField
+                <ProfileTextField
                   control={form.control}
                   name='user.vendor_contact'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Contact Number <span className='text-red-500'>*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='Enter contact number'
-                          {...field}
-                          className='h-11'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label='Contact Number'
+                  required
+                  placeholder='Enter contact number'
                 />
 
-                <FormField
+                <ProfileTextField
                   control={form.control}
                   name='user.vendor_alt_contact'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Alternate Contact</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='Enter alternate contact'
-                          {...field}
-                          className='h-11'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label='Alternate Contact'
+                  placeholder='Enter alternate contact'
                 />
 
                 <div className='pt-2 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg'>
                   <p>
-                    <strong>Email:</strong> {user.email}
+                    <strong>Email:</strong> {data.user.email}
                   </p>
                   <p className='text-xs mt-1'>
                     Contact support to change your email address.
@@ -290,42 +273,19 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className='space-y-4'>
-                <FormField
+                <ProfileTextField
                   control={form.control}
                   name='business.biz_legal_name'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Legal Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='Enter business legal name'
-                          {...field}
-                          className='h-11'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label='Legal Name'
+                  placeholder='Enter business legal name'
                 />
 
-                <FormField
+                <ProfileTextField
                   control={form.control}
                   name='business.biz_trade_name'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Trade Name <span className='text-red-500'>*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='Enter business trade name'
-                          {...field}
-                          className='h-11'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label='Trade Name'
+                  required
+                  placeholder='Enter business trade name'
                 />
 
                 <FormField
@@ -360,22 +320,11 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                 />
 
                 <div className='grid grid-cols-2 gap-4'>
-                  <FormField
+                  <ProfileTextField
                     control={form.control}
                     name='business.biz_established_year'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Established Year</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder='e.g., 2010'
-                            {...field}
-                            className='h-11'
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label='Established Year'
+                    placeholder='e.g., 2010'
                   />
 
                   <FormField
@@ -406,40 +355,18 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   />
                 </div>
 
-                <FormField
+                <ProfileTextField
                   control={form.control}
                   name='business.biz_gst_number'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>GST Number</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='Enter GST number'
-                          {...field}
-                          className='h-11'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label='GST Number'
+                  placeholder='Enter GST number'
                 />
 
-                <FormField
+                <ProfileTextField
                   control={form.control}
                   name='business.biz_3_year_turnover'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>3 Year Turnover</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='e.g., 10,00,000'
-                          {...field}
-                          className='h-11'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label='3 Year Turnover'
+                  placeholder='e.g., 10,00,000'
                 />
               </CardContent>
             </Card>
@@ -455,59 +382,26 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className='space-y-4'>
-                <FormField
+                <ProfileTextField
                   control={form.control}
                   name='business.biz_email'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Business Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type='email'
-                          placeholder='Enter business email'
-                          {...field}
-                          className='h-11'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label='Business Email'
+                  type='email'
+                  placeholder='Enter business email'
                 />
 
-                <FormField
+                <ProfileTextField
                   control={form.control}
                   name='business.biz_phone'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Business Phone</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='Enter business phone'
-                          {...field}
-                          className='h-11'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label='Business Phone'
+                  placeholder='Enter business phone'
                 />
 
-                <FormField
+                <ProfileTextField
                   control={form.control}
                   name='business.biz_website'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Website</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='https://www.example.com'
-                          {...field}
-                          className='h-11'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label='Website'
+                  placeholder='https://www.example.com'
                 />
               </CardContent>
             </Card>
@@ -523,134 +417,57 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className='space-y-4'>
-                <FormField
+                <ProfileTextField
                   control={form.control}
                   name='business.biz_addr_line1'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address Line 1</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='Enter address line 1'
-                          {...field}
-                          className='h-11'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label='Address Line 1'
+                  placeholder='Enter address line 1'
                 />
 
-                <FormField
+                <ProfileTextField
                   control={form.control}
                   name='business.biz_addr_line2'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address Line 2</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='Enter address line 2'
-                          {...field}
-                          className='h-11'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label='Address Line 2'
+                  placeholder='Enter address line 2'
                 />
 
                 <div className='grid grid-cols-2 gap-4'>
-                  <FormField
+                  <ProfileTextField
                     control={form.control}
                     name='business.biz_locality'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Locality</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder='Enter locality'
-                            {...field}
-                            className='h-11'
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label='Locality'
+                    placeholder='Enter locality'
                   />
 
-                  <FormField
+                  <ProfileTextField
                     control={form.control}
                     name='business.biz_city'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>City</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder='Enter city'
-                            {...field}
-                            className='h-11'
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label='City'
+                    placeholder='Enter city'
                   />
                 </div>
 
                 <div className='grid grid-cols-2 gap-4'>
-                  <FormField
+                  <ProfileTextField
                     control={form.control}
                     name='business.biz_state'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>State</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder='Enter state'
-                            {...field}
-                            className='h-11'
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label='State'
+                    placeholder='Enter state'
                   />
 
-                  <FormField
+                  <ProfileTextField
                     control={form.control}
                     name='business.biz_pin_code'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>PIN Code</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder='Enter PIN code'
-                            {...field}
-                            className='h-11'
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label='PIN Code'
+                    placeholder='Enter PIN code'
                   />
                 </div>
 
-                <FormField
+                <ProfileTextField
                   control={form.control}
                   name='business.biz_country'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Country</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder='Enter country'
-                          {...field}
-                          className='h-11'
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label='Country'
+                  placeholder='Enter country'
                 />
               </CardContent>
             </Card>
