@@ -199,7 +199,7 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
             <Card className='bg-white shadow-sm border border-gray-200'>
               <CardHeader className='pb-3'>
                 <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-                  <div className='p-2 bg-primary rounded-lg'>
+                  <div className='p-2 bg-primary/15 rounded-lg'>
                     <User className='h-5 w-5 text-primary' />
                   </div>
                   Personal Information
@@ -279,7 +279,7 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
             <Card className='bg-white shadow-sm border border-gray-200'>
               <CardHeader className='pb-3'>
                 <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-                  <div className='p-2 bg-primary rounded-lg'>
+                  <div className='p-2 bg-primary/15 rounded-lg'>
                     <Building className='h-5 w-5 text-primary' />
                   </div>
                   Business Information
@@ -309,7 +309,9 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
                   name='business.biz_trade_name'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Trade Name</FormLabel>
+                      <FormLabel>
+                        Trade Name <span className='text-red-500'>*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder='Enter business trade name'
@@ -439,7 +441,7 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
             <Card className='bg-white shadow-sm border border-gray-200'>
               <CardHeader className='pb-3'>
                 <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-                  <div className='p-2 bg-primary rounded-lg'>
+                  <div className='p-2 bg-primary/15 rounded-lg'>
                     <Building className='h-5 w-5 text-primary' />
                   </div>
                   Business Contact
@@ -507,7 +509,7 @@ const VendorProfileEdit: React.FC<VendorProfileEditProps> = ({
             <Card className='bg-white shadow-sm border border-gray-200'>
               <CardHeader className='pb-3'>
                 <CardTitle className='text-lg font-semibold flex items-center gap-2'>
-                  <div className='p-2 bg-primary rounded-lg'>
+                  <div className='p-2 bg-primary/15 rounded-lg'>
                     <MapPin className='h-5 w-5 text-primary' />
                   </div>
                   Business Address
