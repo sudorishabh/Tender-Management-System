@@ -1,8 +1,7 @@
 import React from "react";
 import BackButton from "./Shared/BackButton";
-import { Button } from "./ui/button";
-import { primaryButtonStyle } from "@/app/styles";
 import CustomButton from "./Shared/CustomButton";
+import { cn } from "@/lib/utils";
 
 interface Props {
   children: React.ReactNode;
@@ -26,33 +25,36 @@ const DashboardWrapper: React.FC<Props> = ({
   button = undefined,
 }) => {
   return (
-    <div className={`w-full pt-8 px-8 ${className}`}>
-      <div className='w-full mb-6'>
-        <div className='flex justify-between items-center mb-4'>
-          <div
-            aria-label={title || "Page header"}
-            className='flex items-center gap-4'>
-            {showBackButton && <BackButton />}
-            <div>
-              {title ? (
-                <h1 className='text-lg font-semibold text-gray-700'>{title}</h1>
-              ) : null}
-              {description ? (
-                <p className='text-gray-500 text-[0.8rem] max-w-2xl'>
-                  {description}
-                </p>
-              ) : null}
-            </div>
+    <div className={cn("w-full px-8 pb-6 pt-8", className)}>
+      <div className='mb-6 flex items-center justify-between gap-4'>
+        <div className='flex items-center gap-4'>
+          {showBackButton && <BackButton />}
+          <div>
+            {title ? (
+              <h1 className='text-xl font-semibold tracking-tight text-slate-900'>
+                {title}
+              </h1>
+            ) : null}
+            {description ? (
+              <p className='mt-1 max-w-2xl text-sm text-slate-500'>
+                {description}
+              </p>
+            ) : null}
           </div>
-
-          {button && (
-            <CustomButton btnName={button.label} variant="primary" LeftIcon={button.icon} onClick={button.onClick} />
-          )}
-
         </div>
 
-        <main className='mt-6'>{children}</main>
+        {button && (
+          <CustomButton
+            btnName={button.label}
+            variant='primary'
+            LeftIcon={button.icon}
+            onClick={button.onClick}
+          />
+        )}
       </div>
+
+      {/* The dashboard layout already provides the page's <main> landmark */}
+      {children}
     </div>
   );
 };
