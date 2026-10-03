@@ -17,6 +17,7 @@ import { formatDisplayDate, getDaysUntil } from "@/utils/dateUtils";
 import { capitalizeFirstLetter } from "@/utils/capitalizeFirstLetter";
 import { ITenderCard } from "@/_types/tender/index";
 import { cn } from "@/lib/utils";
+import { surfaceStyle } from "@/app/styles";
 import { abbreviateIndian } from "@/utils/abbreviateIndianCurrency";
 
 /** Urgency tone for the deadline pill. Tighter window = louder colour. */
@@ -165,7 +166,10 @@ const TenderCard: FC<{
     <Link
       href={`/tender/${tender.tender_id}`}
       aria-label={`View tender: ${tender.tender_title || "Untitled Tender"}`}
-      className='group relative block overflow-hidden rounded-xl border border-neutral-300 bg-white shadow-sm transition-all duration-200 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2'>
+      className={cn(
+        surfaceStyle,
+        "group relative block overflow-hidden transition-all duration-200 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
+      )}>
       {/* Top Section */}
       <div className='p-4 pb-3'>
         {/* Header Row: Status & Deadline */}
@@ -245,7 +249,7 @@ const TenderCard: FC<{
       </div>
 
       {/* Footer strip: the two costs and the hard date */}
-      <div className='flex flex-col gap-2 border-t border-dashed border-neutral-300 bg-neutral-50/60 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between'>
+      <div className='flex flex-col gap-2 border-t border-dashed border-slate-200 bg-slate-50/60 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between'>
         <div className='flex flex-wrap items-center gap-x-4 gap-y-1.5'>
           <MoneyStat
             icon={FileText}

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { surfaceStyle } from "@/app/styles";
 
 const registerFaq = {
   question: "How do I register as a vendor?",
@@ -67,8 +68,8 @@ const HomeRightSection = () => {
     <div className='w-full space-y-6 lg:w-64 xl:w-80'>
       {/* Support/Help Card - contact details lead, they are the more
           actionable of the two panels */}
-      <div className='overflow-hidden rounded-md border border-gray-300'>
-        <div className='flex items-center border-b border-gray-200 bg-primary/5 px-5 py-4'>
+      <div className={cn(surfaceStyle, "overflow-hidden")}>
+        <div className='flex items-center border-b border-slate-200 bg-primary/5 px-5 py-4'>
           <div className='mr-2.5 rounded-md bg-primary/10 p-1.5'>
             <MessageSquare
               className='h-4 w-4 text-primary'
@@ -78,7 +79,7 @@ const HomeRightSection = () => {
           <h3 className='text-sm font-semibold text-gray-800'>Need Help?</h3>
         </div>
 
-        <div className='divide-y divide-gray-200'>
+        <div className='divide-y divide-slate-100'>
           <p className='px-5 py-3 text-sm text-gray-600'>
             Our support team is available to assist you with any questions.
           </p>
@@ -116,8 +117,8 @@ const HomeRightSection = () => {
       </div>
 
       {/* FAQ Card */}
-      <div className='overflow-hidden rounded-md border border-gray-300'>
-        <div className='flex items-center border-b border-gray-200 bg-primary/5 px-5 py-4'>
+      <div className={cn(surfaceStyle, "overflow-hidden")}>
+        <div className='flex items-center border-b border-slate-200 bg-primary/5 px-5 py-4'>
           <div className='mr-2.5 rounded-md bg-primary/10 p-1.5'>
             <HelpCircle
               className='h-4 w-4 text-primary'
@@ -129,7 +130,7 @@ const HomeRightSection = () => {
           </h3>
         </div>
 
-        <div className='divide-y divide-gray-200'>
+        <div className='divide-y divide-slate-100'>
           {faqs.map((faq, index) => {
             const isOpen = openFaq === index;
             return (

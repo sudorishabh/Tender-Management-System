@@ -114,7 +114,7 @@ const SignedInBanner = ({
 
   return (
     <div className='mb-5 space-y-3'>
-      <div className='relative overflow-hidden rounded-lg bg-gradient-to-r from-primary to-primary/90 shadow-md'>
+      <div className='relative overflow-hidden rounded-xl bg-gradient-to-r from-primary to-primary/90 shadow-md'>
         {/* Decorative elements */}
         <div className='absolute top-0 right-0 h-32 w-32 translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-10'></div>
         <div className='absolute bottom-0 left-0 h-24 w-24 -translate-x-1/4 translate-y-1/4 rounded-full bg-white opacity-5'></div>
@@ -202,7 +202,7 @@ const HomeBanner = () => {
 
   // Unauthenticated user banner
   return (
-    <div className='relative mb-5 overflow-hidden rounded-lg bg-gradient-to-r from-primary to-primary/90 shadow-lg'>
+    <div className='relative mb-5 overflow-hidden rounded-xl bg-gradient-to-r from-primary to-primary/90 shadow-lg'>
       {/* Decorative element */}
       <div className='absolute top-0 right-0 h-64 w-64 translate-x-1/2 -translate-y-1/2 rounded-full bg-white opacity-10'></div>
 
