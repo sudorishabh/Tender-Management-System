@@ -28,6 +28,8 @@ _components/
     └── SEOHead.tsx        # Dynamic head component
 
 app/
+├── page.tsx               # Home: h1 and first page of tenders rendered on the server
+├── _lib/getHomeTenders.ts # Loads that first page (skipped when the URL has filters)
 ├── sitemap.ts             # Static pages + every public tender, rebuilt hourly
 ├── robots.ts              # Robots.txt configuration
 ├── opengraph-image.tsx    # 1200x630 share image used as og:image site-wide
@@ -35,8 +37,22 @@ app/
     └── page.tsx           # Server-rendered: generateMetadata + tender JSON-LD
 
 public/
-└── manifest.json          # PWA manifest
+├── manifest.json          # PWA manifest
+├── favicon.ico            # 16/32/48px square crops of TERI_LOGO.png
+├── icon-192.png           # Favicon Google shows in search results (square, 4 x 48px)
+├── icon-512.png           # Manifest icon
+└── apple-touch-icon.png   # 180px home-screen icon
 ```
+
+The home page reads the session on the server only to decide whether the
+visitor banner (which holds the page's h1) belongs in the HTML. Signed-in
+users still see nothing there until their session loads, as before.
+
+### Search Console
+
+Set `GOOGLE_SITE_VERIFICATION` to the token from Search Console's "HTML tag"
+method to add the verification meta tag, then submit
+`https://etender.teri.res.in/sitemap.xml`.
 
 ## Configuration
 

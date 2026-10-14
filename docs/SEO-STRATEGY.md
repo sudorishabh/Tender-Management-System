@@ -13,13 +13,15 @@
 
 ```
 Primary: "TERI Tenders | Official eTender Portal - The Energy and Resources Institute"
-Template: "{Page Title} | TERI Tenders - Official eTender Portal"
+Template: "{Page Title} | TERI Tenders"
 ```
 
-### Meta Description (155-160 characters)
+The template is kept short so long tender titles still end in the brand within the ~60 characters search results show.
+
+### Meta Description (under 160 characters)
 
 ```
-"TERI Official eTender Portal - Submit bids, discover government & private tenders from The Energy and Resources Institute. Register for TERI tender notifications."
+"Official eTender portal of The Energy and Resources Institute (TERI). Find open TERI tenders, download tender documents and submit your bids online."
 ```
 
 ### Keyword Strategy (Implemented in seo.config.ts)
@@ -30,7 +32,7 @@ Template: "{Page Title} | TERI Tenders - Official eTender Portal"
 | **P2 - Brand**       | TERI, The Energy and Resources Institute                             | Brand awareness |
 | **P3 - Generic**     | tender, eTender, tender portal, online tender                        | Informational   |
 | **P4 - Long-tail**   | TERI tender 2025, TERI vendor registration, how to apply TERI tender | Transactional   |
-| **P5 - Industry**    | government tender India, sustainable procurement, green tender       | Informational   |
+| **P5 - Industry**    | sustainable procurement, green tender                                | Informational   |
 
 ### Content Keywords Distribution
 
@@ -112,7 +114,6 @@ Create `/blog` or `/news` with articles:
 - "Understanding TERI Tender Process 2025"
 - "Top Tips for Winning TERI Tenders"
 - "TERI Sustainable Procurement Guidelines"
-- "Government Tender vs Private Tender: What TERI Offers"
 - "Complete Guide to E-Tender Submission in India"
 ```
 
@@ -144,11 +145,10 @@ Each tender page should include:
 
 Submit to:
 
-1. Government tender portals (CPP Portal link exchange)
-2. India business directories
-3. NGO/Think tank directories
-4. Procurement industry directories
-5. Environment/Sustainability portals
+1. India business directories
+2. NGO/Think tank directories
+3. Procurement industry directories
+4. Environment/Sustainability portals
 
 ### C. Partnership Links
 
