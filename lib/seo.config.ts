@@ -8,8 +8,12 @@ export const BASE_URL =
 export const ORGANIZATION = {
   name: "TERI - The Energy and Resources Institute",
   shortName: "TERI",
-  url: BASE_URL,
+  // The organisation is TERI itself, whose home is teriin.org - this portal
+  // is the WebSite it publishes
+  url: "https://www.teriin.org/",
   logo: `${BASE_URL}/TERI_LOGO.png`,
+  logoWidth: 1593,
+  logoHeight: 1509,
   description:
     "TERI is a leading think tank dedicated to conducting research for sustainable development of India and the Global South.",
   foundingDate: "1974",
@@ -27,7 +31,6 @@ export const ORGANIZATION = {
   },
   // TERI's official profiles, as linked from the teriin.org footer
   sameAs: [
-    "https://www.teriin.org/",
     "https://www.linkedin.com/company/teriin/",
     "https://x.com/teriin",
     "https://www.facebook.com/TERIIN/",
@@ -53,10 +56,18 @@ export const defaultMetadata: Metadata = {
   title: {
     default:
       "TERI Tenders | Official eTender Portal - The Energy and Resources Institute",
-    template: "%s | TERI Tenders - Official eTender Portal",
+    // Short, so long tender titles keep the brand inside the ~60 characters
+    // search results show
+    template: "%s | TERI Tenders",
   },
+  // Kept under the ~160 characters search results show
   description:
-    "TERI Official eTender Portal - Submit bids, discover government & private tenders from The Energy and Resources Institute. India's trusted tender management platform for sustainable procurement, research projects & green initiatives. Register now for TERI tender notifications.",
+    "Official eTender portal of The Energy and Resources Institute (TERI). Find open TERI tenders, download tender documents and submit your bids online.",
+  // Set GOOGLE_SITE_VERIFICATION to the token from Search Console's
+  // "HTML tag" verification method
+  ...(process.env.GOOGLE_SITE_VERIFICATION && {
+    verification: { google: process.env.GOOGLE_SITE_VERIFICATION },
+  }),
   keywords: [
     // Primary Keywords - TERI focused
     "TERI",
@@ -82,8 +93,6 @@ export const defaultMetadata: Metadata = {
     "tender management",
     "tender submission",
     "tender bidding",
-    "government tender",
-    "private tender",
     "open tender",
     "tender notice",
     "tender document",
@@ -93,7 +102,6 @@ export const defaultMetadata: Metadata = {
     "TERI tender 2025",
     "TERI tender 2026",
     "TERI online tender",
-    "TERI government tender",
     "TERI sustainable tender",
     "TERI green procurement",
     "TERI environment tender",
@@ -115,7 +123,6 @@ export const defaultMetadata: Metadata = {
     // Industry Keywords
     "eTender Management System",
     "Tender Management System",
-    "Government Tenders India",
     "Procurement Platform India",
     "Vendor Bidding Portal",
     "Online Tender Portal India",
@@ -123,7 +130,6 @@ export const defaultMetadata: Metadata = {
     "E-Procurement India",
     "Green Procurement India",
     "Sustainable Procurement",
-    "Public Tender Portal",
     "NGO tender India",
     "Think tank tender India",
   ],
@@ -140,13 +146,16 @@ export const defaultMetadata: Metadata = {
     address: false,
     telephone: false,
   },
+  // Square crops of TERI_LOGO.png - Google only shows a square favicon in
+  // search results, ideally a multiple of 48px
   icons: {
     icon: [
-      { url: "/TERI_LOGO.png", sizes: "32x32", type: "image/png" },
-      { url: "/TERI_LOGO.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
     ],
-    apple: [{ url: "/TERI_LOGO.png", sizes: "180x180", type: "image/png" }],
-    shortcut: "/TERI_LOGO.png",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
   manifest: "/manifest.json",
   openGraph: {
@@ -157,7 +166,7 @@ export const defaultMetadata: Metadata = {
     title:
       "TERI Tenders | Official eTender Portal - The Energy and Resources Institute",
     description:
-      "Official TERI eTender Portal - Discover and bid on tenders from The Energy and Resources Institute. Government & private sector procurement for sustainable development, energy research, and environmental projects in India.",
+      "Official TERI eTender Portal - Discover and bid on tenders from The Energy and Resources Institute. Procurement for sustainable development, energy research, and environmental projects in India.",
     // The share image comes from app/opengraph-image.tsx
   },
   twitter: {
@@ -184,7 +193,7 @@ export const defaultMetadata: Metadata = {
   // No site-wide canonical: every page without its own would inherit the home
   // page's and tell search engines it is a duplicate of it
   category: "Business",
-  classification: "Tender Management, E-Procurement, Government Tenders",
+  classification: "Tender Management, E-Procurement",
 };
 
 /**

@@ -21,7 +21,7 @@ import { allFaqs, faqGroups } from "@/lib/faqs";
 
 export const metadata: Metadata = {
   ...generatePageMetadata(
-    "Frequently Asked Questions - TERI Tender Portal",
+    "Frequently Asked Questions",
     "Find answers to common questions about TERI tenders, vendor registration, bid submission, and e-procurement process. Learn how to participate in TERI tender opportunities.",
     "/faq",
     [
