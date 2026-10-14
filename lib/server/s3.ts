@@ -1,7 +1,5 @@
 import { unlink } from "fs/promises";
-import path from "path";
-
-const UPLOADS_DIR = path.join(process.cwd(), "uploads");
+import { resolveUploadPath } from "@/lib/server/uploads";
 
 /**
  * Returns a local URL to serve the file via /api/files/
@@ -14,11 +12,7 @@ export async function getDownloadUrl(fileKey: string): Promise<string> {
  * Deletes a file from the local uploads folder.
  */
 export async function deleteFile(fileKey: string): Promise<void> {
-  const filePath = path.join(UPLOADS_DIR, fileKey);
-  if (!filePath.startsWith(UPLOADS_DIR)) {
-    throw new Error("Invalid file path");
-  }
-  await unlink(filePath);
+  await unlink(resolveUploadPath(fileKey));
 }
 
 /**
