@@ -1,30 +1,13 @@
 import { MetadataRoute } from "next";
-
-const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL || "https://etender.teri.res.in";
+import { BASE_URL } from "@/lib/seo.config";
 
 export default function robots(): MetadataRoute.Robots {
   return {
+    // One group for every crawler. /_next/ stays open: it holds the scripts
+    // and styles crawlers need to render the pages.
     rules: [
       {
         userAgent: "*",
-        allow: "/",
-        disallow: [
-          "/api/",
-          "/admin/",
-          "/vendor/",
-          "/super/",
-          "/_next/",
-          "/private/",
-        ],
-      },
-      {
-        userAgent: "Googlebot",
-        allow: "/",
-        disallow: ["/api/", "/admin/", "/vendor/", "/super/"],
-      },
-      {
-        userAgent: "Bingbot",
         allow: "/",
         disallow: ["/api/", "/admin/", "/vendor/", "/super/"],
       },
