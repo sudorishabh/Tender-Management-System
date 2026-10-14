@@ -4,13 +4,28 @@ import HomeBanner from "@/app/_components/HomeBanner";
 import HomeTendersActionBar from "@/app/_components/HomeTenderActionBar/HomeTendersActionBar";
 import HomeTenders from "./_components/HomeTenders";
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { BASE_URL } from "@/lib/seo.config";
+import { getHomeTenders, hasHomeFilters } from "./_lib/getHomeTenders";
 
 export const metadata: Metadata = {
   alternates: { canonical: BASE_URL },
 };
 
-const Home = () => {
+interface Props {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+const Home = async ({ searchParams }: Props) => {
+  // A filtered link waits for the browser to apply its filters, as before
+  const [session, initialTenders] = await Promise.all([
+    getServerSession(authOptions),
+    searchParams.then((params) =>
+      hasHomeFilters(params) ? undefined : getHomeTenders()
+    ),
+  ]);
+
   return (
     // Same tinted canvas as the dashboards so white cards stand off it.
     // flow-root keeps GeneralWrapper's margins inside the tinted area.
@@ -24,12 +39,12 @@ const Home = () => {
             className='flex flex-1 flex-col min-w-0'
             role='main'>
             <section aria-label='Welcome banner'>
-              <HomeBanner />
+              <HomeBanner signedIn={Boolean(session?.user)} />
             </section>
             <HomeTendersActionBar />
             <section aria-label='Tender listings'>
               <h2 className='sr-only'>Available Tenders</h2>
-              <HomeTenders />
+              <HomeTenders initialData={initialTenders} />
             </section>
           </main>
           {/* Sidebar - stacks below the listings on small screens so mobile

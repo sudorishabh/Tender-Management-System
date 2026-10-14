@@ -13,9 +13,16 @@ import { useHomeFilterUrlSync } from "@/hooks/useHomeFilterUrlSync";
 import {
   HOME_TENDERS_PAGE_SIZE,
   useHomeTendersQuery,
+  type HomeTendersResult,
 } from "@/hooks/useHomeTendersQuery";
 
-const HomeTenders = () => {
+interface Props {
+  // The unfiltered first page, fetched on the server so the tender links are
+  // in the HTML. Only sent when the URL carries no filters.
+  initialData?: HomeTendersResult;
+}
+
+const HomeTenders = ({ initialData }: Props) => {
   const {
     tenderHomeFilter: {
       availability,
@@ -34,14 +41,31 @@ const HomeTenders = () => {
 
   const filtersRestored = useHomeFilterUrlSync();
 
-  // Wait for filters in the URL so the unfiltered list never flashes first
+  // Filters kept in context from an earlier visit can differ from the page
+  // the server loaded
+  const isUnfilteredFirstPage =
+    latestPage === 1 &&
+    availability === "all" &&
+    !search &&
+    !department &&
+    !location &&
+    !budgetRange &&
+    !sortBy;
+  const serverList = isUnfilteredFirstPage ? initialData : undefined;
+
+  // Wait for filters in the URL so the unfiltered list never flashes first.
+  // The server's list is safe to show at once: it only sends one when the
+  // URL has no filters.
   const {
     data: latestData,
     isLoading: latestIsLoading,
     isFetching: latestIsFetching,
-  } = useHomeTendersQuery({ enabled: filtersRestored });
+  } = useHomeTendersQuery({
+    enabled: filtersRestored,
+    initialData: serverList,
+  });
 
-  const isListLoading = !filtersRestored || latestIsLoading;
+  const isListLoading = (!filtersRestored && !serverList) || latestIsLoading;
 
   // Signed-in vendors see which listed tenders they bid on or were invited to
   const { data: session } = useSession();
