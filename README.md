@@ -71,7 +71,7 @@ Production: <https://etender.teri.res.in>
 | UI              | Tailwind CSS 3, Radix UI primitives (shadcn/ui pattern), lucide-react, sonner toasts |
 | Documents       | `@react-pdf-viewer`, `pdfjs-dist`, `mammoth` (DOCX)          |
 | Email           | Nodemailer (SMTP)                                            |
-| File storage    | Local disk (`uploads/`), served through an API route         |
+| File storage    | Local disk outside the project (`UPLOADS_DIR`), served through an API route |
 | Package manager | pnpm 10.15+                                                  |
 
 ---
@@ -179,6 +179,7 @@ Open <http://localhost:3000>. Sign in as the super admin at `/sign-in`, then inv
 | `NEXT_PUBLIC_BASE_URL`  |    | Base URL for SEO metadata, sitemap and robots (default `https://etender.teri.res.in`) |
 | `NEXTAUTH_COOKIE_NAME`  |    | Custom session cookie name |
 | `ONE_HOUR_MS`, `FIFTEEN_DAYS_MS` | | Token lifetime overrides in `lib/server/constants.ts` (defaults: 1 hour and 15 days) |
+| `UPLOADS_DIR`           |    | Absolute path where uploaded files are stored (default: an `eTender-uploads` folder next to the project folder). Set it in production. |
 
 > The existing `.env` templates also contain `APP_AWS_*` and `NEXT_PUBLIC_AWS_S3_*` keys. These are left over from when files were stored on S3. The code no longer reads them.
 
@@ -212,8 +213,8 @@ Open <http://localhost:3000>. Sign in as the super admin at `/sign-in`, then inv
 │   ├── api/
 │   │   ├── auth/[...nextauth]/ NextAuth handler
 │   │   ├── trpc/[trpc]/        tRPC handler
-│   │   ├── upload/             file upload (writes to uploads/)
-│   │   └── files/[...key]/     file download (reads from uploads/)
+│   │   ├── upload/             file upload (writes to UPLOADS_DIR)
+│   │   └── files/[...key]/     file download (reads from UPLOADS_DIR)
 │   ├── tender/                 public tender details and bid pages
 │   ├── about/, faq/            public content pages
 │   └── sitemap.ts, robots.ts
@@ -236,8 +237,7 @@ Open <http://localhost:3000>. Sign in as the super admin at `/sign-in`, then inv
 ├── utils/                      date, currency and formatting helpers
 ├── _types/, types/             shared TypeScript types
 ├── docs/                       SEO and tender-state documentation
-├── proxy.ts                    route protection (Next.js 16 replacement for middleware.ts)
-└── uploads/                    uploaded files (git-ignored)
+└── proxy.ts                    route protection (Next.js 16 replacement for middleware.ts)
 ```
 
 **Import alias:** `@/*` maps to the project root, and `@/components/*` resolves to `_components/` through a webpack alias in `next.config.ts`. Always import components as `@/components/...`.
@@ -290,10 +290,15 @@ Technical documents stay hidden until the technical bid opening date, and financ
 
 ### File storage
 
-Uploads are stored on the **local filesystem** under `uploads/<folder>/`:
+Uploads are stored on the **local filesystem**, outside the project folder, under `<UPLOADS_DIR>/<folder>/`. `UPLOADS_DIR` defaults to an `eTender-uploads` folder next to the project folder, so a fresh clone, a redeploy or `git clean` never deletes uploaded files. All paths go through `lib/server/uploads.ts`.
 
-- `POST /api/upload` saves a file (multipart `file` + `folder`) and returns a unique key
-- `GET /api/files/<folder>/<key>` streams it back, with a path-traversal guard
+- `POST /api/upload` saves a file (multipart `file` + `folder`) and returns a unique key. `folder` must be `pdf` or `images`. Files over 60 MB are rejected, and files in `pdf` must be real PDFs (`.pdf` extension and a PDF header).
+- `GET /api/files/<folder>/<key>` streams it back. Keys that point outside the `pdf` or `images` folders are rejected. Every request is checked against the record that uses the file (`getFileAccess` in `server/trpc/routers/s3/s3.service.ts`):
+  - **Tender documents:** anyone, once the tender is approved and released. Admins can open them at any time.
+  - **Vendor documents** (PAN, Aadhaar, GST, registration, bank, MSME) **and bid documents:** the vendor they belong to, and admins.
+  - **Technical and financial bid documents:** admins only after the bid deadline and the matching opening date, the same rule as the admin bid pages.
+  - Files that no record uses are not served.
+- `s3.deleteFile` only deletes files that no record uses yet. The upload forms use it to clean up after a failed save.
 - The `s3` tRPC router and the `useUploadFileToS3` / `useDeleteFileFromS3` hooks keep their old names but now use local storage
 
 ### Email
@@ -333,7 +338,7 @@ Schema: [`server/db/schema.ts`](server/db/schema.ts) · Migrations: `server/db/m
 ## Deployment notes
 
 - Build with `pnpm build` and serve with `pnpm start`. Put a reverse proxy (e.g. Nginx) with HTTPS in front.
-- **`uploads/` must be persistent and writable** by the Node process. Back it up together with the database. Stateless or serverless hosts without a persistent disk won't work.
+- **Set `UPLOADS_DIR` to an absolute path on a persistent disk** that the Node process can write to (e.g. `/var/lib/etender/uploads`). Back it up together with the database. Stateless or serverless hosts without a persistent disk won't work.
 - Set `NEXTAUTH_URL`, `NEXT_PUBLIC_URL` and `NEXT_PUBLIC_BASE_URL` to the public domain.
 - `output: "standalone"` is turned off in `next.config.ts` to avoid symlink permission errors on Windows. It can be turned back on for Linux deployments.
 - Security headers (CSP, HSTS, X-Frame-Options and others) are set in `next.config.ts`. Update the CSP if you add external scripts, fonts or frames.
