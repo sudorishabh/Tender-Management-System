@@ -29,27 +29,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // en-IN matches og:locale and the structured data's inLanguage
     <html
-      lang='en'
+      lang='en-IN'
       dir='ltr'>
       <head>
-        {/* Structured Data for SEO */}
+        {/* Structured Data for SEO. No font preconnects: next/font serves
+            DM Sans from this site. */}
         <JsonLdScript data={siteSchemas} />
-        {/* Preconnect to important origins */}
-        <link
-          rel='preconnect'
-          href='https://fonts.googleapis.com'
-        />
-        <link
-          rel='preconnect'
-          href='https://fonts.gstatic.com'
-          crossOrigin='anonymous'
-        />
-        {/* DNS Prefetch for external resources */}
-        <link
-          rel='dns-prefetch'
-          href='//www.google-analytics.com'
-        />
       </head>
       <body
         suppressHydrationWarning

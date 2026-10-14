@@ -203,12 +203,21 @@ const SignedInBanner = ({
   );
 };
 
-const HomeBanner = () => {
+interface Props {
+  // Whether the server saw a session. The session only loads in the browser,
+  // so this decides whether the visitor banner - and the page's h1 - is in
+  // the server-rendered HTML that search engines read.
+  signedIn: boolean;
+}
+
+const HomeBanner = ({ signedIn }: Props) => {
   const { data: session, status } = useSession();
   const isAuthenticated = status === "authenticated";
   const isRefreshing = status === "loading";
 
-  if (isRefreshing) return null;
+  // Signed-in users get nothing until the session loads, so the visitor
+  // banner never flashes for them
+  if (isRefreshing && signedIn) return null;
 
   // Authenticated user banner
   if (isAuthenticated) {

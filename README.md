@@ -177,6 +177,7 @@ Open <http://localhost:3000>. Sign in as the super admin at `/sign-in`, then inv
 | `APP_NAME`              |    | App name used in email templates |
 | `NEXT_PUBLIC_APP_NAME`  |    | App name shown in the UI |
 | `NEXT_PUBLIC_BASE_URL`  |    | Base URL for SEO metadata, sitemap and robots (default `https://etender.teri.res.in`) |
+| `GOOGLE_SITE_VERIFICATION` |  | Token from Google Search Console's "HTML tag" verification method. Adds the `google-site-verification` meta tag. |
 | `NEXTAUTH_COOKIE_NAME`  |    | Custom session cookie name |
 | `ONE_HOUR_MS`, `FIFTEEN_DAYS_MS` | | Token lifetime overrides in `lib/server/constants.ts` (defaults: 1 hour and 15 days) |
 | `UPLOADS_DIR`           |    | Absolute path where uploaded files are stored (default: an `eTender-uploads` folder next to the project folder). Set it in production. |

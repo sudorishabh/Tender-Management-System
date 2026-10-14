@@ -11,8 +11,8 @@ export const organizationSchema = {
   logo: {
     "@type": "ImageObject",
     url: ORGANIZATION.logo,
-    width: "512",
-    height: "512",
+    width: ORGANIZATION.logoWidth,
+    height: ORGANIZATION.logoHeight,
   },
   description: ORGANIZATION.description,
   foundingDate: ORGANIZATION.foundingDate,
@@ -49,7 +49,7 @@ export const websiteSchema = {
     "TERI Bidding Portal",
   ],
   description:
-    "Official TERI eTender Portal - India's trusted tender management platform for government and private sector procurement by The Energy and Resources Institute",
+    "Official TERI eTender Portal - India's trusted tender management platform for procurement by The Energy and Resources Institute",
   publisher: {
     "@id": `${BASE_URL}/#organization`,
   },
@@ -99,7 +99,7 @@ export const serviceSchema = {
     "@id": `${BASE_URL}/#organization`,
   },
   description:
-    "Official TERI eTender portal - Comprehensive electronic tender management system by The Energy and Resources Institute. Submit bids for government tenders, research projects, sustainable development initiatives, and environmental programs.",
+    "Official TERI eTender portal - Comprehensive electronic tender management system by The Energy and Resources Institute. Submit bids for TERI's research projects, sustainable development initiatives, and environmental programs.",
   areaServed: {
     "@type": "Country",
     name: "India",

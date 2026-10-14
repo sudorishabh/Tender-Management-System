@@ -9,14 +9,13 @@ import {
 
 export const metadata: Metadata = {
   ...generatePageMetadata(
-    "About TERI Tenders",
-    "Learn about TERI's eTender Management System. We provide a transparent, efficient, and secure platform for government and private sector procurement in India.",
+    "About the eTender Portal",
+    "Learn about TERI's eTender Management System - a transparent, efficient, and secure way to find and bid on tenders from The Energy and Resources Institute.",
     "/about",
     [
       "About TERI Tenders",
       "TERI Procurement",
       "eTender Platform India",
-      "Government Tender Portal",
       "Sustainable Procurement",
     ],
   ),
@@ -67,8 +66,8 @@ const AboutPage = () => {
                   For over five decades, TERI has been at the forefront of
                   sustainability research and innovation. Our eTender platform
                   extends this commitment by providing a transparent, efficient,
-                  and secure procurement system that serves both government and
-                  private sector organizations across India.
+                  and secure way for vendors, contractors, and suppliers to find
+                  and bid on TERI&apos;s tenders.
                 </p>
               </div>
             </div>
