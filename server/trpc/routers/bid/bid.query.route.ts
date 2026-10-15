@@ -1,9 +1,4 @@
-import {
-  router,
-  protectedProcedure,
-  adminProcedure,
-  vendorProcedure,
-} from "../../trpc";
+import { router, adminProcedure, vendorProcedure } from "../../trpc";
 import { z } from "zod";
 import { handleProcedureError } from "../../errorHandler";
 import {
@@ -52,8 +47,8 @@ export const bidQueryRoute = router({
       }
     }),
 
-  // Get bid by ID
-  getById: protectedProcedure.input(z.string()).query(async ({ input }) => {
+  // Get bid by ID (admin only: the result includes the vendor's KYC details)
+  getById: adminProcedure.input(z.string()).query(async ({ input }) => {
     try {
       const data = await bidById(input);
       return { success: true, ...data };
