@@ -14,7 +14,7 @@ import {
   BadRequestError,
   InternalServerError,
 } from "@/lib/server/errors";
-import { eq, and, desc, ne, or, sql } from "drizzle-orm";
+import { eq, and, desc, ne, or, sql, DrizzleQueryError } from "drizzle-orm";
 import { getDownloadUrl } from "@/lib/server/s3";
 import { sendMail } from "@/lib/server/email";
 import { bidSubmissionNotificationEmail } from "@/lib/server/templates/bid.templates";
@@ -38,6 +38,18 @@ interface VendorDocUpload {
 
 // MUTATION
 ////////////////////////////////////////////////////////////////////
+
+const bidAlreadyExistsError = () =>
+  new ApiError(
+    "You have already submitted a bid for this tender",
+    400,
+    "BID_ALREADY_EXISTS"
+  );
+
+// Drizzle wraps driver errors; MySQL reports a unique index clash as ER_DUP_ENTRY
+const isDuplicateEntryError = (error: unknown) =>
+  error instanceof DrizzleQueryError &&
+  (error.cause as { code?: string } | undefined)?.code === "ER_DUP_ENTRY";
 
 // Create a new bid
 export async function createBid(
@@ -85,11 +97,7 @@ export async function createBid(
     .limit(1);
 
   if (existingBid.length > 0) {
-    throw new ApiError(
-      "You have already submitted a bid for this tender",
-      400,
-      "BID_ALREADY_EXISTS"
-    );
+    throw bidAlreadyExistsError();
   }
 
   // Get tender
@@ -175,6 +183,11 @@ export async function createBid(
     }
 
     return { bidId: newBid.bid_id };
+  }).catch((error: unknown) => {
+    // The unique (tender, vendor) index stops a second submission that raced
+    // past the check above
+    if (isDuplicateEntryError(error)) throw bidAlreadyExistsError();
+    throw error;
   });
 
   // Send email notification to admin (don't block on failure)

@@ -7,6 +7,7 @@ import {
   varchar,
   mysqlEnum,
   boolean,
+  uniqueIndex,
 } from "drizzle-orm/mysql-core";
 
 export const usersTable = mysqlTable("users", {
@@ -169,7 +170,10 @@ export const bidsTable = mysqlTable("bids", {
     .notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => [
+  // One bid per vendor per tender, even when two submissions race
+  uniqueIndex("bids_tender_vendor_unique").on(table.tender_id, table.vendor_id),
+]);
 
 // Bid vendor documents - stores uploaded documents for each vendor doc requirement
 export const bidVendorDocsTable = mysqlTable("bid_vendor_docs", {

@@ -36,6 +36,13 @@
       "when": 1791013543730,
       "tag": "0004_add_tender_clarifications",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1792041964892,
+      "tag": "0005_bids_unique_tender_vendor",
+      "breakpoints": true
     }
   ]
 }
