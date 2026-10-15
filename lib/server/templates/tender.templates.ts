@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { escapeHtml } from "@/lib/server/escapeHtml";
 
 interface TenderInvitationParams {
   tenderNumber: string;
@@ -57,16 +58,16 @@ export const tenderInvitationEmail = ({
               <!-- Tender Details Box -->
               <div style="background-color: #f9fafb; padding: 20px; border-radius: 6px; border-left: 4px solid #2563eb; margin-bottom: 20px;">
                 <p style="margin: 0; color: #374151; font-size: 14px; line-height: 1.5;">
-                  <strong>Tender Number:</strong> ${tenderNumber}
+                  <strong>Tender Number:</strong> ${escapeHtml(tenderNumber)}
                 </p>
                 <p style="margin: 10px 0 0; color: #374151; font-size: 14px; line-height: 1.5;">
-                  <strong>Title:</strong> ${tenderTitle}
+                  <strong>Title:</strong> ${escapeHtml(tenderTitle)}
                 </p>
                 ${
                   tenderDescription
                     ? `
                 <p style="margin: 10px 0 0; color: #4b5563; font-size: 14px; line-height: 1.5;">
-                  <strong>Description:</strong> ${tenderDescription.substring(0, 200)}${tenderDescription.length > 200 ? "..." : ""}
+                  <strong>Description:</strong> ${escapeHtml(tenderDescription.substring(0, 200))}${tenderDescription.length > 200 ? "..." : ""}
                 </p>
                 `
                     : ""

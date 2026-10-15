@@ -1,3 +1,5 @@
+import { escapeHtml } from "@/lib/server/escapeHtml";
+
 interface BidSubmissionNotificationParams {
   tenderTitle: string;
   tenderNumber: string;
@@ -53,10 +55,10 @@ export const bidSubmissionNotificationEmail = ({
               <!-- Tender Details Box -->
               <div style="background-color: #f0fdf4; padding: 20px; border-radius: 6px; border-left: 4px solid #16a34a; margin-bottom: 20px;">
                 <p style="margin: 0; color: #166534; font-size: 14px; line-height: 1.5;">
-                  <strong>Tender Number:</strong> ${tenderNumber}
+                  <strong>Tender Number:</strong> ${escapeHtml(tenderNumber)}
                 </p>
                 <p style="margin: 10px 0 0; color: #166534; font-size: 14px; line-height: 1.5;">
-                  <strong>Title:</strong> ${tenderTitle}
+                  <strong>Title:</strong> ${escapeHtml(tenderTitle)}
                 </p>
               </div>
 
