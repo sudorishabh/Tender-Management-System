@@ -3,6 +3,13 @@ import type { NextConfig } from "next";
 import type { Configuration as WebpackConfig } from "webpack";
 import path from "path";
 
+// Dev tooling (React Refresh, eval source maps) needs eval; production builds
+// don't, and allowing it there only helps injected script
+const scriptSrc =
+  process.env.NODE_ENV === "production"
+    ? "script-src 'self' 'unsafe-inline'"
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+
 const nextConfig: NextConfig = {
   serverExternalPackages: ["canvas", "pdfjs-dist"],
   // output: "standalone", // Commented out to avoid EPERM symlink issues on Windows
@@ -52,7 +59,7 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              scriptSrc,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https:",
               "font-src 'self' data:",
