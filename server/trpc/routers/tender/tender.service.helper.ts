@@ -11,6 +11,16 @@ import { CreateTenderType, UpdateLiveTenderType } from "./tender.schema";
 import { sendMail } from "@/lib/server/email";
 import { tenderInvitationEmail } from "@/lib/server/templates/tender.templates";
 
+// The key dates every tender needs before it can go live
+const TENDER_DATE_FIELDS = [
+  "tender_release_date",
+  "tender_query_deadline",
+  "tender_query_response_date",
+  "tender_bid_submission_deadline",
+  "tender_technical_bid_opening",
+  "tender_financial_bid_opening",
+] as const;
+
 // Helper: Insert bidder documents
 export const insertBidderDocuments = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -221,6 +231,46 @@ export const updateTenderStatusService = async (data: {
     throw new ApiError("Invalid tender status", 400, "INVALID_TENDER_STATUS");
   }
 
+  const [tender] = await db
+    .select({
+      tender_status: tenderTable.tender_status,
+      tender_release_date: tenderTable.tender_release_date,
+      tender_query_deadline: tenderTable.tender_query_deadline,
+      tender_query_response_date: tenderTable.tender_query_response_date,
+      tender_bid_submission_deadline: tenderTable.tender_bid_submission_deadline,
+      tender_technical_bid_opening: tenderTable.tender_technical_bid_opening,
+      tender_financial_bid_opening: tenderTable.tender_financial_bid_opening,
+    })
+    .from(tenderTable)
+    .where(eq(tenderTable.tender_id, tender_id))
+    .limit(1);
+
+  if (!tender) {
+    throw new ApiError("Tender not found", 404, "TENDER_NOT_FOUND");
+  }
+
+  // Only the review step decides a tender's fate; live, draft or already
+  // rescheduled tenders can't be pushed around from here
+  if (tender.tender_status !== TENDER_STATUS.REVIEW) {
+    throw new ApiError(
+      "Only tenders in review can be published or rescheduled",
+      409,
+      "TENDER_NOT_IN_REVIEW",
+    );
+  }
+
+  // A tender without a deadline would stay open, and its bids sealed, forever
+  if (
+    tender_status === TENDER_STATUS.PUBLISHED &&
+    TENDER_DATE_FIELDS.some((field) => !tender[field])
+  ) {
+    throw new ApiError(
+      "All tender dates must be set before publishing",
+      400,
+      "TENDER_DATES_MISSING",
+    );
+  }
+
   try {
     if (tender_status === TENDER_STATUS.PUBLISHED) {
       await db.transaction(async (tx) => {
@@ -267,6 +317,7 @@ export const updateTenderStatusService = async (data: {
         .set({
           tender_status,
           tender_remark,
+          tender_is_active: false,
         })
         .where(eq(tenderTable.tender_id, tender_id));
     }
