@@ -6,7 +6,12 @@ import { usersTable } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
 export const authOptions: NextAuthOptions = {
-  session: { strategy: "jwt" }, // store token in cookie (JWT) — cookie + JWT style
+  session: {
+    strategy: "jwt", // store token in cookie (JWT) — cookie + JWT style
+    // The cookie is renewed while the app is in use, so this works as an idle
+    // timeout instead of NextAuth's default of 30 days
+    maxAge: 8 * 60 * 60,
+  },
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
