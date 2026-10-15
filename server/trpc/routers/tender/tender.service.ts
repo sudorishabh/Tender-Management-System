@@ -14,8 +14,21 @@ import {
   insertEmailInvitations,
   cleanupEmailInvitations,
 } from "./tender.service.helper";
+import { assertUploadsNotInUse } from "../s3/s3.service";
 
-import { and, asc, count, desc, eq, like, max, or, sql, SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  inArray,
+  like,
+  max,
+  or,
+  sql,
+  SQL,
+} from "drizzle-orm";
 import {
   tenderTable,
   usersTable,
@@ -89,6 +102,7 @@ export const createTender = async (data: CreateTenderType, userId: number) => {
     }
 
     const savedTenderId = step1.tender_id ? Number(step1.tender_id) : null;
+    await assertUploadsNotInUse([step1.tender_contract_document], savedTenderId);
 
     // Auto-generate tender_number if not provided
 
@@ -109,11 +123,21 @@ export const createTender = async (data: CreateTenderType, userId: number) => {
 
       try {
         if (savedTenderId) {
-          // Update existing saved tender
+          // Resubmit a draft or rescheduled tender for review. Live tenders
+          // are never matched: overwriting them would also delete the bid
+          // documents attached to their requirements
           const updateResult = await tx
             .update(tenderTable)
-            .set(tenderInfo)
-            .where(eq(tenderTable.tender_id, savedTenderId));
+            .set({ ...tenderInfo, tender_is_active: false })
+            .where(
+              and(
+                eq(tenderTable.tender_id, savedTenderId),
+                inArray(tenderTable.tender_status, [
+                  TENDER_STATUS.DRAFT,
+                  TENDER_STATUS.RESCHEDULED,
+                ]),
+              ),
+            );
 
           if (updateResult[0].affectedRows === 0) {
             throw new NotFoundError(
@@ -213,6 +237,7 @@ export const saveTender = async (data: CreateTenderType, userId: number) => {
     // }
 
     const savedTenderId = step1.tender_id ? Number(step1.tender_id) : null;
+    await assertUploadsNotInUse([step1.tender_contract_document], savedTenderId);
     const invited_emails = step1.invited_emails || [];
 
     // Keep tender_number as NULL for drafts (will be generated on submit)

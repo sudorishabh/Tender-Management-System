@@ -43,22 +43,38 @@ export function isAllowedFileType(
   return true;
 }
 
+// Upload names only contain the characters the upload route keeps, and
+// always start with the upload timestamp
+const UPLOAD_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+
+export const isUploadName = (name: string) => UPLOAD_NAME_PATTERN.test(name);
+
 /**
- * Turns a stored key such as "pdf/<name>" into an absolute path inside
- * UPLOADS_DIR. Throws for keys that escape the uploads folder or point
- * outside one of the known sub-folders.
+ * Splits a key such as "pdf/<name>" into its folder and file name. Returns
+ * null unless the key is exactly a known folder plus a plain file name, so
+ * ".", "..", backslashes and extra path segments are all rejected.
+ */
+export function parseUploadKey(
+  key: string
+): { folder: UploadFolder; name: string } | null {
+  const parts = key.split("/");
+  if (parts.length !== 2) return null;
+
+  const [folder, name] = parts;
+  if (!isUploadFolder(folder) || !isUploadName(name)) return null;
+
+  return { folder, name };
+}
+
+/**
+ * Turns a key such as "pdf/<name>" into an absolute path inside UPLOADS_DIR.
+ * Throws for any key that parseUploadKey rejects.
  */
 export function resolveUploadPath(key: string): string {
-  if (key.includes("\0")) {
+  const parsed = parseUploadKey(key);
+  if (!parsed) {
     throw new Error("Invalid file path");
   }
 
-  const filePath = path.resolve(UPLOADS_DIR, key);
-  const segments = path.relative(UPLOADS_DIR, filePath).split(path.sep);
-
-  if (segments.length < 2 || !isUploadFolder(segments[0])) {
-    throw new Error("Invalid file path");
-  }
-
-  return filePath;
+  return path.join(UPLOADS_DIR, parsed.folder, parsed.name);
 }

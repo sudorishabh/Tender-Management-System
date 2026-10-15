@@ -1,17 +1,21 @@
 import nodemailer from "nodemailer";
 
-// Create email transporter
+const port = parseInt(process.env.EMAIL_PORT || "587", 10);
+
+// Create email transporter. Port 465 speaks TLS from the start; other ports
+// must upgrade with STARTTLS, and the server certificate is always verified
+// so the password and invite links can't be read on the way
 export const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || "587", 10),
-  secure: false,
+  port,
+  secure: port === 465,
+  requireTLS: port !== 465,
   auth: {
     user: process.env.EMAIL_FROM,
     pass: process.env.EMAIL_PASSWORD,
   },
   tls: {
-    ciphers: "SSLv3",
-    rejectUnauthorized: false,
+    minVersion: "TLSv1.2",
   },
 });
 

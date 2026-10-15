@@ -14,7 +14,10 @@ import VendorDocRequirement from "@/app/(dashboards)/admin/create/_components/ca
 import KeyDates from "@/app/(dashboards)/admin/create/_components/cards/KeyDates";
 import useUploadFileToS3 from "@/hooks/useUploadFileToS3";
 import useDeleteFileFromS3 from "@/hooks/useDeleteFileFromS3";
-import { convertStep3DatesToStrings } from "@/utils/dateUtils";
+import {
+  convertStep3DatesToStrings,
+  normalizeStep3Dates,
+} from "@/utils/dateUtils";
 import EditLiveTenderPreview from "./EditLiveTenderPreview";
 import PageLoading from "@/components/Shared/PageLoading";
 
@@ -73,14 +76,7 @@ const EditLiveTender = ({ paramsPromise }: Props) => {
       step2: docRequirements.map((doc) => ({
         vdr_name: doc.vdr_name ?? "",
       })),
-      step3: {
-        tender_release_date: tender.tender_release_date,
-        tender_query_deadline: tender.tender_query_deadline,
-        tender_query_response_date: tender.tender_query_response_date,
-        tender_bid_submission_deadline: tender.tender_bid_submission_deadline,
-        tender_technical_bid_opening: tender.tender_technical_bid_opening,
-        tender_financial_bid_opening: tender.tender_financial_bid_opening,
-      },
+      step3: normalizeStep3Dates(tender),
     };
     form.reset(resetData, { keepDefaultValues: false });
   }, [data, form]);

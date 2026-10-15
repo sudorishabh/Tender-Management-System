@@ -2,6 +2,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { Context, AuthenticatedContext } from "./context";
 import { ROLES } from "@/lib/server/constants";
+import { getClientIp, isRateLimited } from "@/lib/server/rateLimit";
 import { ZodError } from "zod";
 
 /**
@@ -32,6 +33,28 @@ export const router = t.router;
  * Public procedure - accessible to everyone
  */
 export const publicProcedure = t.procedure;
+
+/**
+ * Public procedure that one client address may only call `limit` times per
+ * `windowMs`, for endpoints that create accounts, send email or touch files
+ */
+export const rateLimitedProcedure = (
+  name: string,
+  limit: number,
+  windowMs: number
+) =>
+  publicProcedure.use(async ({ ctx, next }) => {
+    const key = `${name}:${getClientIp(ctx.req.headers)}`;
+
+    if (isRateLimited(key, limit, windowMs)) {
+      throw new TRPCError({
+        code: "TOO_MANY_REQUESTS",
+        message: "Too many attempts. Please try again later.",
+      });
+    }
+
+    return next();
+  });
 
 /**
  * Protected procedure - requires authentication via NextAuth

@@ -18,6 +18,7 @@ import { z } from "zod";
 import { signIn } from "next-auth/react";
 import CustomButton from "@/_components/Shared/CustomButton";
 import { getPostSignInPath } from "@/lib/auth/callback-url";
+import { SIGN_IN_RATE_LIMITED_ERROR } from "@/lib/auth/types";
 import { cn } from "@/lib/utils";
 
 // Only checks both fields are filled in. Password length rules belong to
@@ -77,6 +78,8 @@ const SignInForm = () => {
       if (result?.error === "CredentialsSignin") {
         setFormError("The email or password is incorrect. Check both and try again.");
         form.setFocus("password", { shouldSelect: true });
+      } else if (result?.error === SIGN_IN_RATE_LIMITED_ERROR) {
+        setFormError("Too many sign-in attempts. Please wait 15 minutes and try again.");
       } else {
         setFormError("We couldn't sign you in just now. Please try again in a few minutes.");
       }

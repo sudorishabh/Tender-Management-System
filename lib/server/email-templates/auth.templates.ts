@@ -1,3 +1,5 @@
+import { escapeHtml } from "@/lib/server/escapeHtml";
+
 interface WelcomeEmailData {
   name: string;
   loginLink: string;
@@ -71,7 +73,7 @@ ${process.env.APP_NAME} Team
               <!-- Content -->
               <tr>
                 <td class="content" style="padding: 35px 30px; background-color: #ffffff;">
-                  <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #333333;">Dear <strong style="color: #2d2d2d;">${name}</strong>,</p>
+                  <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #333333;">Dear <strong style="color: #2d2d2d;">${escapeHtml(name)}</strong>,</p>
                   
                   <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #555555;">Thank you for registering as a vendor with <strong>${process.env.APP_NAME}</strong> Tender Management System!</p>
                   
@@ -206,7 +208,7 @@ ${process.env.APP_NAME} Team
               <!-- Content -->
               <tr>
                 <td class="content" style="padding: 35px 30px; background-color: #ffffff;">
-                  <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; color: #333333;">Hello ${adminName}!</h2>
+                  <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; color: #333333;">Hello ${escapeHtml(adminName)}!</h2>
                   
                   <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #555555;">You have been invited to join the <strong style="color: #007bff;">${process.env.APP_NAME}</strong> Tender Management System as an administrator.</p>
                   
@@ -347,11 +349,11 @@ ${process.env.APP_NAME} Team
               <!-- Content -->
               <tr>
                 <td class="content" style="padding: 35px 30px; background-color: #ffffff;">
-                  <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #333333;">Dear <strong style="color: #2d2d2d;">${vendorName}</strong>,</p>
+                  <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #333333;">Dear <strong style="color: #2d2d2d;">${escapeHtml(vendorName)}</strong>,</p>
                   
                   <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #555555;">Thank you for registering with <strong>${process.env.APP_NAME}</strong> Tender Management System!</p>
                   
-                  <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #555555;">Your vendor registration for <strong>${businessName}</strong> has been received successfully and is now under review by our team.</p>
+                  <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #555555;">Your vendor registration for <strong>${escapeHtml(businessName)}</strong> has been received successfully and is now under review by our team.</p>
                   
                   <!-- Status Box -->
                   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 25px;">
@@ -505,19 +507,19 @@ ${appName}
                         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                           <tr>
                             <td style="padding: 4px 0; font-size: 14px; color: #666; width: 140px;"><strong>Name:</strong></td>
-                            <td style="padding: 4px 0; font-size: 14px; color: #333;">${vendorName}</td>
+                            <td style="padding: 4px 0; font-size: 14px; color: #333;">${escapeHtml(vendorName)}</td>
                           </tr>
                           <tr>
                             <td style="padding: 4px 0; font-size: 14px; color: #666;"><strong>Email:</strong></td>
-                            <td style="padding: 4px 0; font-size: 14px; color: #333;">${vendorEmail}</td>
+                            <td style="padding: 4px 0; font-size: 14px; color: #333;">${escapeHtml(vendorEmail)}</td>
                           </tr>
                           <tr>
                             <td style="padding: 4px 0; font-size: 14px; color: #666;"><strong>Contact:</strong></td>
-                            <td style="padding: 4px 0; font-size: 14px; color: #333;">${vendorContact}</td>
+                            <td style="padding: 4px 0; font-size: 14px; color: #333;">${escapeHtml(vendorContact)}</td>
                           </tr>
                           <tr>
                             <td style="padding: 4px 0; font-size: 14px; color: #666;"><strong>Business Name:</strong></td>
-                            <td style="padding: 4px 0; font-size: 14px; color: #333;">${businessName}</td>
+                            <td style="padding: 4px 0; font-size: 14px; color: #333;">${escapeHtml(businessName)}</td>
                           </tr>
                           <tr>
                             <td style="padding: 4px 0; font-size: 14px; color: #666;"><strong>Source:</strong></td>

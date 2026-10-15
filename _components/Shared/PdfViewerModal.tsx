@@ -23,8 +23,15 @@ const Worker = dynamic(
 );
 
 import "@react-pdf-viewer/core/lib/styles/index.css";
+import type { PdfJs } from "@react-pdf-viewer/core";
 import { getPdfFileQuery } from "@/utils/s3FolderQuery";
 import { trpc } from "@/lib/trpc";
+
+// pdf.js 3.x compiles embedded fonts with `new Function`, which a crafted PDF
+// can abuse to run script on this site (CVE-2024-4367). With eval turned off
+// it draws fonts with its safe interpreter instead.
+const disableFontEval = (params: PdfJs.GetDocumentParams) =>
+  Object.assign({}, params, { isEvalSupported: false });
 
 interface Props {
   value: string | File | null;
@@ -172,7 +179,10 @@ const PdfViewerModal: FC<Props> = ({ value, isS3File, triggerButton }) => {
                 height: "100%",
               }}>
               <Worker workerUrl='/pdf.worker.min.js'>
-                <Viewer fileUrl={viewPdf || viewPdfStr || ""} />
+                <Viewer
+                  fileUrl={viewPdf || viewPdfStr || ""}
+                  transformGetDocumentParams={disableFontEval}
+                />
               </Worker>
             </div>
           ) : (

@@ -1,4 +1,5 @@
 import { VENDOR_STATUS } from "@/enum/vendorStatus.enum";
+import { escapeHtml } from "@/lib/server/escapeHtml";
 
 interface VendorStatusUpdatedParams {
   vendorName: string;
@@ -60,7 +61,7 @@ export const vendorStatusUpdatedEmail = ({
           <tr>
             <td style="padding: 40px;">
               <h2 style="margin: 0 0 20px; color: #111827; font-size: 20px; font-weight: bold;">
-                Hello ${vendorName},
+                Hello ${escapeHtml(vendorName)},
               </h2>
               
               <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.5;">

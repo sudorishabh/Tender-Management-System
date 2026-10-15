@@ -5,14 +5,17 @@ import {
   vendorProfileTable,
   businessTable,
   bidVendorDocsTable,
+  vendorDocRequirementTable,
 } from "@/server/db/schema";
+import { TENDER_STATUS } from "@/lib/server/constants";
 import {
   ApiError,
   NotFoundError,
   BadRequestError,
+  ForbiddenError,
   InternalServerError,
 } from "@/lib/server/errors";
-import { eq, and, desc, ne, or, sql } from "drizzle-orm";
+import { eq, and, desc, ne, or, sql, DrizzleQueryError } from "drizzle-orm";
 import { getDownloadUrl } from "@/lib/server/s3";
 import { sendMail } from "@/lib/server/email";
 import { bidSubmissionNotificationEmail } from "@/lib/server/templates/bid.templates";
@@ -25,6 +28,7 @@ import {
   notifyUsers,
   type NewNotification,
 } from "../notification/notification.service";
+import { assertUploadsNotInUse } from "../s3/s3.service";
 
 // Type for vendor document upload
 interface VendorDocUpload {
@@ -35,6 +39,18 @@ interface VendorDocUpload {
 
 // MUTATION
 ////////////////////////////////////////////////////////////////////
+
+const bidAlreadyExistsError = () =>
+  new ApiError(
+    "You have already submitted a bid for this tender",
+    400,
+    "BID_ALREADY_EXISTS"
+  );
+
+// Drizzle wraps driver errors; MySQL reports a unique index clash as ER_DUP_ENTRY
+const isDuplicateEntryError = (error: unknown) =>
+  error instanceof DrizzleQueryError &&
+  (error.cause as { code?: string } | undefined)?.code === "ER_DUP_ENTRY";
 
 // Create a new bid
 export async function createBid(
@@ -82,11 +98,7 @@ export async function createBid(
     .limit(1);
 
   if (existingBid.length > 0) {
-    throw new ApiError(
-      "You have already submitted a bid for this tender",
-      400,
-      "BID_ALREADY_EXISTS"
-    );
+    throw bidAlreadyExistsError();
   }
 
   // Get tender
@@ -100,8 +112,11 @@ export async function createBid(
     throw new ApiError("Tender not found", 404, "TENDER_NOT_FOUND");
   }
 
-  // Check if tender is active (approved)
-  if (!tender[0].tender_is_active) {
+  // Check if tender is published and active (approved)
+  if (
+    !tender[0].tender_is_active ||
+    tender[0].tender_status !== TENDER_STATUS.PUBLISHED
+  ) {
     throw new BadRequestError("This tender is not active", "TENDER_NOT_ACTIVE");
   }
 
@@ -112,6 +127,32 @@ export async function createBid(
       "BID_DEADLINE_PASSED"
     );
   }
+
+  // Requirement documents must answer this tender's own requirements
+  const requirementIds = new Set(
+    (
+      await db
+        .select({ vdr_id: vendorDocRequirementTable.vdr_id })
+        .from(vendorDocRequirementTable)
+        .where(eq(vendorDocRequirementTable.tender_id, tenderId))
+    ).map((requirement) => requirement.vdr_id)
+  );
+
+  if (
+    (data.vendorDocuments ?? []).some((doc) => !requirementIds.has(doc.vdr_id))
+  ) {
+    throw new BadRequestError(
+      "A document does not match this tender's requirements",
+      "INVALID_DOCUMENT_REQUIREMENT"
+    );
+  }
+
+  await assertUploadsNotInUse([
+    data.bid_fee_doc_key,
+    data.technical_doc_key,
+    data.financial_doc_key,
+    ...(data.vendorDocuments ?? []).map((doc) => doc.doc_s3_key),
+  ]);
 
   // Create bid in transaction
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -143,6 +184,11 @@ export async function createBid(
     }
 
     return { bidId: newBid.bid_id };
+  }).catch((error: unknown) => {
+    // The unique (tender, vendor) index stops a second submission that raced
+    // past the check above
+    if (isDuplicateEntryError(error)) throw bidAlreadyExistsError();
+    throw error;
   });
 
   // Send email notification to admin (don't block on failure)
@@ -230,14 +276,23 @@ async function bidDecisionNotifications(
 export async function approveBid(bidId: string) {
   const bid_id = Number(bidId);
 
-  // Get the bid to find tender_id
+  // Get the bid with its tender's timeline
   const [bid] = await db
     .select({
       bid_id: bidsTable.bid_id,
       tender_id: bidsTable.tender_id,
       bid_status: bidsTable.bid_status,
+      tender: {
+        tender_is_financial_doc: tenderTable.tender_is_financial_doc,
+        tender_release_date: tenderTable.tender_release_date,
+        tender_bid_submission_deadline:
+          tenderTable.tender_bid_submission_deadline,
+        tender_technical_bid_opening: tenderTable.tender_technical_bid_opening,
+        tender_financial_bid_opening: tenderTable.tender_financial_bid_opening,
+      },
     })
     .from(bidsTable)
+    .innerJoin(tenderTable, eq(bidsTable.tender_id, tenderTable.tender_id))
     .where(eq(bidsTable.bid_id, bid_id))
     .limit(1);
 
@@ -247,6 +302,29 @@ export async function approveBid(bidId: string) {
 
   if (bid.bid_status === "approved") {
     throw new ApiError("Bid is already approved", 400, "BID_ALREADY_APPROVED");
+  }
+
+  // Bids are only rejected when another bid wins, so this also stops the
+  // winner from being swapped silently
+  if (bid.bid_status === "rejected") {
+    throw new ApiError(
+      "Another bid has already been approved for this tender",
+      409,
+      "TENDER_ALREADY_AWARDED"
+    );
+  }
+
+  // No award while bidding is open, or before the prices have been opened
+  const timeline = getTenderTimelineStatus(bid.tender);
+  if (
+    !timeline.isBidSubmissionClosed ||
+    (bid.tender.tender_is_financial_doc && !timeline.canShowFinancialDoc)
+  ) {
+    throw new ApiError(
+      "Bids can only be approved after the bid deadline and financial bid opening",
+      400,
+      "BID_EVALUATION_NOT_OPEN"
+    );
   }
 
   const notifications = await bidDecisionNotifications(bid.tender_id, bid_id);
@@ -431,6 +509,15 @@ export async function bidById(bidId: string) {
   const isBidSubmissionClosed = timelineStatus?.isBidSubmissionClosed ?? false;
   const canShowTechnicalDoc = timelineStatus?.canShowTechnicalDoc ?? false;
   const canShowFinancialDoc = timelineStatus?.canShowFinancialDoc ?? false;
+
+  // Like the admin bid lists, nobody sees who bid or what they sent until
+  // bidding has closed
+  if (!isBidSubmissionClosed) {
+    throw new ForbiddenError(
+      "Bids stay sealed until the bid submission deadline",
+      "BID_SEALED"
+    );
+  }
 
   // Create modified bid object with timeline-based visibility
   const visibleBid = {

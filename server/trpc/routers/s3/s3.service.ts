@@ -1,5 +1,4 @@
 import { unlink } from "fs/promises";
-import path from "path";
 import { eq, or } from "drizzle-orm";
 import { db } from "@/server/db";
 import {
@@ -12,9 +11,14 @@ import {
 import {
   InternalServerError,
   ApiError,
+  BadRequestError,
   ForbiddenError,
 } from "@/lib/server/errors";
-import { resolveUploadPath } from "@/lib/server/uploads";
+import {
+  isUploadName,
+  parseUploadKey,
+  resolveUploadPath,
+} from "@/lib/server/uploads";
 import {
   canVendorsViewTender,
   getTenderTimelineStatus,
@@ -37,15 +41,13 @@ const tenderDates = {
 
 /**
  * Finds every record that uses an uploaded file. Records store the bare
- * upload key without the "pdf/" folder, so only the file name is matched.
+ * upload name without the "pdf/" folder, so callers pass the parsed name.
  */
-async function findFileReferences(fileKey: string) {
-  const name = path.posix.basename(fileKey);
-
+async function findFileReferences(name: string) {
   const [tenders, vendorDocs, businessDocs, bids, bidRequirementDocs] =
     await Promise.all([
       db
-        .select(tenderDates)
+        .select({ tender_id: tenderTable.tender_id, ...tenderDates })
         .from(tenderTable)
         .where(eq(tenderTable.tender_contract_document, name)),
       db
@@ -95,24 +97,23 @@ async function findFileReferences(fileKey: string) {
           )
         ),
       db
-        .select({ ownerId: vendorProfileTable.user_id })
+        .select({ ownerId: vendorProfileTable.user_id, tender: tenderDates })
         .from(bidVendorDocsTable)
         .innerJoin(bidsTable, eq(bidVendorDocsTable.bid_id, bidsTable.bid_id))
         .innerJoin(
           vendorProfileTable,
           eq(bidsTable.vendor_id, vendorProfileTable.vendor_id)
         )
+        .innerJoin(tenderTable, eq(bidsTable.tender_id, tenderTable.tender_id))
         .where(eq(bidVendorDocsTable.bvd_doc_key, name)),
     ]);
 
   return {
-    name,
     tenders,
-    // Vendor KYC documents and bid requirement documents
-    vendorOwnerIds: [...vendorDocs, ...businessDocs, ...bidRequirementDocs].map(
-      (row) => row.ownerId
-    ),
+    // Vendor KYC documents
+    vendorOwnerIds: [...vendorDocs, ...businessDocs].map((row) => row.ownerId),
     bids,
+    bidRequirementDocs,
     isReferenced:
       tenders.length +
         vendorDocs.length +
@@ -150,8 +151,12 @@ export async function getFileAccess(
   fileKey: string,
   viewer: FileViewer
 ): Promise<FileAccess> {
-  const { name, tenders, vendorOwnerIds, bids, isReferenced } =
-    await findFileReferences(fileKey);
+  const parsed = parseUploadKey(fileKey);
+  if (!parsed) return "not_found";
+
+  const { name } = parsed;
+  const { tenders, vendorOwnerIds, bids, bidRequirementDocs, isReferenced } =
+    await findFileReferences(name);
 
   if (!isReferenced) return "not_found";
 
@@ -163,9 +168,49 @@ export async function getFileAccess(
     vendorOwnerIds.some((ownerId) => isAdmin || isOwner(ownerId)) ||
     bids.some(
       (bid) => isOwner(bid.ownerId) || (isAdmin && canAdminSeeBidFile(bid, name))
+    ) ||
+    // Requirement documents are part of the sealed bid
+    bidRequirementDocs.some(
+      (doc) =>
+        isOwner(doc.ownerId) ||
+        (isAdmin && getTenderTimelineStatus(doc.tender).isBidSubmissionClosed)
     );
 
   return allowed ? "allowed" : "denied";
+}
+
+/**
+ * Rejects upload names that a record already uses. Every upload gets a new
+ * random name, so a name that is already attached somewhere was copied from
+ * another record, and saving it would grant access to someone else's file.
+ * A tender may keep its own contract document (`ownTenderId`).
+ */
+export async function assertUploadsNotInUse(
+  names: (string | null | undefined)[],
+  ownTenderId?: number | null
+): Promise<void> {
+  for (const name of names) {
+    if (!name) continue;
+
+    if (!isUploadName(name)) {
+      throw new BadRequestError("Invalid file name", "INVALID_FILE_NAME");
+    }
+
+    const { tenders, vendorOwnerIds, bids, bidRequirementDocs } =
+      await findFileReferences(name);
+    const isUsedElsewhere =
+      vendorOwnerIds.length > 0 ||
+      bids.length > 0 ||
+      bidRequirementDocs.length > 0 ||
+      tenders.some((tender) => tender.tender_id !== ownTenderId);
+
+    if (isUsedElsewhere) {
+      throw new ForbiddenError(
+        "This file is already attached to another record. Please upload it again.",
+        "FILE_IN_USE"
+      );
+    }
+  }
 }
 
 /**
@@ -184,10 +229,17 @@ export async function getFileUrlService(
  * or bid can't be deleted this way.
  */
 export async function deleteFileService(fileName: string): Promise<void> {
+  const parsed = parseUploadKey(fileName);
+  if (!parsed) {
+    throw new BadRequestError("Invalid file name", "INVALID_FILE_NAME");
+  }
+
   try {
+    // Check and delete the same parsed name, so no spelling of the key can
+    // pass the in-use check while still pointing at a used file
     const filePath = resolveUploadPath(fileName);
 
-    if ((await findFileReferences(fileName)).isReferenced) {
+    if ((await findFileReferences(parsed.name)).isReferenced) {
       throw new ForbiddenError("File is in use", "FILE_IN_USE");
     }
 

@@ -26,6 +26,8 @@ import {
   reviewedTenders,
 } from "./tender.service";
 import { getLiveTenderForEdit } from "./tender.service.helper";
+import { ROLES } from "@/lib/server/constants";
+import { NotFoundError } from "@/lib/server/errors";
 
 export const tenderQueryRoute = router({
   // Get home latest tenders (public)
@@ -87,7 +89,7 @@ export const tenderQueryRoute = router({
   // Get tender details (public) — vendorSelection and emailInvites are intentionally
   // excluded from this response; they contain sensitive business data (invited vendors
   // and their email addresses) that must not be exposed to unauthenticated users.
-  getDetails: publicProcedure.input(z.number()).query(async ({ input }) => {
+  getDetails: publicProcedure.input(z.number()).query(async ({ input, ctx }) => {
     try {
       const {
         tender,
@@ -96,10 +98,19 @@ export const tenderQueryRoute = router({
         isReleased,
       } = await tenderDetails(input);
 
+      const role = ctx.session?.user?.role;
+      const isAdmin = role === ROLES.ADMIN || role === ROLES.SUPER_ADMIN;
+
+      // Drafts and tenders in or sent back from review only exist for admins;
+      // everyone else gets the same answer as for a missing tender
+      if (!isAdmin && !tender.tender_is_active) {
+        throw new NotFoundError("Tender not found", "TENDER_NOT_FOUND");
+      }
+
       return {
         success: true,
         tenderData: {
-          tender,
+          tender: isAdmin ? tender : { ...tender, tender_created_by_id: null },
           bidderDocumentsReq: bidderDocuments,
           isLive,
           isReleased,

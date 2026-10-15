@@ -10,6 +10,18 @@ import { TENDER_STATUS } from "@/lib/server/constants";
 import { CreateTenderType, UpdateLiveTenderType } from "./tender.schema";
 import { sendMail } from "@/lib/server/email";
 import { tenderInvitationEmail } from "@/lib/server/templates/tender.templates";
+import { normalizeDbDate } from "@/utils/normalizeDbDate";
+import { assertUploadsNotInUse } from "../s3/s3.service";
+
+// The key dates every tender needs before it can go live
+const TENDER_DATE_FIELDS = [
+  "tender_release_date",
+  "tender_query_deadline",
+  "tender_query_response_date",
+  "tender_bid_submission_deadline",
+  "tender_technical_bid_opening",
+  "tender_financial_bid_opening",
+] as const;
 
 // Helper: Insert bidder documents
 export const insertBidderDocuments = async (
@@ -221,6 +233,46 @@ export const updateTenderStatusService = async (data: {
     throw new ApiError("Invalid tender status", 400, "INVALID_TENDER_STATUS");
   }
 
+  const [tender] = await db
+    .select({
+      tender_status: tenderTable.tender_status,
+      tender_release_date: tenderTable.tender_release_date,
+      tender_query_deadline: tenderTable.tender_query_deadline,
+      tender_query_response_date: tenderTable.tender_query_response_date,
+      tender_bid_submission_deadline: tenderTable.tender_bid_submission_deadline,
+      tender_technical_bid_opening: tenderTable.tender_technical_bid_opening,
+      tender_financial_bid_opening: tenderTable.tender_financial_bid_opening,
+    })
+    .from(tenderTable)
+    .where(eq(tenderTable.tender_id, tender_id))
+    .limit(1);
+
+  if (!tender) {
+    throw new ApiError("Tender not found", 404, "TENDER_NOT_FOUND");
+  }
+
+  // Only the review step decides a tender's fate; live, draft or already
+  // rescheduled tenders can't be pushed around from here
+  if (tender.tender_status !== TENDER_STATUS.REVIEW) {
+    throw new ApiError(
+      "Only tenders in review can be published or rescheduled",
+      409,
+      "TENDER_NOT_IN_REVIEW",
+    );
+  }
+
+  // A tender without a deadline would stay open, and its bids sealed, forever
+  if (
+    tender_status === TENDER_STATUS.PUBLISHED &&
+    TENDER_DATE_FIELDS.some((field) => !tender[field])
+  ) {
+    throw new ApiError(
+      "All tender dates must be set before publishing",
+      400,
+      "TENDER_DATES_MISSING",
+    );
+  }
+
   try {
     if (tender_status === TENDER_STATUS.PUBLISHED) {
       await db.transaction(async (tx) => {
@@ -267,15 +319,18 @@ export const updateTenderStatusService = async (data: {
         .set({
           tender_status,
           tender_remark,
+          tender_is_active: false,
         })
         .where(eq(tenderTable.tender_id, tender_id));
     }
   } catch (error) {
+    // A database failure here is a server fault: the error handler logs the
+    // details and shows the caller a generic message
     throw new ApiError(
       `Failed to update tender status: ${
         error instanceof Error ? error.message : "Unknown error"
       }`,
-      400,
+      500,
       "FAILED_TO_UPDATE_TENDER_STATUS",
     );
   }
@@ -316,6 +371,75 @@ export const getLiveTenderForEdit = async (tenderId: number) => {
   return { tender, docRequirements, emailInvites };
 };
 
+// Dates a live tender edit may change (the release date is fixed once live)
+const LIVE_EDITABLE_DATE_FIELDS = [
+  "tender_query_deadline",
+  "tender_query_response_date",
+  "tender_bid_submission_deadline",
+  "tender_technical_bid_opening",
+  "tender_financial_bid_opening",
+] as const;
+
+type LiveEditableDateField = (typeof LIVE_EDITABLE_DATE_FIELDS)[number];
+
+const invalidTenderDates = (message: string) =>
+  new ApiError(message, 400, "INVALID_TENDER_DATES");
+
+/**
+ * Works out which dates a live tender edit may change. Dates that have
+ * already passed keep their stored value, and the rest must stay in the
+ * future and in order, so an edit can't open sealed bids early or reopen
+ * bidding after the deadline.
+ */
+const getLiveTenderDateUpdates = (
+  stored: Record<LiveEditableDateField, Date | null>,
+  submitted: Record<LiveEditableDateField, string | null>,
+) => {
+  const now = new Date();
+  const dates = {} as Record<LiveEditableDateField, Date>;
+  const updates: Partial<Record<LiveEditableDateField, string>> = {};
+
+  for (const field of LIVE_EDITABLE_DATE_FIELDS) {
+    const storedDate = normalizeDbDate(stored[field]);
+    if (storedDate && storedDate <= now) {
+      dates[field] = storedDate;
+      continue;
+    }
+
+    const value = submitted[field];
+    const submittedDate = normalizeDbDate(value);
+    if (!value || !submittedDate) {
+      throw invalidTenderDates("All tender dates are required");
+    }
+    if (submittedDate <= now) {
+      throw invalidTenderDates("Upcoming tender dates can't be moved into the past");
+    }
+
+    dates[field] = submittedDate;
+    updates[field] = value;
+  }
+
+  if (
+    dates.tender_query_deadline >= dates.tender_query_response_date ||
+    dates.tender_query_response_date > dates.tender_bid_submission_deadline
+  ) {
+    throw invalidTenderDates(
+      "Query dates must be in order and no later than the bid submission deadline",
+    );
+  }
+
+  if (
+    dates.tender_technical_bid_opening <= dates.tender_bid_submission_deadline ||
+    dates.tender_financial_bid_opening <= dates.tender_bid_submission_deadline
+  ) {
+    throw invalidTenderDates(
+      "Bid openings must be after the bid submission deadline",
+    );
+  }
+
+  return updates;
+};
+
 // Update a published (live) tender in place
 export const updateLiveTenderService = async (
   data: UpdateLiveTenderType,
@@ -323,7 +447,14 @@ export const updateLiveTenderService = async (
   const { tender_id, step1, step3 } = data;
 
   const [existing] = await db
-    .select({ tender_status: tenderTable.tender_status })
+    .select({
+      tender_status: tenderTable.tender_status,
+      tender_query_deadline: tenderTable.tender_query_deadline,
+      tender_query_response_date: tenderTable.tender_query_response_date,
+      tender_bid_submission_deadline: tenderTable.tender_bid_submission_deadline,
+      tender_technical_bid_opening: tenderTable.tender_technical_bid_opening,
+      tender_financial_bid_opening: tenderTable.tender_financial_bid_opening,
+    })
     .from(tenderTable)
     .where(eq(tenderTable.tender_id, tender_id))
     .limit(1);
@@ -340,10 +471,13 @@ export const updateLiveTenderService = async (
     );
   }
 
-  const toSqlDatetime = (value: string | null | undefined) => {
-    if (!value) return null;
-    return sql`${value}`;
-  };
+  const dateUpdates = getLiveTenderDateUpdates(existing, step3);
+  await assertUploadsNotInUse([step1.tender_contract_document], tender_id);
+
+  // Stores the local "YYYY-MM-DD HH:mm:ss" string as is; undefined leaves the
+  // column unchanged
+  const toSqlDatetime = (value: string | undefined) =>
+    value === undefined ? undefined : (sql`${value}` as unknown as Date);
 
   // Live edits are restricted to a fixed subset of fields; vendor docs, invites,
   // and all other tender columns are left unchanged (see product rules).
@@ -355,19 +489,19 @@ export const updateLiveTenderService = async (
         tender_description: step1.tender_description,
         tender_contract_document: step1.tender_contract_document || null,
         tender_project_duration: step1.tender_project_duration || null,
-        tender_query_deadline: toSqlDatetime(step3.tender_query_deadline) as unknown as Date,
+        tender_query_deadline: toSqlDatetime(dateUpdates.tender_query_deadline),
         tender_query_response_date: toSqlDatetime(
-          step3.tender_query_response_date,
-        ) as unknown as Date,
+          dateUpdates.tender_query_response_date,
+        ),
         tender_bid_submission_deadline: toSqlDatetime(
-          step3.tender_bid_submission_deadline,
-        ) as unknown as Date,
+          dateUpdates.tender_bid_submission_deadline,
+        ),
         tender_technical_bid_opening: toSqlDatetime(
-          step3.tender_technical_bid_opening,
-        ) as unknown as Date,
+          dateUpdates.tender_technical_bid_opening,
+        ),
         tender_financial_bid_opening: toSqlDatetime(
-          step3.tender_financial_bid_opening,
-        ) as unknown as Date,
+          dateUpdates.tender_financial_bid_opening,
+        ),
       })
       .where(eq(tenderTable.tender_id, tender_id));
   });

@@ -2,6 +2,7 @@ import { ITenderFormSteps } from "@/_types/tender/createTender.type";
 import { UseFormReturn } from "react-hook-form";
 import { useCallback } from "react";
 import { tenderFormDefaultValues } from "../_CreateTenderConstants";
+import { normalizeStep3Dates } from "@/utils/dateUtils";
 
 const useHandleResetTenderForm = () => {
   const handleResetTenderForm = useCallback(
@@ -25,7 +26,7 @@ const useHandleResetTenderForm = () => {
           tender_scope: savedTenderData.step1.tender_scope || "",
         },
         step2: savedTenderData.step2,
-        step3: savedTenderData.step3,
+        step3: normalizeStep3Dates(savedTenderData.step3),
       };
       form.reset(resetData, {
         keepDefaultValues: false,
