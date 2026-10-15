@@ -70,3 +70,9 @@ export function hasRoutePermission(
 
   return false;
 }
+
+/**
+ * Error the credentials provider reports when sign-in attempts are rate
+ * limited, so the sign-in form can tell it apart from a wrong password
+ */
+export const SIGN_IN_RATE_LIMITED_ERROR = "TooManySignInAttempts";

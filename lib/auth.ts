@@ -4,6 +4,11 @@ import { compare } from "bcrypt";
 import { db } from "@/server/db";
 import { usersTable } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
+import { getClientIp, isRateLimited } from "@/lib/server/rateLimit";
+import { SIGN_IN_RATE_LIMITED_ERROR } from "@/lib/auth/types";
+
+const SIGN_IN_ATTEMPTS = { perEmail: 10, perIp: 50 };
+const SIGN_IN_WINDOW_MS = 15 * 60 * 1000;
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -20,9 +25,22 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials) return null;
         const { email, password } = credentials;
+
+        // Slow down password guessing against one account or from one address
+        const ip = getClientIp(new Headers(req?.headers));
+        if (
+          isRateLimited(
+            `sign-in:email:${email.toLowerCase()}`,
+            SIGN_IN_ATTEMPTS.perEmail,
+            SIGN_IN_WINDOW_MS
+          ) ||
+          isRateLimited(`sign-in:ip:${ip}`, SIGN_IN_ATTEMPTS.perIp, SIGN_IN_WINDOW_MS)
+        ) {
+          throw new Error(SIGN_IN_RATE_LIMITED_ERROR);
+        }
 
         const userRow = await db
           .select()
