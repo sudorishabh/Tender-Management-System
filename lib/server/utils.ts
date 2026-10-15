@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 
-const SALT_ROUNDS = 10;
+const SALT_ROUNDS = 12;
 
 // Hash password
 export async function hashPassword(password: string): Promise<string> {
@@ -11,7 +11,7 @@ export async function hashPassword(password: string): Promise<string> {
 // Compare password with hash
 export async function comparePassword(
   password: string,
-  hash: string
+  hash: string,
 ): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
@@ -34,7 +34,7 @@ export function generateToken(length: number = 32): string {
 
 // Normalize date (convert to Date or null)
 export function normalizeDate(
-  dateInput: string | Date | null | undefined
+  dateInput: string | Date | null | undefined,
 ): Date | null {
   if (!dateInput) return null;
   if (dateInput instanceof Date) return dateInput;
