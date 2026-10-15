@@ -5,7 +5,9 @@ import {
   vendorProfileTable,
   businessTable,
   bidVendorDocsTable,
+  vendorDocRequirementTable,
 } from "@/server/db/schema";
+import { TENDER_STATUS } from "@/lib/server/constants";
 import {
   ApiError,
   NotFoundError,
@@ -101,8 +103,11 @@ export async function createBid(
     throw new ApiError("Tender not found", 404, "TENDER_NOT_FOUND");
   }
 
-  // Check if tender is active (approved)
-  if (!tender[0].tender_is_active) {
+  // Check if tender is published and active (approved)
+  if (
+    !tender[0].tender_is_active ||
+    tender[0].tender_status !== TENDER_STATUS.PUBLISHED
+  ) {
     throw new BadRequestError("This tender is not active", "TENDER_NOT_ACTIVE");
   }
 
@@ -111,6 +116,25 @@ export async function createBid(
     throw new BadRequestError(
       "Bid submission deadline has passed. You can no longer submit bids for this tender.",
       "BID_DEADLINE_PASSED"
+    );
+  }
+
+  // Requirement documents must answer this tender's own requirements
+  const requirementIds = new Set(
+    (
+      await db
+        .select({ vdr_id: vendorDocRequirementTable.vdr_id })
+        .from(vendorDocRequirementTable)
+        .where(eq(vendorDocRequirementTable.tender_id, tenderId))
+    ).map((requirement) => requirement.vdr_id)
+  );
+
+  if (
+    (data.vendorDocuments ?? []).some((doc) => !requirementIds.has(doc.vdr_id))
+  ) {
+    throw new BadRequestError(
+      "A document does not match this tender's requirements",
+      "INVALID_DOCUMENT_REQUIREMENT"
     );
   }
 
@@ -238,14 +262,23 @@ async function bidDecisionNotifications(
 export async function approveBid(bidId: string) {
   const bid_id = Number(bidId);
 
-  // Get the bid to find tender_id
+  // Get the bid with its tender's timeline
   const [bid] = await db
     .select({
       bid_id: bidsTable.bid_id,
       tender_id: bidsTable.tender_id,
       bid_status: bidsTable.bid_status,
+      tender: {
+        tender_is_financial_doc: tenderTable.tender_is_financial_doc,
+        tender_release_date: tenderTable.tender_release_date,
+        tender_bid_submission_deadline:
+          tenderTable.tender_bid_submission_deadline,
+        tender_technical_bid_opening: tenderTable.tender_technical_bid_opening,
+        tender_financial_bid_opening: tenderTable.tender_financial_bid_opening,
+      },
     })
     .from(bidsTable)
+    .innerJoin(tenderTable, eq(bidsTable.tender_id, tenderTable.tender_id))
     .where(eq(bidsTable.bid_id, bid_id))
     .limit(1);
 
@@ -255,6 +288,29 @@ export async function approveBid(bidId: string) {
 
   if (bid.bid_status === "approved") {
     throw new ApiError("Bid is already approved", 400, "BID_ALREADY_APPROVED");
+  }
+
+  // Bids are only rejected when another bid wins, so this also stops the
+  // winner from being swapped silently
+  if (bid.bid_status === "rejected") {
+    throw new ApiError(
+      "Another bid has already been approved for this tender",
+      409,
+      "TENDER_ALREADY_AWARDED"
+    );
+  }
+
+  // No award while bidding is open, or before the prices have been opened
+  const timeline = getTenderTimelineStatus(bid.tender);
+  if (
+    !timeline.isBidSubmissionClosed ||
+    (bid.tender.tender_is_financial_doc && !timeline.canShowFinancialDoc)
+  ) {
+    throw new ApiError(
+      "Bids can only be approved after the bid deadline and financial bid opening",
+      400,
+      "BID_EVALUATION_NOT_OPEN"
+    );
   }
 
   const notifications = await bidDecisionNotifications(bid.tender_id, bid_id);
