@@ -48,7 +48,24 @@ export const authOptions: NextAuthOptions = {
           (user as { role?: "vendor" | "admin" | "super_admin" }).role ??
           token.role;
         token.name = user.name ?? token.name;
+        return token;
       }
+
+      // Re-read the account on every session check, so a deleted user loses
+      // access and a role change applies straight away instead of lasting as
+      // long as the cookie. Throwing makes NextAuth clear the session.
+      const [account] = await db
+        .select({ role: usersTable.role, full_name: usersTable.full_name })
+        .from(usersTable)
+        .where(eq(usersTable.user_id, Number(token.sub)))
+        .limit(1);
+
+      if (!account) {
+        throw new Error("Session user no longer exists");
+      }
+
+      token.role = account.role;
+      token.name = account.full_name;
       return token;
     },
     async session({ session, token }) {
