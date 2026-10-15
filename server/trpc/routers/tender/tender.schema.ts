@@ -41,12 +41,14 @@ export type UpdateLiveTenderType = z.infer<typeof updateLiveTenderSchema>;
 // QUERY SCHEMA
 ////////////////////////////////////////////////////////
 
-// Home latest tenders query schema
+// Home latest tenders query schema. Public, so page and limit are bounded:
+// page 0 produced a negative OFFSET and a huge limit returned every tender
 export const homeLatestTendersSchema = z.object({
-  page: z.number(),
-  limit: z.number(),
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1).max(50),
   search: z
     .string()
+    .max(200)
     .transform((val) => (val.trim() === "" ? null : val.trim()))
     .nullable()
     .optional(),
@@ -109,7 +111,7 @@ export type DeleteSavedTenderType = z.infer<typeof deleteSavedTenderSchema>;
 
 // Search query schema
 export const tenderSearchSchema = z.object({
-  query: z.string().trim().min(1, "Search query is required"),
+  query: z.string().trim().min(1, "Search query is required").max(200),
 });
 
 export type TenderSearchType = z.infer<typeof tenderSearchSchema>;
@@ -131,7 +133,7 @@ export type AdminLiveTendersType = z.infer<typeof adminLiveTendersSchema>;
 
 // Tender search results schema
 export const tenderSearchResultsSchema = z.object({
-  query: z.string().trim().optional(),
+  query: z.string().trim().max(200).optional(),
 });
 
 export type TenderSearchResultsType = z.infer<typeof tenderSearchResultsSchema>;
