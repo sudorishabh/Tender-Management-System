@@ -1,5 +1,4 @@
 import { unlink } from "fs/promises";
-import path from "path";
 import { eq, or } from "drizzle-orm";
 import { db } from "@/server/db";
 import {
@@ -12,9 +11,10 @@ import {
 import {
   InternalServerError,
   ApiError,
+  BadRequestError,
   ForbiddenError,
 } from "@/lib/server/errors";
-import { resolveUploadPath } from "@/lib/server/uploads";
+import { parseUploadKey, resolveUploadPath } from "@/lib/server/uploads";
 import {
   canVendorsViewTender,
   getTenderTimelineStatus,
@@ -37,11 +37,9 @@ const tenderDates = {
 
 /**
  * Finds every record that uses an uploaded file. Records store the bare
- * upload key without the "pdf/" folder, so only the file name is matched.
+ * upload name without the "pdf/" folder, so callers pass the parsed name.
  */
-async function findFileReferences(fileKey: string) {
-  const name = path.posix.basename(fileKey);
-
+async function findFileReferences(name: string) {
   const [tenders, vendorDocs, businessDocs, bids, bidRequirementDocs] =
     await Promise.all([
       db
@@ -106,7 +104,6 @@ async function findFileReferences(fileKey: string) {
     ]);
 
   return {
-    name,
     tenders,
     // Vendor KYC documents and bid requirement documents
     vendorOwnerIds: [...vendorDocs, ...businessDocs, ...bidRequirementDocs].map(
@@ -150,8 +147,12 @@ export async function getFileAccess(
   fileKey: string,
   viewer: FileViewer
 ): Promise<FileAccess> {
-  const { name, tenders, vendorOwnerIds, bids, isReferenced } =
-    await findFileReferences(fileKey);
+  const parsed = parseUploadKey(fileKey);
+  if (!parsed) return "not_found";
+
+  const { name } = parsed;
+  const { tenders, vendorOwnerIds, bids, isReferenced } =
+    await findFileReferences(name);
 
   if (!isReferenced) return "not_found";
 
@@ -184,10 +185,17 @@ export async function getFileUrlService(
  * or bid can't be deleted this way.
  */
 export async function deleteFileService(fileName: string): Promise<void> {
+  const parsed = parseUploadKey(fileName);
+  if (!parsed) {
+    throw new BadRequestError("Invalid file name", "INVALID_FILE_NAME");
+  }
+
   try {
+    // Check and delete the same parsed name, so no spelling of the key can
+    // pass the in-use check while still pointing at a used file
     const filePath = resolveUploadPath(fileName);
 
-    if ((await findFileReferences(fileName)).isReferenced) {
+    if ((await findFileReferences(parsed.name)).isReferenced) {
       throw new ForbiddenError("File is in use", "FILE_IN_USE");
     }
 
