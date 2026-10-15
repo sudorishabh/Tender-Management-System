@@ -81,6 +81,37 @@ export function convertStep3DatesToStrings(step3: {
   };
 }
 
+/**
+ * Converts step3 dates loaded from the database into local Dates for the form.
+ * Used as is, the form reads the stored wall-clock time as UTC, so each date
+ * shows shifted by the browser's offset and is saved back shifted.
+ */
+export function normalizeStep3Dates(step3: {
+  tender_release_date: Date | string | null;
+  tender_query_deadline: Date | string | null;
+  tender_query_response_date: Date | string | null;
+  tender_bid_submission_deadline: Date | string | null;
+  tender_technical_bid_opening: Date | string | null;
+  tender_financial_bid_opening: Date | string | null;
+}) {
+  return {
+    tender_release_date: normalizeDbDate(step3.tender_release_date),
+    tender_query_deadline: normalizeDbDate(step3.tender_query_deadline),
+    tender_query_response_date: normalizeDbDate(
+      step3.tender_query_response_date
+    ),
+    tender_bid_submission_deadline: normalizeDbDate(
+      step3.tender_bid_submission_deadline
+    ),
+    tender_technical_bid_opening: normalizeDbDate(
+      step3.tender_technical_bid_opening
+    ),
+    tender_financial_bid_opening: normalizeDbDate(
+      step3.tender_financial_bid_opening
+    ),
+  };
+}
+
 // ==================== Display Formatting Functions ====================
 
 /**
