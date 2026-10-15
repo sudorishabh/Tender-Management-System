@@ -1,4 +1,4 @@
-import { router, adminProcedure } from "../../trpc";
+import { router, adminProcedure, superAdminProcedure } from "../../trpc";
 import { handleProcedureError } from "../../errorHandler";
 import { createTender, saveTender, deleteSavedTender } from "./tender.service";
 import {
@@ -65,9 +65,9 @@ export const tenderMutationRoute = router({
       }
     }),
 
-  // Update tender status (admin only)
-  // updateStatus: adminProcedure
-  tenderStatusUpdateSuperAdmin: adminProcedure
+  // Publish or reschedule a tender in review (super admin only, so an admin
+  // can't approve their own tender)
+  tenderStatusUpdateSuperAdmin: superAdminProcedure
     .input(updateTenderStatusSchema)
     .mutation(async ({ input }) => {
       try {
