@@ -14,6 +14,7 @@ import {
   insertEmailInvitations,
   cleanupEmailInvitations,
 } from "./tender.service.helper";
+import { assertUploadsNotInUse } from "../s3/s3.service";
 
 import {
   and,
@@ -101,6 +102,7 @@ export const createTender = async (data: CreateTenderType, userId: number) => {
     }
 
     const savedTenderId = step1.tender_id ? Number(step1.tender_id) : null;
+    await assertUploadsNotInUse([step1.tender_contract_document], savedTenderId);
 
     // Auto-generate tender_number if not provided
 
@@ -235,6 +237,7 @@ export const saveTender = async (data: CreateTenderType, userId: number) => {
     // }
 
     const savedTenderId = step1.tender_id ? Number(step1.tender_id) : null;
+    await assertUploadsNotInUse([step1.tender_contract_document], savedTenderId);
     const invited_emails = step1.invited_emails || [];
 
     // Keep tender_number as NULL for drafts (will be generated on submit)

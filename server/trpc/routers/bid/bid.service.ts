@@ -25,6 +25,7 @@ import {
   notifyUsers,
   type NewNotification,
 } from "../notification/notification.service";
+import { assertUploadsNotInUse } from "../s3/s3.service";
 
 // Type for vendor document upload
 interface VendorDocUpload {
@@ -112,6 +113,13 @@ export async function createBid(
       "BID_DEADLINE_PASSED"
     );
   }
+
+  await assertUploadsNotInUse([
+    data.bid_fee_doc_key,
+    data.technical_doc_key,
+    data.financial_doc_key,
+    ...(data.vendorDocuments ?? []).map((doc) => doc.doc_s3_key),
+  ]);
 
   // Create bid in transaction
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

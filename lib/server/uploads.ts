@@ -47,6 +47,8 @@ export function isAllowedFileType(
 // always start with the upload timestamp
 const UPLOAD_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
+export const isUploadName = (name: string) => UPLOAD_NAME_PATTERN.test(name);
+
 /**
  * Splits a key such as "pdf/<name>" into its folder and file name. Returns
  * null unless the key is exactly a known folder plus a plain file name, so
@@ -59,7 +61,7 @@ export function parseUploadKey(
   if (parts.length !== 2) return null;
 
   const [folder, name] = parts;
-  if (!isUploadFolder(folder) || !UPLOAD_NAME_PATTERN.test(name)) return null;
+  if (!isUploadFolder(folder) || !isUploadName(name)) return null;
 
   return { folder, name };
 }

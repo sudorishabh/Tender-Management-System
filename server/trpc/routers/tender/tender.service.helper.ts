@@ -11,6 +11,7 @@ import { CreateTenderType, UpdateLiveTenderType } from "./tender.schema";
 import { sendMail } from "@/lib/server/email";
 import { tenderInvitationEmail } from "@/lib/server/templates/tender.templates";
 import { normalizeDbDate } from "@/utils/normalizeDbDate";
+import { assertUploadsNotInUse } from "../s3/s3.service";
 
 // The key dates every tender needs before it can go live
 const TENDER_DATE_FIELDS = [
@@ -469,6 +470,7 @@ export const updateLiveTenderService = async (
   }
 
   const dateUpdates = getLiveTenderDateUpdates(existing, step3);
+  await assertUploadsNotInUse([step1.tender_contract_document], tender_id);
 
   // Stores the local "YYYY-MM-DD HH:mm:ss" string as is; undefined leaves the
   // column unchanged

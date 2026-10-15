@@ -14,7 +14,11 @@ import {
   BadRequestError,
   ForbiddenError,
 } from "@/lib/server/errors";
-import { parseUploadKey, resolveUploadPath } from "@/lib/server/uploads";
+import {
+  isUploadName,
+  parseUploadKey,
+  resolveUploadPath,
+} from "@/lib/server/uploads";
 import {
   canVendorsViewTender,
   getTenderTimelineStatus,
@@ -43,7 +47,7 @@ async function findFileReferences(name: string) {
   const [tenders, vendorDocs, businessDocs, bids, bidRequirementDocs] =
     await Promise.all([
       db
-        .select(tenderDates)
+        .select({ tender_id: tenderTable.tender_id, ...tenderDates })
         .from(tenderTable)
         .where(eq(tenderTable.tender_contract_document, name)),
       db
@@ -167,6 +171,38 @@ export async function getFileAccess(
     );
 
   return allowed ? "allowed" : "denied";
+}
+
+/**
+ * Rejects upload names that a record already uses. Every upload gets a new
+ * random name, so a name that is already attached somewhere was copied from
+ * another record, and saving it would grant access to someone else's file.
+ * A tender may keep its own contract document (`ownTenderId`).
+ */
+export async function assertUploadsNotInUse(
+  names: (string | null | undefined)[],
+  ownTenderId?: number | null
+): Promise<void> {
+  for (const name of names) {
+    if (!name) continue;
+
+    if (!isUploadName(name)) {
+      throw new BadRequestError("Invalid file name", "INVALID_FILE_NAME");
+    }
+
+    const { tenders, vendorOwnerIds, bids } = await findFileReferences(name);
+    const isUsedElsewhere =
+      vendorOwnerIds.length > 0 ||
+      bids.length > 0 ||
+      tenders.some((tender) => tender.tender_id !== ownTenderId);
+
+    if (isUsedElsewhere) {
+      throw new ForbiddenError(
+        "This file is already attached to another record. Please upload it again.",
+        "FILE_IN_USE"
+      );
+    }
+  }
 }
 
 /**

@@ -20,6 +20,7 @@ import type {
   VendorRegistrationType,
 } from "./auth.schema";
 import crypto from "crypto";
+import { assertUploadsNotInUse } from "../s3/s3.service";
 
 // MUTATION
 //////////////////////////////////////////////////////////////////
@@ -32,6 +33,15 @@ export async function registerVendorService(data: VendorRegistrationType) {
     business: businessData,
     vendor_source,
   } = data;
+
+  await assertUploadsNotInUse([
+    vendorData.vendor_pan_doc_key,
+    vendorData.vendor_adhar_doc_key,
+    businessData.biz_reg_doc_key,
+    businessData.biz_gst_doc_key,
+    businessData.biz_bank_doc_key,
+    businessData.biz_msme_cert_doc_key,
+  ]);
 
   const hashedPassword = await hashPassword(userData.password);
 
