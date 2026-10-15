@@ -324,11 +324,13 @@ export const updateTenderStatusService = async (data: {
         .where(eq(tenderTable.tender_id, tender_id));
     }
   } catch (error) {
+    // A database failure here is a server fault: the error handler logs the
+    // details and shows the caller a generic message
     throw new ApiError(
       `Failed to update tender status: ${
         error instanceof Error ? error.message : "Unknown error"
       }`,
-      400,
+      500,
       "FAILED_TO_UPDATE_TENDER_STATUS",
     );
   }

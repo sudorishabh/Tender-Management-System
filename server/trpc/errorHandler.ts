@@ -119,24 +119,19 @@ export function handleProcedureError(
     });
   }
 
-  // Handle generic ApiError
-  if (error instanceof ApiError) {
+  // Handle generic ApiError; server faults are hidden like unknown errors
+  if (error instanceof ApiError && error.statusCode < 500) {
     return apiErrorToTRPCError(error);
   }
 
-  // Handle generic Error
-  if (error instanceof Error) {
-    return new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: error.message,
-      cause: error,
-    });
-  }
-
-  // Handle unknown errors
+  // Anything else is a server fault whose message can carry internals, such
+  // as the SQL text and parameters Drizzle puts in query errors. Keep it in
+  // the server log and send only the generic message.
+  console.error(defaultMessage, error);
   return new TRPCError({
     code: "INTERNAL_SERVER_ERROR",
     message: defaultMessage,
+    cause: error instanceof Error ? error : undefined,
   });
 }
 
