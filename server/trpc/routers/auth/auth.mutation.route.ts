@@ -1,4 +1,8 @@
-import { publicProcedure, router, superAdminProcedure } from "../../trpc";
+import {
+  rateLimitedProcedure,
+  router,
+  superAdminProcedure,
+} from "../../trpc";
 import { handleProcedureError } from "../../errorHandler";
 import {
   acceptAdminInviteSchema,
@@ -11,8 +15,11 @@ import {
   sendAdminInvite,
 } from "./auth.service";
 
+const HOUR_MS = 60 * 60 * 1000;
+
 export const authMutationRoute = router({
-  register: publicProcedure
+  // Limited per address: each registration sends two emails
+  register: rateLimitedProcedure("register", 10, HOUR_MS)
     .input(vendorRegistrationSchema)
     .mutation(async ({ input }) => {
       try {
@@ -27,7 +34,7 @@ export const authMutationRoute = router({
     }),
 
   // Accept admin invite
-  acceptInvite: publicProcedure
+  acceptInvite: rateLimitedProcedure("accept-invite", 10, HOUR_MS)
     .input(acceptAdminInviteSchema)
     .mutation(async ({ input }) => {
       try {
