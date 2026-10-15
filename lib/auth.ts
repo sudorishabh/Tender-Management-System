@@ -1,6 +1,8 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcrypt";
+import { randomBytes } from "crypto";
+import { hashPassword } from "@/lib/server/utils";
 import { db } from "@/server/db";
 import { usersTable } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
@@ -9,6 +11,9 @@ import { SIGN_IN_RATE_LIMITED_ERROR } from "@/lib/auth/types";
 
 const SIGN_IN_ATTEMPTS = { perEmail: 10, perIp: 50 };
 const SIGN_IN_WINDOW_MS = 15 * 60 * 1000;
+
+// Hash of a random password that nobody knows, checked for unknown emails
+const dummyPasswordHash = hashPassword(randomBytes(16).toString("hex"));
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -48,7 +53,12 @@ export const authOptions: NextAuthOptions = {
           .where(eq(usersTable.email, email))
           .limit(1);
         const user = userRow[0];
-        if (!user) return null;
+        if (!user) {
+          // Spend the same bcrypt time as a wrong password, so response times
+          // don't reveal which emails have accounts
+          await compare(password, await dummyPasswordHash);
+          return null;
+        }
 
         const valid = await compare(password, user.password);
         if (!valid) return null;
