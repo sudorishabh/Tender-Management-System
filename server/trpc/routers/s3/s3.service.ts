@@ -97,23 +97,23 @@ async function findFileReferences(name: string) {
           )
         ),
       db
-        .select({ ownerId: vendorProfileTable.user_id })
+        .select({ ownerId: vendorProfileTable.user_id, tender: tenderDates })
         .from(bidVendorDocsTable)
         .innerJoin(bidsTable, eq(bidVendorDocsTable.bid_id, bidsTable.bid_id))
         .innerJoin(
           vendorProfileTable,
           eq(bidsTable.vendor_id, vendorProfileTable.vendor_id)
         )
+        .innerJoin(tenderTable, eq(bidsTable.tender_id, tenderTable.tender_id))
         .where(eq(bidVendorDocsTable.bvd_doc_key, name)),
     ]);
 
   return {
     tenders,
-    // Vendor KYC documents and bid requirement documents
-    vendorOwnerIds: [...vendorDocs, ...businessDocs, ...bidRequirementDocs].map(
-      (row) => row.ownerId
-    ),
+    // Vendor KYC documents
+    vendorOwnerIds: [...vendorDocs, ...businessDocs].map((row) => row.ownerId),
     bids,
+    bidRequirementDocs,
     isReferenced:
       tenders.length +
         vendorDocs.length +
@@ -155,7 +155,7 @@ export async function getFileAccess(
   if (!parsed) return "not_found";
 
   const { name } = parsed;
-  const { tenders, vendorOwnerIds, bids, isReferenced } =
+  const { tenders, vendorOwnerIds, bids, bidRequirementDocs, isReferenced } =
     await findFileReferences(name);
 
   if (!isReferenced) return "not_found";
@@ -168,6 +168,12 @@ export async function getFileAccess(
     vendorOwnerIds.some((ownerId) => isAdmin || isOwner(ownerId)) ||
     bids.some(
       (bid) => isOwner(bid.ownerId) || (isAdmin && canAdminSeeBidFile(bid, name))
+    ) ||
+    // Requirement documents are part of the sealed bid
+    bidRequirementDocs.some(
+      (doc) =>
+        isOwner(doc.ownerId) ||
+        (isAdmin && getTenderTimelineStatus(doc.tender).isBidSubmissionClosed)
     );
 
   return allowed ? "allowed" : "denied";
@@ -190,10 +196,12 @@ export async function assertUploadsNotInUse(
       throw new BadRequestError("Invalid file name", "INVALID_FILE_NAME");
     }
 
-    const { tenders, vendorOwnerIds, bids } = await findFileReferences(name);
+    const { tenders, vendorOwnerIds, bids, bidRequirementDocs } =
+      await findFileReferences(name);
     const isUsedElsewhere =
       vendorOwnerIds.length > 0 ||
       bids.length > 0 ||
+      bidRequirementDocs.length > 0 ||
       tenders.some((tender) => tender.tender_id !== ownTenderId);
 
     if (isUsedElsewhere) {

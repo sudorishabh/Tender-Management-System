@@ -12,6 +12,7 @@ import {
   ApiError,
   NotFoundError,
   BadRequestError,
+  ForbiddenError,
   InternalServerError,
 } from "@/lib/server/errors";
 import { eq, and, desc, ne, or, sql, DrizzleQueryError } from "drizzle-orm";
@@ -508,6 +509,15 @@ export async function bidById(bidId: string) {
   const isBidSubmissionClosed = timelineStatus?.isBidSubmissionClosed ?? false;
   const canShowTechnicalDoc = timelineStatus?.canShowTechnicalDoc ?? false;
   const canShowFinancialDoc = timelineStatus?.canShowFinancialDoc ?? false;
+
+  // Like the admin bid lists, nobody sees who bid or what they sent until
+  // bidding has closed
+  if (!isBidSubmissionClosed) {
+    throw new ForbiddenError(
+      "Bids stay sealed until the bid submission deadline",
+      "BID_SEALED"
+    );
+  }
 
   // Create modified bid object with timeline-based visibility
   const visibleBid = {
