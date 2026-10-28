@@ -36,7 +36,10 @@ interface Props {
   /** Omit to hide the Save as Draft button (live tender edit). */
   handleSaveTender?: () => void;
   isSavingTender?: boolean;
-  /** When true, skips the "release date must not be in the past" check (used when editing a published tender) */
+  /**
+   * When true (editing a published tender), skips the "release date must not be
+   * in the past" check and instead requires every changed date to be in the future
+   */
   isEditMode?: boolean;
   /** Dates shown read-only, each with a note explaining why (live tender edit). */
   lockedDates?: Partial<Record<KeyDateField, string>>;
@@ -103,6 +106,7 @@ const KeyDates: FC<Props> = ({
     trigger,
     setError,
     clearErrors,
+    formState: { defaultValues },
   } = useFormContext<ITenderFormSteps>();
 
   const step3Data = watch("step3");
@@ -152,6 +156,20 @@ const KeyDates: FC<Props> = ({
           field: "tender_release_date",
           message: "Release Date must not be earlier than the current date.",
         });
+      }
+    }
+
+    // 0b. Edit mode: a changed date, even a passed one being rescheduled,
+    // must be in the future (the server applies the same rule)
+    if (isEditMode) {
+      const now = new Date();
+      for (const keyDate of keyDateDescriptions) {
+        const field = keyDate.key as KeyDateField;
+        const value = toLocalDate(step3Data?.[field]);
+        const original = toLocalDate(defaultValues?.step3?.[field]);
+        if (value && value.getTime() !== original?.getTime() && value <= now) {
+          errors.push({ field, message: `${keyDate.name} must be in the future.` });
+        }
       }
     }
 
