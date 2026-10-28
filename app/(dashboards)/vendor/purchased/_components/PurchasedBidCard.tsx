@@ -64,7 +64,9 @@ const PurchasedBidCard: React.FC<BidCardProps> = ({ bid, tender }) => {
               />
               Tender #{tender?.tender_number || bid.tender_id}
             </p>
-            <h2 className='line-clamp-2 text-base font-semibold text-slate-900'>
+            <h2
+              className='line-clamp-2 text-base font-semibold text-slate-900'
+              title={tender?.tender_title ?? undefined}>
               {tender?.tender_title || "Tender Title"}
             </h2>
             <p className='text-xs text-slate-600'>

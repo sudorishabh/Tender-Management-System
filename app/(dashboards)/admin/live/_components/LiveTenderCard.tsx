@@ -110,7 +110,9 @@ const LiveTenderCard = ({
       {/* Main Content */}
       <div className='p-4'>
         {/* Title */}
-        <h3 className='text-base font-medium text-gray-800 mb-3 line-clamp-1 leading-tight'>
+        <h3
+          className='text-base font-medium text-gray-800 mb-3 line-clamp-1 leading-tight'
+          title={tender.tender_title ?? undefined}>
           {capitalizeFirstLetter(tender.tender_title)}
         </h3>
 

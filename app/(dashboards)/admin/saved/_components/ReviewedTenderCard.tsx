@@ -45,7 +45,9 @@ const ReviewedTenderCard: FC<IReviewedTenderCardProps> = ({ tender }) => {
             </span>
           </div>
 
-          <h3 className='text-lg font-semibold text-gray-800 mb-3 line-clamp-2'>
+          <h3
+            className='text-lg font-semibold text-gray-800 mb-3 line-clamp-2'
+            title={tender.tender_title ?? undefined}>
             {tender.tender_title || "Untitled Tender"}
           </h3>
 

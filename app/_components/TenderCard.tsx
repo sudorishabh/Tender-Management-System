@@ -206,12 +206,14 @@ const TenderCard: FC<{
           )}
         </div>
 
-        {/* Title & Description - closed tenders recede so open ones lead */}
+        {/* Title & Description - closed tenders recede so open ones lead.
+            Titles run to 500 characters; the tooltip carries the full title */}
         <h3
           className={cn(
             "mb-1 line-clamp-2 text-base font-bold leading-snug underline-offset-2 group-hover:underline",
             tender.isLive ? "text-primary" : "text-neutral-700"
-          )}>
+          )}
+          title={tender.tender_title ?? undefined}>
           {capitalizeFirstLetter(tender.tender_title || "Untitled Tender")}
         </h3>
         {descriptionPreview && (
