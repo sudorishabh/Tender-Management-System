@@ -33,8 +33,9 @@ import CustomButton from "@/_components/Shared/CustomButton";
 
 interface Props {
   setActive: (active: number) => void;
-  handleSaveTender: () => void;
-  isSavingTender: boolean;
+  /** Omit to hide the Save as Draft button (live tender edit). */
+  handleSaveTender?: () => void;
+  isSavingTender?: boolean;
   /** When true, skips the "release date must not be in the past" check (used when editing a published tender) */
   isEditMode?: boolean;
   /** Dates shown read-only, each with a note explaining why (live tender edit). */
@@ -324,13 +325,15 @@ const KeyDates: FC<Props> = ({
       title='Key Tender Dates'
       information='Define the timeline for your tender process'
       Button={
-        <CustomButton
-          btnName={isSavingTender ? "Saving..." : "Save as Draft"}
-          variant='tertiary'
-          LeftIcon={Save}
-          onClick={handleSaveTender}
-          disabled={isSavingTender}
-        />
+        handleSaveTender && (
+          <CustomButton
+            btnName={isSavingTender ? "Saving..." : "Save as Draft"}
+            variant='tertiary'
+            LeftIcon={Save}
+            onClick={handleSaveTender}
+            disabled={isSavingTender}
+          />
+        )
       }>
       <div className='space-y-6'>
         <div className='p-4 bg-primary/5 rounded-md border border-primary/20 flex items-start'>

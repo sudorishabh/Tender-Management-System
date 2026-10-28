@@ -161,12 +161,9 @@ const EditLiveTender = ({ paramsPromise }: Props) => {
 
   const renderStep = useCallback(
     (form: UseFormReturn<ITenderFormSteps>) => {
-      const noop = async () => {};
-      const commonProps = {
-        setActive: setActiveFormTab,
-        handleSaveTender: noop,
-        isSavingTender: false,
-      };
+      // No save handler, so the steps hide Save as Draft (a live tender
+      // can't go back to draft)
+      const commonProps = { setActive: setActiveFormTab };
 
       switch (activeFormTab) {
         case 0:
