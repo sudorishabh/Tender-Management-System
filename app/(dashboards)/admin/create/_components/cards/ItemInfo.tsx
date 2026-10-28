@@ -21,13 +21,20 @@ interface Props {
   liveEditRestricted?: boolean;
 }
 
+// Tender numbers follow the April-March financial year, e.g. 2026-27 runs
+// from 1 April 2026 to 31 March 2027
+const getFinancialYear = (date = new Date()) => {
+  const startYear =
+    date.getMonth() >= 3 ? date.getFullYear() : date.getFullYear() - 1;
+  return `${startYear}-${String(startYear + 1).slice(-2)}`;
+};
+
 // --- Component ---
 const TenderNumberInput = ({ disabled }: { disabled?: boolean }) => {
   const { setValue, watch, register, getFieldState, formState } =
     useFormContext<ITenderFormSteps>();
 
-  const currentYear = `${new Date().getFullYear() - 1}-${new Date().getFullYear().toString().slice(-2)}`;
-  const prefix = `TERI/MAT/${currentYear}/`;
+  const prefix = `TERI/MAT/${getFinancialYear()}/`;
 
   const existingValue = watch("step1.tender_number") || "";
   const [idVal, setIdVal] = React.useState("");
@@ -43,11 +50,17 @@ const TenderNumberInput = ({ disabled }: { disabled?: boolean }) => {
       // TERI/MAT/YEAR/ID -> parts[3]
       if (parts.length >= 4) {
         setIdVal(parts[3]);
+        // A draft saved in an earlier financial year moves onto the current
+        // year's prefix, so the saved number matches the one shown. Live
+        // tenders keep the number they were published with
+        if (!disabled && !existingValue.startsWith(prefix)) {
+          setValue("step1.tender_number", `${prefix}${parts[3]}`);
+        }
       }
     } else if (!existingValue) {
       setIdVal("");
     }
-  }, [existingValue]);
+  }, [existingValue, disabled, prefix, setValue]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
