@@ -394,10 +394,10 @@ const invalidTenderDates = (message: string) =>
   new ApiError(message, 400, "INVALID_TENDER_DATES");
 
 /**
- * Works out which dates a live tender edit may change. Dates that have
- * already passed are locked, so changing one is rejected, and the rest must
- * stay in the future and in order, so an edit can't open sealed bids early
- * or reopen bidding after the deadline.
+ * Works out which dates a live tender edit changes. Unchanged dates keep
+ * their stored value, even once passed. A changed date, including a passed
+ * one being rescheduled, must be in the future, so an edit can't open sealed
+ * bids early, and all dates must stay in order.
  */
 const getLiveTenderDateUpdates = (
   stored: Record<LiveEditableDateField, Date | null>,
@@ -408,28 +408,19 @@ const getLiveTenderDateUpdates = (
   const updates: Partial<Record<LiveEditableDateField, string>> = {};
 
   for (const field of LIVE_EDITABLE_DATE_FIELDS) {
-    const storedDate = normalizeDbDate(stored[field]);
-    if (storedDate && storedDate <= now) {
-      const submittedDate = normalizeDbDate(submitted[field]);
-      if (submittedDate?.getTime() !== storedDate.getTime()) {
-        throw invalidTenderDates(
-          `${LIVE_DATE_LABELS[field]} has already passed and can't be changed`,
-        );
-      }
-      dates[field] = storedDate;
-      continue;
-    }
-
     const value = submitted[field];
     const submittedDate = normalizeDbDate(value);
     if (!value || !submittedDate) {
       throw invalidTenderDates("All tender dates are required");
     }
-    if (submittedDate <= now) {
-      throw invalidTenderDates("Upcoming tender dates can't be moved into the past");
-    }
 
     dates[field] = submittedDate;
+    const storedDate = normalizeDbDate(stored[field]);
+    if (storedDate?.getTime() === submittedDate.getTime()) continue;
+
+    if (submittedDate <= now) {
+      throw invalidTenderDates(`${LIVE_DATE_LABELS[field]} must be in the future`);
+    }
     updates[field] = value;
   }
 
