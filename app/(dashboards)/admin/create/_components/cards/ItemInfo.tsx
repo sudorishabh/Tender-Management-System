@@ -14,8 +14,9 @@ import EmailInviteInput from "./EmailInviteInput";
 
 interface Props {
   setActive: (active: number) => void;
-  handleSaveTender: () => void;
-  isSavingTender: boolean;
+  /** Omit to hide the Save as Draft button (live tender edit). */
+  handleSaveTender?: () => void;
+  isSavingTender?: boolean;
   /** When true, only description, contract document, and project timeframe are editable (live tender edit). */
   liveEditRestricted?: boolean;
 }
@@ -140,19 +141,21 @@ const ItemInfo: FC<Props> = ({
       title='Primary Tender Information'
       information="Provide the basic details that define this tender's purpose and scope"
       Button={
-        <CustomButton
-          btnName={isSavingTender ? "Saving..." : "Save as Draft"}
-          variant='tertiary'
-          LeftIcon={Save}
-          onClick={handleSaveTender}
-          disabled={isSavingTender}
-        />
+        handleSaveTender && (
+          <CustomButton
+            btnName={isSavingTender ? "Saving..." : "Save as Draft"}
+            variant='tertiary'
+            LeftIcon={Save}
+            onClick={handleSaveTender}
+            disabled={isSavingTender}
+          />
+        )
       }>
       <div className='flex flex-col gap-6'>
         {liveEditRestricted && (
           <div className='p-3 rounded-md border border-amber-200 bg-amber-50 text-xs text-amber-900'>
             For published tenders you can only change the description, contract document, project timeframe, and the
-            selected key dates on the next steps. All other fields stay as published.
+            key dates other than the release date. All other fields stay as published.
           </div>
         )}
         {/* Basic Information Section */}

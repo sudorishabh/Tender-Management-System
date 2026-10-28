@@ -33,15 +33,19 @@ import CustomButton from "@/_components/Shared/CustomButton";
 
 interface Props {
   setActive: (active: number) => void;
-  handleSaveTender: () => void;
-  isSavingTender: boolean;
-  /** When true, skips the "release date must not be in the past" check (used when editing a published tender) */
+  /** Omit to hide the Save as Draft button (live tender edit). */
+  handleSaveTender?: () => void;
+  isSavingTender?: boolean;
+  /**
+   * When true (editing a published tender), skips the "release date must not be
+   * in the past" check and instead requires every changed date to be in the future
+   */
   isEditMode?: boolean;
-  /** When true, release date is shown read-only (live tender edit). */
-  liveEditRestricted?: boolean;
+  /** Dates shown read-only, each with a note explaining why (live tender edit). */
+  lockedDates?: Partial<Record<KeyDateField, string>>;
 }
 
-type KeyDateField = keyof ITenderFormSteps["step3"];
+export type KeyDateField = keyof ITenderFormSteps["step3"];
 
 const keyDateDescriptions = [
   {
@@ -93,7 +97,7 @@ const KeyDates: FC<Props> = ({
   handleSaveTender,
   isSavingTender,
   isEditMode = false,
-  liveEditRestricted = false,
+  lockedDates = {},
 }) => {
   const {
     control,
@@ -102,6 +106,7 @@ const KeyDates: FC<Props> = ({
     trigger,
     setError,
     clearErrors,
+    formState: { defaultValues },
   } = useFormContext<ITenderFormSteps>();
 
   const step3Data = watch("step3");
@@ -151,6 +156,20 @@ const KeyDates: FC<Props> = ({
           field: "tender_release_date",
           message: "Release Date must not be earlier than the current date.",
         });
+      }
+    }
+
+    // 0b. Edit mode: a changed date, even a passed one being rescheduled,
+    // must be in the future (the server applies the same rule)
+    if (isEditMode) {
+      const now = new Date();
+      for (const keyDate of keyDateDescriptions) {
+        const field = keyDate.key as KeyDateField;
+        const value = toLocalDate(step3Data?.[field]);
+        const original = toLocalDate(defaultValues?.step3?.[field]);
+        if (value && value.getTime() !== original?.getTime() && value <= now) {
+          errors.push({ field, message: `${keyDate.name} must be in the future.` });
+        }
       }
     }
 
@@ -324,13 +343,15 @@ const KeyDates: FC<Props> = ({
       title='Key Tender Dates'
       information='Define the timeline for your tender process'
       Button={
-        <CustomButton
-          btnName={isSavingTender ? "Saving..." : "Save as Draft"}
-          variant='tertiary'
-          LeftIcon={Save}
-          onClick={handleSaveTender}
-          disabled={isSavingTender}
-        />
+        handleSaveTender && (
+          <CustomButton
+            btnName={isSavingTender ? "Saving..." : "Save as Draft"}
+            variant='tertiary'
+            LeftIcon={Save}
+            onClick={handleSaveTender}
+            disabled={isSavingTender}
+          />
+        )
       }>
       <div className='space-y-6'>
         <div className='p-4 bg-primary/5 rounded-md border border-primary/20 flex items-start'>
@@ -371,8 +392,11 @@ const KeyDates: FC<Props> = ({
 
         <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
           {keyDateDescriptions.map((keyDate, i) => {
-            if (liveEditRestricted && keyDate.key === "tender_release_date") {
-              const rd = toLocalDate(step3Data?.tender_release_date);
+            const lockedNote = lockedDates[keyDate.key as KeyDateField];
+            if (lockedNote) {
+              const lockedDate = toLocalDate(
+                step3Data?.[keyDate.key as KeyDateField]
+              );
               return (
                 <div
                   key={i}
@@ -387,11 +411,16 @@ const KeyDates: FC<Props> = ({
                   </div>
                   <div className='p-4'>
                     <p className='text-xs text-muted-foreground mb-2'>
-                      Release date cannot be changed for a published tender.
+                      {lockedNote}
                     </p>
                     <p className='text-sm font-medium text-gray-900'>
-                      {rd
-                        ? format(rd, "PPP 'at' HH:mm 'hrs'")
+                      {lockedDate
+                        ? format(
+                            lockedDate,
+                            keyDate.requiresTime
+                              ? "PPP 'at' HH:mm 'hrs'"
+                              : "PPP"
+                          )
                         : "Not set"}
                     </p>
                   </div>

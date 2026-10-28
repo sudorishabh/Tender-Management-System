@@ -24,8 +24,9 @@ import CustomButton from "@/_components/Shared/CustomButton";
 
 interface Props {
   setActive: (active: number) => void;
-  handleSaveTender: () => void;
-  isSavingTender: boolean;
+  /** Omit to hide the Save as Draft button (live tender edit). */
+  handleSaveTender?: () => void;
+  isSavingTender?: boolean;
   /** When true, document requirements are display-only (live tender edit). */
   readOnlyLiveTender?: boolean;
 }
@@ -99,13 +100,15 @@ const VendorDocRequirement: FC<Props> = ({
       title='Vendor Document Requirements'
       information='Define the documents vendors must submit with their bids (At least one required)'
       Button={
-        <CustomButton
-          btnName={isSavingTender ? "Saving..." : "Save as Draft"}
-          variant='tertiary'
-          LeftIcon={Save}
-          onClick={handleSaveTender}
-          disabled={isSavingTender}
-        />
+        handleSaveTender && (
+          <CustomButton
+            btnName={isSavingTender ? "Saving..." : "Save as Draft"}
+            variant='tertiary'
+            LeftIcon={Save}
+            onClick={handleSaveTender}
+            disabled={isSavingTender}
+          />
+        )
       }>
       <div className='space-y-6'>
         {/* Info Banner */}

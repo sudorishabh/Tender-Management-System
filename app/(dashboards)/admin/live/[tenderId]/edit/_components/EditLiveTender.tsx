@@ -11,7 +11,9 @@ import { createTenderNavData } from "@/app/(dashboards)/admin/create/_CreateTend
 import CreateTenderNavbar from "@/app/(dashboards)/admin/create/_components/CreateTenderNavbar";
 import ItemInfo from "@/app/(dashboards)/admin/create/_components/cards/ItemInfo";
 import VendorDocRequirement from "@/app/(dashboards)/admin/create/_components/cards/VendorDocRequirement";
-import KeyDates from "@/app/(dashboards)/admin/create/_components/cards/KeyDates";
+import KeyDates, {
+  type KeyDateField,
+} from "@/app/(dashboards)/admin/create/_components/cards/KeyDates";
 import useUploadFileToS3 from "@/hooks/useUploadFileToS3";
 import useDeleteFileFromS3 from "@/hooks/useDeleteFileFromS3";
 import {
@@ -24,6 +26,12 @@ import PageLoading from "@/components/Shared/PageLoading";
 interface Props {
   paramsPromise: Promise<{ tenderId: string }>;
 }
+
+// The release date is fixed once live; every other date, even a passed one,
+// can be rescheduled
+const LOCKED_DATES: Partial<Record<KeyDateField, string>> = {
+  tender_release_date: "Release date cannot be changed for a published tender.",
+};
 
 const EditLiveTender = ({ paramsPromise }: Props) => {
   const { tenderId } = use(paramsPromise);
@@ -139,12 +147,9 @@ const EditLiveTender = ({ paramsPromise }: Props) => {
 
   const renderStep = useCallback(
     (form: UseFormReturn<ITenderFormSteps>) => {
-      const noop = async () => {};
-      const commonProps = {
-        setActive: setActiveFormTab,
-        handleSaveTender: noop,
-        isSavingTender: false,
-      };
+      // No save handler, so the steps hide Save as Draft (a live tender
+      // can't go back to draft)
+      const commonProps = { setActive: setActiveFormTab };
 
       switch (activeFormTab) {
         case 0:
@@ -152,7 +157,9 @@ const EditLiveTender = ({ paramsPromise }: Props) => {
         case 1:
           return <VendorDocRequirement {...commonProps} readOnlyLiveTender />;
         case 2:
-          return <KeyDates {...commonProps} isEditMode liveEditRestricted />;
+          return (
+            <KeyDates {...commonProps} isEditMode lockedDates={LOCKED_DATES} />
+          );
         case 3:
           return (
             <EditLiveTenderPreview

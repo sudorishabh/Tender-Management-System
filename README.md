@@ -60,19 +60,19 @@ Production: <https://etender.teri.res.in>
 
 ## Tech stack
 
-| Area            | Technology                                                   |
-| --------------- | ------------------------------------------------------------ |
-| Framework       | [Next.js 16](https://nextjs.org) (App Router), React 18       |
-| Language        | TypeScript                                                   |
-| API             | [tRPC v11](https://trpc.io) + TanStack Query v5, `superjson` |
-| Auth            | [NextAuth.js v4](https://next-auth.js.org) (credentials, JWT sessions, bcrypt) |
-| Database        | MySQL with [Drizzle ORM](https://orm.drizzle.team) + Drizzle Kit |
-| Validation      | Zod, React Hook Form                                         |
+| Area            | Technology                                                                           |
+| --------------- | ------------------------------------------------------------------------------------ |
+| Framework       | [Next.js 16](https://nextjs.org) (App Router), React 18                              |
+| Language        | TypeScript                                                                           |
+| API             | [tRPC v11](https://trpc.io) + TanStack Query v5, `superjson`                         |
+| Auth            | [NextAuth.js v4](https://next-auth.js.org) (credentials, JWT sessions, bcrypt)       |
+| Database        | MySQL with [Drizzle ORM](https://orm.drizzle.team) + Drizzle Kit                     |
+| Validation      | Zod, React Hook Form                                                                 |
 | UI              | Tailwind CSS 3, Radix UI primitives (shadcn/ui pattern), lucide-react, sonner toasts |
-| Documents       | `@react-pdf-viewer`, `pdfjs-dist`, `mammoth` (DOCX)          |
-| Email           | Nodemailer (SMTP)                                            |
-| File storage    | Local disk outside the project (`UPLOADS_DIR`), served through an API route |
-| Package manager | pnpm 10.15+                                                  |
+| Documents       | `@react-pdf-viewer`, `pdfjs-dist`, `mammoth` (DOCX)                                  |
+| Email           | Nodemailer (SMTP)                                                                    |
+| File storage    | Local disk outside the project (`UPLOADS_DIR`), served through an API route          |
+| Package manager | pnpm 10.15+                                                                          |
 
 ---
 
@@ -137,7 +137,7 @@ INSERT INTO departments (div_code, division_name) VALUES
   ('ITS', 'Information Technology Services');
 ```
 
-**The first super admin.** Further admins are invited from the app, but the first account has to be inserted by hand. Generate a bcrypt hash (the app uses 10 salt rounds):
+**The first super admin.** Further admins are invited from the app, but the first account has to be inserted by hand. Generate a bcrypt hash (the app uses 12 salt rounds):
 
 ```bash
 node -e "require('bcrypt').hash('YourStrongPassword', 10).then(console.log)"
@@ -162,25 +162,25 @@ Open <http://localhost:3000>. Sign in as the super admin at `/sign-in`, then inv
 
 ## Environment variables
 
-| Variable                | Required | Description |
-| ----------------------- | :------: | ----------- |
-| `DATABASE_URL`          | ✅ | MySQL connection string, used by the app and Drizzle Kit |
-| `NEXTAUTH_URL`          | ✅ | Canonical URL of the app (e.g. `http://localhost:3000`) |
-| `NEXTAUTH_SECRET`       | ✅ | Secret for signing session JWTs. Also read by `proxy.ts`. |
-| `NEXT_PUBLIC_URL`       | ✅ | Public base URL, used to build links in emails |
-| `EMAIL_HOST`            | ✅ | SMTP host |
-| `EMAIL_PORT`            |    | SMTP port (default `587`, STARTTLS) |
-| `EMAIL_FROM`            | ✅ | SMTP username and sender address. Also receives new-vendor alerts. |
-| `EMAIL_PASSWORD`        | ✅ | SMTP password |
-| `EMAIL_FROM_NAME`       |    | Display name for outgoing email |
-| `ADMIN_EMAIL`           |    | Fallback recipient for admin notifications |
-| `APP_NAME`              |    | App name used in email templates |
-| `NEXT_PUBLIC_APP_NAME`  |    | App name shown in the UI |
-| `NEXT_PUBLIC_BASE_URL`  |    | Base URL for SEO metadata, sitemap and robots (default `https://etender.teri.res.in`) |
-| `GOOGLE_SITE_VERIFICATION` |  | Token from Google Search Console's "HTML tag" verification method. Adds the `google-site-verification` meta tag. |
-| `NEXTAUTH_COOKIE_NAME`  |    | Custom session cookie name |
-| `ONE_HOUR_MS`, `FIFTEEN_DAYS_MS` | | Token lifetime overrides in `lib/server/constants.ts` (defaults: 1 hour and 15 days) |
-| `UPLOADS_DIR`           |    | Absolute path where uploaded files are stored (default: an `eTender-uploads` folder next to the project folder). Set it in production. |
+| Variable                         | Required | Description                                                                                                                            |
+| -------------------------------- | :------: | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                   |    ✅    | MySQL connection string, used by the app and Drizzle Kit                                                                               |
+| `NEXTAUTH_URL`                   |    ✅    | Canonical URL of the app (e.g. `http://localhost:3000`)                                                                                |
+| `NEXTAUTH_SECRET`                |    ✅    | Secret for signing session JWTs. Also read by `proxy.ts`.                                                                              |
+| `NEXT_PUBLIC_URL`                |    ✅    | Public base URL, used to build links in emails                                                                                         |
+| `EMAIL_HOST`                     |    ✅    | SMTP host                                                                                                                              |
+| `EMAIL_PORT`                     |          | SMTP port (default `587`, STARTTLS)                                                                                                    |
+| `EMAIL_FROM`                     |    ✅    | SMTP username and sender address. Also receives new-vendor alerts.                                                                     |
+| `EMAIL_PASSWORD`                 |    ✅    | SMTP password                                                                                                                          |
+| `EMAIL_FROM_NAME`                |          | Display name for outgoing email                                                                                                        |
+| `ADMIN_EMAIL`                    |          | Fallback recipient for admin notifications                                                                                             |
+| `APP_NAME`                       |          | App name used in email templates                                                                                                       |
+| `NEXT_PUBLIC_APP_NAME`           |          | App name shown in the UI                                                                                                               |
+| `NEXT_PUBLIC_BASE_URL`           |          | Base URL for SEO metadata, sitemap and robots (default `https://etender.teri.res.in`)                                                  |
+| `GOOGLE_SITE_VERIFICATION`       |          | Token from Google Search Console's "HTML tag" verification method. Adds the `google-site-verification` meta tag.                       |
+| `NEXTAUTH_COOKIE_NAME`           |          | Custom session cookie name                                                                                                             |
+| `ONE_HOUR_MS`, `FIFTEEN_DAYS_MS` |          | Token lifetime overrides in `lib/server/constants.ts` (defaults: 1 hour and 15 days)                                                   |
+| `UPLOADS_DIR`                    |          | Absolute path where uploaded files are stored (default: an `eTender-uploads` folder next to the project folder). Set it in production. |
 
 > The existing `.env` templates also contain `APP_AWS_*` and `NEXT_PUBLIC_AWS_S3_*` keys. These are left over from when files were stored on S3. The code no longer reads them.
 
@@ -188,15 +188,15 @@ Open <http://localhost:3000>. Sign in as the super admin at `/sign-in`, then inv
 
 ## Scripts
 
-| Command            | Description |
-| ------------------ | ----------- |
-| `pnpm dev`         | Start the dev server (webpack) on port 3000 |
-| `pnpm build`       | Production build |
-| `pnpm start`       | Serve the production build |
-| `pnpm lint`        | Run ESLint |
+| Command            | Description                                                    |
+| ------------------ | -------------------------------------------------------------- |
+| `pnpm dev`         | Start the dev server (webpack) on port 3000                    |
+| `pnpm build`       | Production build                                               |
+| `pnpm start`       | Serve the production build                                     |
+| `pnpm lint`        | Run ESLint                                                     |
 | `pnpm db:generate` | Generate a SQL migration from changes to `server/db/schema.ts` |
-| `pnpm db:migrate`  | Apply pending migrations |
-| `pnpm db:studio`   | Open Drizzle Studio to browse the database |
+| `pnpm db:migrate`  | Apply pending migrations                                       |
+| `pnpm db:studio`   | Open Drizzle Studio to browse the database                     |
 
 > Tailwind config changes (`tailwind.config.ts`) aren't picked up by a running dev server. Restart `pnpm dev` after editing it.
 
@@ -273,11 +273,11 @@ draft ──submit──▶ review ──approve──▶ published
 
 Once a tender is published, whether it's visible and open for bids is worked out **from its dates only**:
 
-| State     | Condition                        | Vendors see                |
-| --------- | -------------------------------- | -------------------------- |
-| Scheduled | now < release date               | hidden                     |
+| State     | Condition                         | Vendors see               |
+| --------- | --------------------------------- | ------------------------- |
+| Scheduled | now < release date                | hidden                    |
 | Live      | release date ≤ now < bid deadline | visible, can bid          |
-| Closed    | now ≥ bid deadline               | visible, bidding disabled  |
+| Closed    | now ≥ bid deadline                | visible, bidding disabled |
 
 Technical documents stay hidden until the technical bid opening date, and financial documents until the financial bid opening date. See [`docs/TENDER_STATE_MANAGEMENT.md`](docs/TENDER_STATE_MANAGEMENT.md) and `lib/server/tenderStateHelpers.ts`.
 
@@ -312,20 +312,20 @@ Uploads are stored on the **local filesystem**, outside the project folder, unde
 
 Schema: [`server/db/schema.ts`](server/db/schema.ts) · Migrations: `server/db/migrations/`
 
-| Table                     | Purpose |
-| ------------------------- | ------- |
-| `users`                   | Accounts and role |
-| `vendor_profiles`         | Vendor status, contacts, PAN/Aadhaar documents |
+| Table                     | Purpose                                               |
+| ------------------------- | ----------------------------------------------------- |
+| `users`                   | Accounts and role                                     |
+| `vendor_profiles`         | Vendor status, contacts, PAN/Aadhaar documents        |
 | `businesses`              | Vendor business details, GST, bank and MSME documents |
-| `departments`             | TERI divisions, used on tenders |
-| `tenders`                 | Tender details, dates, fees and approval status |
-| `tender_email_invites`    | Vendor emails invited to a tender |
-| `vendor_doc_requirements` | Documents a tender requires from bidders |
-| `bids`                    | Bid submissions and their status |
-| `bid_vendor_docs`         | Documents uploaded against each requirement |
-| `tender_clarifications`   | Vendor questions and admin answers |
-| `notifications`           | In-app notifications |
-| `admin_invites`           | One-time admin invite tokens |
+| `departments`             | TERI divisions, used on tenders                       |
+| `tenders`                 | Tender details, dates, fees and approval status       |
+| `tender_email_invites`    | Vendor emails invited to a tender                     |
+| `vendor_doc_requirements` | Documents a tender requires from bidders              |
+| `bids`                    | Bid submissions and their status                      |
+| `bid_vendor_docs`         | Documents uploaded against each requirement           |
+| `tender_clarifications`   | Vendor questions and admin answers                    |
+| `notifications`           | In-app notifications                                  |
+| `admin_invites`           | One-time admin invite tokens                          |
 
 **Changing the schema:**
 
