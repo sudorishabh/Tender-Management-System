@@ -90,7 +90,7 @@ export const tenderTable = mysqlTable("tenders", {
   tender_number: varchar("tender_number", { length: 50 }),
   tender_type: varchar("tender_type", { length: 50 }),
   tender_scope: varchar("tender_scope", { length: 50 }),
-  tender_title: varchar("tender_title", { length: 150 }),
+  tender_title: varchar("tender_title", { length: 500 }),
   tender_description: text("tender_description"),
   tender_contract_document: varchar("tender_contract_document", {
     length: 255,

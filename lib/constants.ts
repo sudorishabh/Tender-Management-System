@@ -1,5 +1,5 @@
-// Matches the tenders.tender_title column (varchar 150)
-export const TENDER_TITLE_MAX_LENGTH = 150;
+// Matches the tenders.tender_title column (varchar 500)
+export const TENDER_TITLE_MAX_LENGTH = 500;
 
 // Tenders per page in the home list - the server render and the client query
 // must agree on it
