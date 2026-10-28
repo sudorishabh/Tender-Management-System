@@ -43,6 +43,13 @@
       "when": 1792041964892,
       "tag": "0005_bids_unique_tender_vendor",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1793169954373,
+      "tag": "0006_tender_title_500",
+      "breakpoints": true
     }
   ]
 }

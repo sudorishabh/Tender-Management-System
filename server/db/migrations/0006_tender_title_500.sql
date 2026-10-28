@@ -1,0 +1,1 @@
+ALTER TABLE `tenders` MODIFY COLUMN `tender_title` varchar(500);

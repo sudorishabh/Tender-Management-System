@@ -76,7 +76,7 @@ const ReviewTenderTable: FC<Props> = ({
                     />
                   </TableCell>
                   <TableCell className='font-medium my-auto'>
-                    {tenders.tender_title}
+                    <span className='line-clamp-2'>{tenders.tender_title}</span>
                   </TableCell>
                   <TableCell>
                     <div className='flex flex-col'>

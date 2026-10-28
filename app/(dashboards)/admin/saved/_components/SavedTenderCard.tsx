@@ -35,7 +35,9 @@ const savedTenderCard: FC<Props> = ({ savedTender, handleConfirmDelete }) => {
           </span>
         </div>
 
-        <h3 className='text-lg font-semibold text-gray-800 mb-3 line-clamp-2'>
+        <h3
+          className='text-lg font-semibold text-gray-800 mb-3 line-clamp-2'
+          title={savedTender.tender_title ?? undefined}>
           {savedTender.tender_title || "Untitled Tender"}
         </h3>
 
