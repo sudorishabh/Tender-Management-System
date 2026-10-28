@@ -11,7 +11,9 @@ import { createTenderNavData } from "@/app/(dashboards)/admin/create/_CreateTend
 import CreateTenderNavbar from "@/app/(dashboards)/admin/create/_components/CreateTenderNavbar";
 import ItemInfo from "@/app/(dashboards)/admin/create/_components/cards/ItemInfo";
 import VendorDocRequirement from "@/app/(dashboards)/admin/create/_components/cards/VendorDocRequirement";
-import KeyDates from "@/app/(dashboards)/admin/create/_components/cards/KeyDates";
+import KeyDates, {
+  type KeyDateField,
+} from "@/app/(dashboards)/admin/create/_components/cards/KeyDates";
 import useUploadFileToS3 from "@/hooks/useUploadFileToS3";
 import useDeleteFileFromS3 from "@/hooks/useDeleteFileFromS3";
 import {
@@ -80,6 +82,26 @@ const EditLiveTender = ({ paramsPromise }: Props) => {
     };
     form.reset(resetData, { keepDefaultValues: false });
   }, [data, form]);
+
+  // The release date is fixed once live, and dates that have passed are
+  // locked (the server rejects changes to them)
+  const lockedDates = useMemo(() => {
+    const locked: Partial<Record<KeyDateField, string>> = {
+      tender_release_date:
+        "Release date cannot be changed for a published tender.",
+    };
+    if (!data?.tender) return locked;
+
+    const now = new Date();
+    const storedDates = normalizeStep3Dates(data.tender);
+    for (const field of Object.keys(storedDates) as KeyDateField[]) {
+      const date = storedDates[field];
+      if (field !== "tender_release_date" && date && date <= now) {
+        locked[field] = "This date has passed and can't be changed.";
+      }
+    }
+    return locked;
+  }, [data]);
 
   const progressPercentage = useMemo(
     () => Math.round((activeFormTab / (createTenderNavData.length - 1)) * 100),
@@ -152,7 +174,9 @@ const EditLiveTender = ({ paramsPromise }: Props) => {
         case 1:
           return <VendorDocRequirement {...commonProps} readOnlyLiveTender />;
         case 2:
-          return <KeyDates {...commonProps} isEditMode liveEditRestricted />;
+          return (
+            <KeyDates {...commonProps} isEditMode lockedDates={lockedDates} />
+          );
         case 3:
           return (
             <EditLiveTenderPreview
@@ -165,7 +189,7 @@ const EditLiveTender = ({ paramsPromise }: Props) => {
           return null;
       }
     },
-    [activeFormTab, updateMutation.isPending, isUploading],
+    [activeFormTab, updateMutation.isPending, isUploading, lockedDates],
   );
 
   if (isLoading) return <PageLoading />;

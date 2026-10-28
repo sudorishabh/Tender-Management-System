@@ -152,7 +152,7 @@ const ItemInfo: FC<Props> = ({
         {liveEditRestricted && (
           <div className='p-3 rounded-md border border-amber-200 bg-amber-50 text-xs text-amber-900'>
             For published tenders you can only change the description, contract document, project timeframe, and the
-            selected key dates on the next steps. All other fields stay as published.
+            key dates that haven&apos;t passed yet. All other fields stay as published.
           </div>
         )}
         {/* Basic Information Section */}

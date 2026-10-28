@@ -37,11 +37,11 @@ interface Props {
   isSavingTender: boolean;
   /** When true, skips the "release date must not be in the past" check (used when editing a published tender) */
   isEditMode?: boolean;
-  /** When true, release date is shown read-only (live tender edit). */
-  liveEditRestricted?: boolean;
+  /** Dates shown read-only, each with a note explaining why (live tender edit). */
+  lockedDates?: Partial<Record<KeyDateField, string>>;
 }
 
-type KeyDateField = keyof ITenderFormSteps["step3"];
+export type KeyDateField = keyof ITenderFormSteps["step3"];
 
 const keyDateDescriptions = [
   {
@@ -93,7 +93,7 @@ const KeyDates: FC<Props> = ({
   handleSaveTender,
   isSavingTender,
   isEditMode = false,
-  liveEditRestricted = false,
+  lockedDates = {},
 }) => {
   const {
     control,
@@ -371,8 +371,11 @@ const KeyDates: FC<Props> = ({
 
         <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
           {keyDateDescriptions.map((keyDate, i) => {
-            if (liveEditRestricted && keyDate.key === "tender_release_date") {
-              const rd = toLocalDate(step3Data?.tender_release_date);
+            const lockedNote = lockedDates[keyDate.key as KeyDateField];
+            if (lockedNote) {
+              const lockedDate = toLocalDate(
+                step3Data?.[keyDate.key as KeyDateField]
+              );
               return (
                 <div
                   key={i}
@@ -387,11 +390,16 @@ const KeyDates: FC<Props> = ({
                   </div>
                   <div className='p-4'>
                     <p className='text-xs text-muted-foreground mb-2'>
-                      Release date cannot be changed for a published tender.
+                      {lockedNote}
                     </p>
                     <p className='text-sm font-medium text-gray-900'>
-                      {rd
-                        ? format(rd, "PPP 'at' HH:mm 'hrs'")
+                      {lockedDate
+                        ? format(
+                            lockedDate,
+                            keyDate.requiresTime
+                              ? "PPP 'at' HH:mm 'hrs'"
+                              : "PPP"
+                          )
                         : "Not set"}
                     </p>
                   </div>
