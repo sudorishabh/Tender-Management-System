@@ -27,6 +27,12 @@ interface Props {
   paramsPromise: Promise<{ tenderId: string }>;
 }
 
+// The release date is fixed once live; every other date, even a passed one,
+// can be rescheduled
+const LOCKED_DATES: Partial<Record<KeyDateField, string>> = {
+  tender_release_date: "Release date cannot be changed for a published tender.",
+};
+
 const EditLiveTender = ({ paramsPromise }: Props) => {
   const { tenderId } = use(paramsPromise);
   const tenderIdNum = parseInt(tenderId);
@@ -82,26 +88,6 @@ const EditLiveTender = ({ paramsPromise }: Props) => {
     };
     form.reset(resetData, { keepDefaultValues: false });
   }, [data, form]);
-
-  // The release date is fixed once live, and dates that have passed are
-  // locked (the server rejects changes to them)
-  const lockedDates = useMemo(() => {
-    const locked: Partial<Record<KeyDateField, string>> = {
-      tender_release_date:
-        "Release date cannot be changed for a published tender.",
-    };
-    if (!data?.tender) return locked;
-
-    const now = new Date();
-    const storedDates = normalizeStep3Dates(data.tender);
-    for (const field of Object.keys(storedDates) as KeyDateField[]) {
-      const date = storedDates[field];
-      if (field !== "tender_release_date" && date && date <= now) {
-        locked[field] = "This date has passed and can't be changed.";
-      }
-    }
-    return locked;
-  }, [data]);
 
   const progressPercentage = useMemo(
     () => Math.round((activeFormTab / (createTenderNavData.length - 1)) * 100),
@@ -172,7 +158,7 @@ const EditLiveTender = ({ paramsPromise }: Props) => {
           return <VendorDocRequirement {...commonProps} readOnlyLiveTender />;
         case 2:
           return (
-            <KeyDates {...commonProps} isEditMode lockedDates={lockedDates} />
+            <KeyDates {...commonProps} isEditMode lockedDates={LOCKED_DATES} />
           );
         case 3:
           return (
@@ -186,7 +172,7 @@ const EditLiveTender = ({ paramsPromise }: Props) => {
           return null;
       }
     },
-    [activeFormTab, updateMutation.isPending, isUploading, lockedDates],
+    [activeFormTab, updateMutation.isPending, isUploading],
   );
 
   if (isLoading) return <PageLoading />;
